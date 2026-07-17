@@ -16,6 +16,6 @@
     "hooks": "@/hooks"
   },
   "registries": {
-    "@astro-shad": "http://localhost:4321/public/r/{name}.json"
+    "@astro-shad": "https://raw.githubusercontent.com/sethsticle/astro-shad/main/public/r/{name}.json"
   }
 }
