@@ -1,0 +1,39 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/pagination/Basic.astro';
+import basicSource from '../../../components/docs/demos/pagination/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Pagination"
+  description="shadcn pagination as pure anchor markup -- which page you are on is URL state, owned by the server, so zero client JS ships. Windowing math runs in frontmatter at render time."
+  registry="pagination"
+  sourceFile="Pagination.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="flex flex-col gap-4 p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/pagination" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'currentPage', type: 'number', description: 'The active page (1-based).' },
+      { name: 'totalPages', type: 'number', description: 'Total page count.' },
+      { name: 'hrefFor', type: '(page: number) => string', default: "(p) => `?page=${p}`", description: 'Server-side function prop building each link -- props never serialize to the client in Astro.' },
+      { name: 'siblingCount', type: 'number', default: '1', description: 'Pages shown on each side of the current page before ellipses.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Interactivity ladder rung 2: plain anchors, the query string is the store.</li>
+    <li>Chevron/ellipsis icons are inlined SVG -- zero dependencies.</li>
+  </ul>
+</DocsLayout>

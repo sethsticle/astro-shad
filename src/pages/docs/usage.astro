@@ -1,0 +1,183 @@
+---
+/**
+ * /docs/usage -- the consumer walkthrough: fresh Astro + Tailwind v4
+ * project through to pulling and re-branding components. Written for
+ * team onboarding: every new project starts by following this page
+ * top to bottom. Content mirrors docs/how-it-works.md §7 (the verified
+ * recipes) -- if the two ever disagree, how-it-works.md wins; fix this
+ * page.
+ */
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import Snippet from "../../components/docs/Snippet.astro";
+
+// Guard: frontmatter tag-strings + a bare "Props" word in the template can
+// panic @astrojs/compiler's props scanner (see session manifest 2026-07-17 f).
+interface Props {}
+
+const scaffold = `npm create astro@latest my-site -- --template minimal
+cd my-site
+npm install
+npx astro add tailwind   # Tailwind v4 via @tailwindcss/vite`;
+
+const componentsJson = `{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/global.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@/components",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "utils": "@/lib/utils",
+    "hooks": "@/hooks"
+  },
+  "registries": {
+    "@astro-shad": "https://raw.githubusercontent.com/sethsticle/astro-shad/main/public/r/{name}.json"
+  }
+}`;
+
+const tsconfig = `{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  }
+}`;
+
+const firstAdds = `npx shadcn add @astro-shad/theme     # once per repo: the token contract
+npx shadcn add @astro-shad/button    # pulls utils + clsx + tailwind-merge automatically`;
+
+const globalCss = `/* src/styles/global.css */
+@import "tailwindcss";
+@import "./theme.css";`;
+
+const usage = `---
+import Button from "../components/astro-shad/Button.astro";
+import Card from "../components/astro-shad/Card.astro";
+---
+
+<Card>
+  <p>Ship it.</p>
+  <Button href="/contact" size="lg">Get in touch</Button>
+</Card>`;
+
+const rebrand = `/* Loaded AFTER theme.css -- overrides token VALUES, never markup. */
+:root {
+  --primary: #7c3aed;
+  --accent: #f59e0b;
+  --radius: 0.75rem;
+}
+[data-theme="light"] {
+  --primary: #6d28d9;
+  --accent: #d97706;
+}`;
+
+const installedLayout = `src/
+  components/astro-shad/   <- installed components (registry-owned, then yours)
+  lib/utils.ts             <- cn()
+  styles/theme.css         <- the token contract
+  styles/global.css        <- your global stylesheet (imports both)`;
+---
+
+<DocsLayout
+  title="Usage & requirements"
+  description="The start-to-finish setup for consuming astro-shad in a fresh Astro + Tailwind v4 project: scaffold, configure, pull components, then re-brand through tokens. Every new project follows this page."
+>
+  <h2>Requirements</h2>
+  <ul class="docs-list">
+    <li>Node.js — current LTS.</li>
+    <li>An Astro project with <strong>Tailwind v4</strong> (<code>@tailwindcss/vite</code>, no <code>tailwind.config</code>). <code>npx astro add tailwind</code> sets this up.</li>
+    <li>No React, no framework islands — components are HTML + Tailwind + minimal vanilla JS.</li>
+    <li>The shadcn CLI needs nothing installed: it runs via <code>npx shadcn</code>.</li>
+  </ul>
+
+  <h2>1. Scaffold a fresh project</h2>
+  <p>Skip this if you're adding to an existing Astro + Tailwind v4 repo.</p>
+  <Snippet lang="bash" code={scaffold} />
+
+  <h2>2. Create <code>components.json</code></h2>
+  <p>
+    At the project root. This is the shadcn CLI's config; the <code>registries</code> block is what maps the
+    <code>@astro-shad</code> namespace to this registry (<code>{'{name}'}</code> is a literal placeholder the CLI substitutes).
+  </p>
+  <Snippet lang="json" code={componentsJson} />
+  <p>
+    <strong><code>"tsx": true</code> is non-negotiable.</strong> With it off, the CLI runs a TSX transform over every
+    installed file and hard-fails on <code>.astro</code> frontmatter. With it on, files pass through byte-identical.
+    This single flag is the load-bearing wall of the whole method.
+  </p>
+
+  <h2>3. Add the <code>@/</code> alias to <code>tsconfig.json</code></h2>
+  <p>
+    The CLI resolves paths through it, even though astro-shad components never use the alias themselves
+    (they import relatively, so they work in any repo).
+  </p>
+  <Snippet lang="json" code={tsconfig} />
+
+  <h2>4. Pull the foundation, then components</h2>
+  <p>The token contract comes first, once per repo. After that, add per need — dependencies resolve automatically.</p>
+  <Snippet lang="bash" code={firstAdds} />
+  <p>Everything lands in a predictable layout — components are visibly registry-owned in their own folder:</p>
+  <Snippet lang="text" code={installedLayout} />
+
+  <h2>5. Wire the theme</h2>
+  <p>Import the token contract from your global stylesheet, <em>after</em> Tailwind:</p>
+  <Snippet lang="css" code={globalCss} />
+
+  <h2>6. Use it</h2>
+  <p>Import components relatively from wherever you are — no alias required:</p>
+  <Snippet lang="astro" code={usage} />
+  <p>
+    You now own these files. This is copy-and-own: there's no package to update and no lock-in. Re-running
+    <code>npx shadcn add</code> for an item offers to overwrite your copy with the latest — diff first if you've
+    customised it.
+  </p>
+
+  <h2>7. Re-brand for the project</h2>
+  <p>
+    Every component styles itself only through the tokens in <code>theme.css</code>, which ships neutral
+    (grayscale, blue accent). Branding a site means overriding token <em>values</em> in CSS loaded after it —
+    component markup never changes:
+  </p>
+  <Snippet lang="css" code={rebrand} />
+  <p>
+    Spend this time deliberately: set the brand's tokens <em>before</em> composing pages, and every component
+    you pull is already on-brand.
+  </p>
+
+  <h2>The workflow</h2>
+  <p>How a project comes together, in order:</p>
+  <ul class="docs-list">
+    <li><strong>Set up once</strong> — steps 1–5 above; roughly five minutes.</li>
+    <li><strong>Brand the tokens</strong> — colors, radius, accent for the site you're building (step 7).</li>
+    <li><strong>Choose layouts</strong> — pick the page skeletons (headers, sections) from the registry.</li>
+    <li><strong>Pull components</strong> — fill the layouts from the component catalogue in the sidebar.</li>
+    <li><strong>Customise</strong> — the files are yours; edit markup freely once the token pass isn't enough.</li>
+  </ul>
+
+  <h2>Troubleshooting</h2>
+  <ul class="docs-list">
+    <li>
+      <code>add</code> fails with an import/transform error → <code>"tsx": true</code> is missing from
+      <code>components.json</code>.
+    </li>
+    <li>
+      A component landed at <code>src/components/&lt;Name&gt;.astro</code> (no <code>astro-shad/</code> folder) and its
+      <code>../../lib/utils</code> import breaks → the alias fallback placed it; check <code>tsconfig.json</code> and
+      re-add. Registry items declare explicit targets, so this points at a config problem.
+    </li>
+    <li>
+      Components render unstyled → <code>theme.css</code> isn't imported after <code>tailwindcss</code> in your global
+      stylesheet (step 5).
+    </li>
+    <li>
+      You pushed a component change but consumers get the old version → the registry serves built JSON; rebuild and
+      republish (registry maintainers only).
+    </li>
+  </ul>
+</DocsLayout>

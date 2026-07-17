@@ -1,0 +1,35 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/count-up/Basic.astro';
+import basicSource from '../../../components/docs/demos/count-up/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Count Up"
+  description="react-bits CountUp minus react: the FINAL value is server-rendered as real text -- no-JS, crawlers, and reduced-motion all see the finished number. In view, one rAF loop rewinds and eases up, formatted by Intl.NumberFormat."
+  registry="count-up"
+  sourceFile="CountUp.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/count-up" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'to', type: 'number', description: 'Final value.' },
+      { name: 'from', type: 'number', default: '0', description: 'Start value when the animation runs.' },
+      { name: 'duration', type: 'number', default: '1600', description: 'Animation length in ms (easeOutCubic).' },
+      { name: 'decimals', type: 'number', default: '0', description: 'Fraction digits, fixed.' },
+      { name: 'prefix / suffix', type: 'string', description: 'Static text around the number (outside the animated span).' },
+      { name: 'locale', type: 'string', default: "'en-US'", description: 'Intl.NumberFormat locale for grouping/decimal style.' },
+    ]}
+  />
+</DocsLayout>

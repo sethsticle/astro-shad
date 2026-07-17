@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "feature-grid-01",
+  "title": "Feature Grid 01 — heading + card grid",
+  "description": "Layout section, ships populated: centered heading block above a 3/4-column card grid (columns prop). Swap the demo Cards for your own cells; customise by editing the installed copy.",
+  "registryDependencies": [
+    "@astro-shad/utils",
+    "@astro-shad/card"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/sections/FeatureGrid-01.astro",
+      "content": "---\n/**\n * FeatureGrid-01.astro -- layout section: centered heading block above a\n * 3/4-column card grid. Ships populated (frontend-contract.md §7):\n * <FeatureGrid01 /> renders a complete block; make it yours by editing\n * this copy you own (swap the Cards for your own cells).\n *\n * `columns` picks the lg+ column count; below lg the grid steps down to\n * 2 then 1. Ships three demo cards -- add a fourth when columns={4}.\n */\nimport { cn } from \"../../../lib/utils\";\nimport Card from \"../Card.astro\";\n\ninterface Props {\n  /** lg+ column count for the items grid. */\n  columns?: 3 | 4;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { columns = 3, class: className, ...rest } = Astro.props;\n---\n\n<section class={cn(\"py-16 md:py-24\", className)} {...rest}>\n  <div class=\"mx-auto w-full max-w-6xl px-6\">\n    <div class=\"mx-auto mb-12 flex max-w-2xl flex-col items-center gap-4 text-center\">\n      <!-- heading block — yours to edit: comment out and replace -->\n      <h2 class=\"text-3xl font-semibold tracking-tight md:text-4xl\">Why teams pick this stack</h2>\n      <p class=\"text-muted-foreground\">Three to four cells of proof. Keep each one to a claim and a sentence.</p>\n    </div>\n    <div class={cn(\"grid gap-4 sm:grid-cols-2\", columns === 4 ? \"lg:grid-cols-4\" : \"lg:grid-cols-3\")}>\n      <!-- items — swap these Cards for your own cells -->\n      <Card title=\"Token-driven\" description=\"Re-brand by changing values in theme.css, never markup.\" />\n      <Card title=\"Zero runtime\" description=\"HTML + Tailwind + a little vanilla JS. Nothing hydrates.\" />\n      <Card title=\"Copy-and-own\" description=\"Installed files are yours. Edit them like you wrote them.\" />\n    </div>\n  </div>\n</section>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/sections/FeatureGrid-01.astro"
+    }
+  ],
+  "type": "registry:component"
+}

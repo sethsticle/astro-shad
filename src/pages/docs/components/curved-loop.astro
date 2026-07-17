@@ -1,0 +1,54 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import ArcsDemo from '../../../components/docs/demos/curved-loop/Arcs.astro';
+import arcsSource from '../../../components/docs/demos/curved-loop/Arcs.astro?raw';
+import CustomPathDemo from '../../../components/docs/demos/curved-loop/CustomPath.astro';
+import customPathSource from '../../../components/docs/demos/curved-loop/CustomPath.astro?raw';
+---
+
+<DocsLayout
+  title="Curved Loop"
+  description="react-bits CurvedLoop minus react: marquee text on an SVG path via textPath startOffset. A script measures one text repeat after document.fonts.ready, fills the path, and advances the offset in a rAF loop."
+  registry="curved-loop"
+  sourceFile="CurvedLoop.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={arcsSource} class="block p-8">
+    <ArcsDemo />
+  </ComponentPreview>
+
+  <h2>Custom path <span class="ml-1 align-middle text-xs font-normal text-muted-foreground">experimental</span></h2>
+  <p>
+    <code>path</code> takes a raw SVG path <code>d</code> string (pair it with a matching
+    <code>viewBox</code>) and replaces the generated arc entirely. The marquee mechanics are
+    path-agnostic -- <code>getTotalLength()</code> works on any open curve.
+  </p>
+  <ComponentPreview code={customPathSource} class="block p-8">
+    <CustomPathDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/curved-loop" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'text', type: 'string', description: "One repeat unit -- include the trailing separator, e.g. \"BRAND · \"." },
+      { name: 'speed', type: 'number', default: '70', description: 'px per second.' },
+      { name: 'curve', type: 'number', default: '0.6', description: 'Arc depth 0..1 (0 flat, 1 deep). Ignored when path is given.' },
+      { name: 'flip', type: 'boolean', default: 'false', description: 'Mirror the arc downward -- pair a flipped one under a normal one.' },
+      { name: 'path', type: 'string', description: 'EXPERIMENTAL: custom SVG path d, replaces the generated arc.' },
+      { name: 'viewBox', type: 'string', default: "'0 0 1440 240'", description: 'SVG viewBox; size it to your custom path.' },
+      { name: 'fontSize', type: 'number', default: '36', description: 'SVG text font-size in viewBox units.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Inherits text color (<code>fill: currentColor</code>) -- set font/color via class.</li>
+    <li>No JS / reduced motion: the server-rendered single unit sits static on the curve.</li>
+  </ul>
+</DocsLayout>

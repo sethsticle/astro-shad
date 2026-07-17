@@ -104,6 +104,348 @@
           "target": "src/components/astro-shad/AccordionItem.astro"
         }
       ]
+    },
+    {
+      "name": "accordion-02",
+      "type": "registry:component",
+      "title": "Accordion 02",
+      "description": "Style variant of accordion: boxed -- each item is a separate rounded card with a gap. Same vanilla JS behaviour (single/multiple, grid-rows animation), fully self-contained.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Accordion-02.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Accordion-02.astro"
+        },
+        {
+          "path": "src/components/astro-shad/Accordion-02Item.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Accordion-02Item.astro"
+        }
+      ]
+    },
+    {
+      "name": "accordion-03",
+      "type": "registry:component",
+      "title": "Accordion 03",
+      "description": "Style variant of accordion: flat divided list with an icon slot per item and swap-on-open chevrons. Same vanilla JS behaviour (single/multiple, grid-rows animation), fully self-contained.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Accordion-03.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Accordion-03.astro"
+        },
+        {
+          "path": "src/components/astro-shad/Accordion-03Item.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Accordion-03Item.astro"
+        }
+      ]
+    },
+    {
+      "name": "glass-icon",
+      "type": "registry:component",
+      "title": "Glass Icon",
+      "description": "react-bits GlassIcons converted to a self-contained .astro tile: glass front, accent back plate (any CSS color, defaults to --primary), hover label. Zero client JS.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/GlassIcon.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/GlassIcon.astro"
+        }
+      ]
+    },
+    {
+      "name": "folder",
+      "type": "registry:component",
+      "title": "Folder",
+      "description": "react-bits Folder converted to CSS boxes + one delegated vanilla JS script: open/close toggle, fanning papers, cursor-magnet drift. Color via any CSS color prop.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Folder.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Folder.astro"
+        }
+      ]
+    },
+    {
+      "name": "pagination",
+      "type": "registry:component",
+      "title": "Pagination",
+      "description": "shadcn pagination as pure anchor markup -- page position is URL state, so zero client JS ships. Windowing math runs in frontmatter; icons are inline SVG.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Pagination.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Pagination.astro"
+        }
+      ]
+    },
+    {
+      "name": "bubble-menu",
+      "type": "registry:component",
+      "title": "Bubble Menu",
+      "description": "react-bits BubbleMenu minus react + gsap: staggered pill open/close via CSS transitions keyed off one data-state attribute, delays baked at build time. Per-item hover color prop.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/BubbleMenu.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/BubbleMenu.astro"
+        }
+      ]
+    },
+    {
+      "name": "form",
+      "type": "registry:component",
+      "title": "Form",
+      "description": "react-less counterpart of shadcn Form (react-hook-form + zod): native Constraint Validation API, validate-on-submit with reward-early revalidation, inline errors. Form + FormField.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Form.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Form.astro"
+        },
+        {
+          "path": "src/components/astro-shad/FormField.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/FormField.astro"
+        }
+      ]
+    },
+    {
+      "name": "date-picker",
+      "type": "registry:component",
+      "title": "Date Picker",
+      "description": "shadcn DatePicker without Popover/react-day-picker: real text input with a date pattern plus a vanilla JS month-grid popover. Follows the Form/FormField validation conventions.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/DatePicker.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/DatePicker.astro"
+        }
+      ]
+    },
+    {
+      "name": "magic-bento",
+      "type": "registry:component",
+      "title": "Magic Bento",
+      "description": "Bento layout grid + cell card. Zero JS: hover glow is a pure CSS keyframe gradient sweep (glow/glowColors props); cells size via span=default|wide|tall. MagicBento + BentoCard.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/MagicBento.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/MagicBento.astro"
+        },
+        {
+          "path": "src/components/astro-shad/BentoCard.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/BentoCard.astro"
+        }
+      ]
+    },
+    {
+      "name": "text-type",
+      "type": "registry:component",
+      "title": "Text Type",
+      "description": "react-bits TextType (typewriter) minus react: types, holds, deletes, cycles. First string server-rendered for no-JS/reduced-motion; caret rides currentColor.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/TextType.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/TextType.astro"
+        }
+      ]
+    },
+    {
+      "name": "rotating-text",
+      "type": "registry:component",
+      "title": "Rotating Text",
+      "description": "react-bits RotatingText minus react. ZERO client JS: per-instance keyframes generated in frontmatter, all words stacked in one inline-grid cell.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/RotatingText.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/RotatingText.astro"
+        }
+      ]
+    },
+    {
+      "name": "split-text",
+      "type": "registry:component",
+      "title": "Split Text",
+      "description": "react-bits SplitText minus react + gsap: the word/char split happens at build time in frontmatter; an IntersectionObserver flips one attribute and CSS staggers the reveal.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/SplitText.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/SplitText.astro"
+        }
+      ]
+    },
+    {
+      "name": "count-up",
+      "type": "registry:component",
+      "title": "Count Up",
+      "description": "react-bits CountUp minus react: final value server-rendered as real text; one rAF loop eases up from `from` when scrolled into view, formatted by Intl.NumberFormat.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/CountUp.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/CountUp.astro"
+        }
+      ]
+    },
+    {
+      "name": "curved-loop",
+      "type": "registry:component",
+      "title": "Curved Loop",
+      "description": "react-bits CurvedLoop minus react: marquee text on an SVG path via textPath startOffset, measured after document.fonts.ready. Experimental `path` prop accepts a custom SVG path.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/CurvedLoop.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/CurvedLoop.astro"
+        }
+      ]
+    },
+    {
+      "name": "top-bar",
+      "type": "registry:component",
+      "title": "Top Bar",
+      "description": "Full-width site header: edge-to-edge bar with bottom border, contained inner row, optional brand/nav/actions slots. Zero client JS. Sibling of floating-header.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/TopBar.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/TopBar.astro"
+        }
+      ]
+    },
+    {
+      "name": "floating-header",
+      "type": "registry:component",
+      "title": "Floating Header",
+      "description": "Floating site header: detached radius-adjustable pill (translucent card fill + blur) with brand/nav/actions slots. Zero client JS. Sibling of top-bar.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/FloatingHeader.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/FloatingHeader.astro"
+        }
+      ]
+    },
+    {
+      "name": "logo-loop",
+      "type": "registry:component",
+      "title": "Logo Loop",
+      "description": "react-bits LogoLoop minus react. ZERO client JS: classic duplicated-track CSS marquee with edge fade mask, speed/gap/pauseOnHover knobs.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/LogoLoop.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/LogoLoop.astro"
+        }
+      ]
+    },
+    {
+      "name": "hero-01",
+      "type": "registry:component",
+      "title": "Hero 01 — centered",
+      "description": "Layout section, ships populated: full-height hero (min-h-svh), centered content stack + background slot. <Hero01 /> renders a complete block; customise by editing the installed copy (copy-and-own).",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/badge", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Hero-01.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Hero-01.astro"
+        }
+      ]
+    },
+    {
+      "name": "hero-02",
+      "type": "registry:component",
+      "title": "Hero 02 — bottom-left",
+      "description": "Layout section, ships populated: full-height hero with content anchored bottom-left (editorial composition) + background slot for the full-bleed image. Customise by editing the installed copy.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Hero-02.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Hero-02.astro"
+        }
+      ]
+    },
+    {
+      "name": "hero-03",
+      "type": "registry:component",
+      "title": "Hero 03 — centered + feature strip",
+      "description": "Layout section, ships populated: full-height centered hero with an auto-fit 3-4 column card strip anchored at the bottom edge + background slot. Customise by editing the installed copy.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button", "@astro-shad/card"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Hero-03.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Hero-03.astro"
+        }
+      ]
+    },
+    {
+      "name": "split-01",
+      "type": "registry:component",
+      "title": "Split 01 — media + content",
+      "description": "Layout section, ships populated: normal-height half/half split, media placeholder surface beside the content stack (swap the div for your img/video), reverse prop flips sides at md+.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Split-01.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Split-01.astro"
+        }
+      ]
+    },
+    {
+      "name": "feature-grid-01",
+      "type": "registry:component",
+      "title": "Feature Grid 01 — heading + card grid",
+      "description": "Layout section, ships populated: centered heading block above a 3/4-column card grid (columns prop). Swap the demo Cards for your own cells; customise by editing the installed copy.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/card"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/FeatureGrid-01.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/FeatureGrid-01.astro"
+        }
+      ]
+    },
+    {
+      "name": "cta-01",
+      "type": "registry:component",
+      "title": "CTA 01 — centered band",
+      "description": "Layout section, ships populated: narrow centered call-to-action band on a card surface with an in-band background slot. Customise by editing the installed copy.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Cta-01.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Cta-01.astro"
+        }
+      ]
     }
   ]
 }

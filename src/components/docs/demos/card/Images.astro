@@ -1,0 +1,19 @@
+---
+import Card from '../../../astro-shad/Card.astro';
+---
+
+<div class="grid w-full gap-4 sm:grid-cols-2">
+  <Card
+    image="https://picsum.photos/seed/astro-shad/640/300"
+    imageAlt="Placeholder"
+    title="Image card"
+    description="image renders edge-to-edge above the header."
+  />
+  <Card
+    bgImage="https://picsum.photos/seed/astro-bg/640/400"
+    title="Background image"
+    description="Cover layer behind the content with a bottom scrim."
+  >
+    <p class="text-sm text-white/80">Text goes literal white over the scrim.</p>
+  </Card>
+</div>

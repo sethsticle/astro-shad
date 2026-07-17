@@ -1,0 +1,121 @@
+---
+/**
+ * FormField.astro -- one labelled field inside an astro-shad <Form>. The
+ * react-less counterpart of shadcn's FormField/FormItem/FormLabel/
+ * FormControl/FormMessage stack: label, control, optional description, and
+ * an error slot, all wired with the correct aria attributes in one
+ * component.
+ *
+ * Validation is declarative -- native constraint attributes (required,
+ * pattern, minlength, min, max, type=email, ...) pass straight through to
+ * the control via the rest spread. Form.astro's delegated script reads them
+ * back with checkValidity() on submit. No schema object, no client state:
+ * the DOM attributes ARE the schema.
+ *
+ * `error` overrides the browser's validationMessage with a custom message
+ * for any failure on this field.
+ *
+ *   <FormField name="email" label="Email" type="email" required />
+ *   <FormField name="province" label="Province" type="select"
+ *     placeholder="Select a province" options={['Gauteng', 'Western Cape']} required />
+ *   <FormField name="consent" label="I agree..." type="checkbox" required
+ *     error="Please accept the consent to continue." />
+ */
+import { cn } from '../../lib/utils';
+
+type Option = string | { value: string; label: string };
+
+interface Props {
+  name: string;
+  label: string;
+  type?:
+    | 'text' | 'email' | 'tel' | 'url' | 'password' | 'number' | 'date'
+    | 'textarea' | 'select' | 'checkbox';
+  required?: boolean;
+  placeholder?: string;
+  /** helper text under the control */
+  description?: string;
+  /** custom message replacing the browser's validationMessage */
+  error?: string;
+  /** select only */
+  options?: Option[];
+  /** textarea only */
+  rows?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  name,
+  label,
+  type = 'text',
+  required,
+  placeholder,
+  description,
+  error,
+  options = [],
+  rows = 4,
+  class: className,
+  ...rest
+} = Astro.props;
+
+/* Per-instance uid keeps ids unique if two forms share a field name. */
+const uid = crypto.randomUUID().slice(0, 6);
+const id = `${name}-${uid}`;
+const descId = description ? `${id}-desc` : undefined;
+const errId = `${id}-error`;
+
+/* shadcn ui/input.tsx styles, shared by input/select/textarea below. */
+const INPUT =
+  'w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors ' +
+  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive';
+
+/* Shared attributes for whichever control renders below. */
+const control = {
+  id,
+  name,
+  required,
+  'aria-describedby': [descId, errId].filter(Boolean).join(' '),
+  'data-error': error,
+  ...rest,
+};
+
+const opt = (o: Option) =>
+  typeof o === 'string' ? { value: o, label: o } : o;
+---
+
+{type === 'checkbox' ? (
+  <div class={cn('flex flex-col gap-1.5', className)} data-form-field>
+    <label for={id} class="flex cursor-pointer items-start gap-2.5 text-sm text-foreground">
+      <input
+        type="checkbox"
+        class="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+        {...control}
+      />
+      <span>{label}{required && <span class="text-destructive" aria-hidden="true"> *</span>}</span>
+    </label>
+    {description && <p id={descId} class="text-xs text-muted-foreground">{description}</p>}
+    <p id={errId} data-field-error hidden aria-live="polite" class="text-xs text-destructive"></p>
+  </div>
+) : (
+  <div class={cn('flex flex-col gap-1.5', className)} data-form-field>
+    <label for={id} class="text-sm font-medium text-foreground">
+      {label}{required && <span class="text-destructive" aria-hidden="true"> *</span>}
+    </label>
+
+    {type === 'textarea' ? (
+      <textarea class={INPUT} rows={rows} placeholder={placeholder} {...control}></textarea>
+    ) : type === 'select' ? (
+      <select class={cn(INPUT, 'h-10 bg-background')} {...control}>
+        {placeholder && <option value="" selected disabled>{placeholder}</option>}
+        {options.map((o) => <option value={opt(o).value}>{opt(o).label}</option>)}
+      </select>
+    ) : (
+      <input type={type} class={cn(INPUT, 'h-10')} placeholder={placeholder} {...control} />
+    )}
+
+    {description && <p id={descId} class="text-xs text-muted-foreground">{description}</p>}
+    <p id={errId} data-field-error hidden aria-live="polite" class="text-xs text-destructive"></p>
+  </div>
+)}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "count-up",
+  "title": "Count Up",
+  "description": "react-bits CountUp minus react: final value server-rendered as real text; one rAF loop eases up from `from` when scrolled into view, formatted by Intl.NumberFormat.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/CountUp.astro",
+      "content": "---\n/**\n * CountUp.astro -- astro-shad animated counter. Converted from react-bits\n * CountUp, minus react.\n *\n * The FINAL value is server-rendered as real text: no JS, crawlers, and\n * reduced-motion all see the finished number. When JS runs and the element\n * scrolls into view, it rewinds to `from` and eases up to `to` with one\n * rAF loop, formatted by Intl.NumberFormat.\n *\n *   <CountUp to={412} suffix=\"+\" class=\"text-4xl font-semibold\" />\n *   <CountUp to={92.5} decimals={1} suffix=\"%\" locale=\"en-ZA\" />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  to: number;\n  from?: number;\n  /** ms */\n  duration?: number;\n  decimals?: number;\n  prefix?: string;\n  suffix?: string;\n  /** Intl.NumberFormat locale for the grouping/decimal style */\n  locale?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst {\n  to,\n  from = 0,\n  duration = 1600,\n  decimals = 0,\n  prefix = '',\n  suffix = '',\n  locale = 'en-US',\n  class: className,\n  ...rest\n} = Astro.props;\n\nconst formatted = new Intl.NumberFormat(locale, {\n  minimumFractionDigits: decimals,\n  maximumFractionDigits: decimals,\n}).format(to);\n---\n\n<span\n  class={cn('tabular-nums', className)}\n  data-astro-shad-countup\n  data-from={from}\n  data-to={to}\n  data-duration={duration}\n  data-decimals={decimals}\n  data-locale={locale}\n  {...rest}\n>{prefix}<span data-cu>{formatted}</span>{suffix}</span>\n\n<script>\n  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {\n    const run = (el: HTMLElement) => {\n      const out = el.querySelector('[data-cu]');\n      if (!out) return;\n      const from = Number(el.dataset.from);\n      const to = Number(el.dataset.to);\n      const dur = Number(el.dataset.duration);\n      const fmt = new Intl.NumberFormat(el.dataset.locale, {\n        minimumFractionDigits: Number(el.dataset.decimals),\n        maximumFractionDigits: Number(el.dataset.decimals),\n      });\n      const t0 = performance.now();\n      (function frame(now: number) {\n        const t = Math.min(1, (now - t0) / dur);\n        const ease = 1 - Math.pow(1 - t, 3); /* easeOutCubic */\n        out.textContent = fmt.format(from + (to - from) * ease);\n        if (t < 1) requestAnimationFrame(frame);\n      })(t0);\n    };\n\n    const io = new IntersectionObserver(\n      (entries) => {\n        entries.forEach((en) => {\n          if (en.isIntersecting) {\n            io.unobserve(en.target);\n            run(en.target as HTMLElement);\n          }\n        });\n      },\n      { threshold: 0.5 }\n    );\n    document.querySelectorAll<HTMLElement>('[data-astro-shad-countup]').forEach((el) => io.observe(el));\n  }\n</script>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/CountUp.astro"
+    }
+  ],
+  "type": "registry:component"
+}

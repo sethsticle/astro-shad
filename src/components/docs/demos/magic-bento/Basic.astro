@@ -1,0 +1,13 @@
+---
+import MagicBento from '../../../astro-shad/MagicBento.astro';
+import BentoCard from '../../../astro-shad/BentoCard.astro';
+---
+
+<MagicBento size="md" class="w-full">
+  <BentoCard span="wide" label="Glow" title="Keyframe gradient sweep" description="Hover: the border glow sweeps diagonally on a pure CSS loop." />
+  <BentoCard label="Default" title="Primary glow" description="glowColors defaults to the theme primary." />
+  <BentoCard label="Colors list" title="Two-color glow" description="Successive radial stops sweep together." glowColors={['#60a5fa', '#c084fc']} />
+  <BentoCard glow={false} label="Quiet" title="No sweep" description="glow disabled on this cell." />
+  <BentoCard span="tall" bgImage="https://picsum.photos/seed/bento/480/700" label="BG image" title="Background cell" description="Cover layer + scrim behind the text." />
+  <BentoCard image="https://picsum.photos/seed/bento2/480/280" title="Image cell" description="Full-bleed image above the text." />
+</MagicBento>

@@ -1,0 +1,57 @@
+---
+/**
+ * Accordion-02.astro -- astro-shad accordion, style variant 02 ("boxed"):
+ * each item is a separate rounded card on bg-card with a gap between
+ * items, instead of the base accordion's divided flat list. Same
+ * behaviour contract as the base (single/multiple modes, grid-rows
+ * height animation), duplicated here so the variant is fully
+ * self-contained -- consumers may install accordion-02 without the base
+ * accordion. Distinct data attributes keep the two scripts independent
+ * when both are on one page.
+ *
+ *   <Accordion02>
+ *     <Accordion02Item title="Is it accessible?">Yes -- ARIA wired.</Accordion02Item>
+ *     <Accordion02Item title="Is it boxed?" open>Each item is its own card.</Accordion02Item>
+ *   </Accordion02>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  type?: 'single' | 'multiple';
+  /** boolean alias for type="multiple" */
+  multipleOpen?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { type = 'single', multipleOpen = false, class: className, ...rest } = Astro.props;
+const mode = multipleOpen ? 'multiple' : type;
+---
+
+<div class={cn('flex flex-col gap-2', className)} data-astro-shad-accordion-02={mode} {...rest}>
+  <slot />
+</div>
+
+<script>
+  function setOpen(trigger: Element, open: boolean) {
+    trigger.setAttribute('aria-expanded', String(open));
+    const panel = trigger
+      .closest('[data-accordion-02-item]')
+      ?.querySelector<HTMLElement>('[data-accordion-02-panel]');
+    if (panel) panel.dataset.state = open ? 'open' : 'closed';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-accordion-02]').forEach((root) => {
+    root.addEventListener('click', (e) => {
+      const trigger = (e.target as HTMLElement).closest('[data-accordion-02-trigger]');
+      if (!trigger || trigger.closest('[data-astro-shad-accordion-02]') !== root) return;
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (root.dataset.astroShadAccordion02 === 'single' && !isOpen) {
+        root
+          .querySelectorAll('[data-accordion-02-trigger][aria-expanded="true"]')
+          .forEach((other) => setOpen(other, false));
+      }
+      setOpen(trigger, !isOpen);
+    });
+  });
+</script>

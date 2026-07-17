@@ -1,0 +1,31 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import VariantsDemo from '../../../components/docs/demos/badge/Variants.astro';
+import variantsSource from '../../../components/docs/demos/badge/Variants.astro?raw';
+---
+
+<DocsLayout
+  title="Badge"
+  description="shadcn badge converted to a self-contained .astro file. Renders an anchor when href is given, a span otherwise. Zero client JS."
+  registry="badge"
+  sourceFile="Badge.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={variantsSource}>
+    <VariantsDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/badge" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'variant', type: "'primary' | 'secondary' | 'destructive' | 'outline' | 'accent'", default: "'primary'", description: 'Visual style. accent is a tinted chip (primary at 15% fill) that reads in both themes.' },
+      { name: 'href', type: 'string', description: 'When set, renders an anchor instead of a span.' },
+    ]}
+  />
+</DocsLayout>

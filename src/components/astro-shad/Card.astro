@@ -12,6 +12,16 @@
  *     <div slot="footer"><Button size="sm">Save</Button></div>
  *   </Card>
  *
+ *   <Card image="/cover.jpg" imageAlt="Cover" title="With image" />
+ *     ^ image renders edge-to-edge above the header (or fill the "image"
+ *       slot with custom markup -- the slot wins over the prop).
+ *
+ *   <Card bgImage="/photo.jpg" title="Over a photo">
+ *     ^ image as the card's background: absolute cover layer behind all
+ *       content with a bottom scrim. Text goes literal white -- the scrim
+ *       is dark in both themes, so theme-dependent foreground would vanish
+ *       in light mode.
+ *
  * The "header" slot replaces title/description entirely when custom
  * header markup is needed.
  */
@@ -20,24 +30,57 @@ import { cn } from '../../lib/utils';
 interface Props {
   title?: string;
   description?: string;
+  /** convenience shortcut for the image slot: pass a src string */
+  image?: string;
+  imageAlt?: string;
+  /** image as the card's background, behind all content */
+  bgImage?: string;
   class?: string;
   [key: string]: unknown;
 }
 
-const { title, description, class: className, ...rest } = Astro.props;
+const {
+  title,
+  description,
+  image,
+  imageAlt = '',
+  bgImage,
+  class: className,
+  ...rest
+} = Astro.props;
+const hasImage = Astro.slots.has('image') || Boolean(image);
 const hasHeader = Boolean(title || description) || Astro.slots.has('header');
 const hasFooter = Astro.slots.has('footer');
 ---
 
 <div
-  class={cn('rounded-lg border border-border bg-card text-card-foreground shadow-sm', className)}
+  class={cn(
+    'overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm',
+    /* relative anchors the bg layer; isolate opens a stacking context so
+       the image's -z-10 sits behind the content but in front of bg-card */
+    bgImage && 'relative isolate text-white',
+    className
+  )}
   {...rest}
 >
+  {bgImage && (
+    <div class="absolute inset-0 -z-10">
+      <img src={bgImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10"></div>
+    </div>
+  )}
+  {hasImage && (
+    <slot name="image">
+      {image && <img src={image} alt={imageAlt} class="w-full object-cover" loading="lazy" />}
+    </slot>
+  )}
   {hasHeader && (
     <div class="flex flex-col gap-1.5 p-6">
       <slot name="header">
         {title && <h3 class="text-lg font-semibold leading-none tracking-tight">{title}</h3>}
-        {description && <p class="text-sm text-muted-foreground">{description}</p>}
+        {description && (
+          <p class={cn('text-sm', bgImage ? 'text-white/70' : 'text-muted-foreground')}>{description}</p>
+        )}
       </slot>
     </div>
   )}

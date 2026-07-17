@@ -1,0 +1,38 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/text-type/Basic.astro';
+import basicSource from '../../../components/docs/demos/text-type/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Text Type"
+  description="react-bits TextType (typewriter) minus react: types each string out, holds, deletes, cycles. The first string is server-rendered, so no-JS, crawlers, and reduced-motion all see real text."
+  registry="text-type"
+  sourceFile="TextType.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/text-type" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'text', type: 'string | string[]', description: 'Strings to cycle through. A single string types once and stops.' },
+      { name: 'speed', type: 'number', default: '55', description: 'ms per typed character.' },
+      { name: 'pause', type: 'number', default: '1800', description: 'ms held at the full string before deleting.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The caret rides <code>currentColor</code> -- it matches whatever text color you set via class.</li>
+    <li>Screen readers get one clean announcement (first string in aria-label); the animating text is aria-hidden.</li>
+  </ul>
+</DocsLayout>

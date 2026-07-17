@@ -6,7 +6,7 @@ Personal shadcn-compatible registry serving hand-converted `.astro` components (
 
 1. **`session_manifest/index.md`** — what's been done, current state, and the ongoing plan. Update it at the end of every session.
 2. **`docs/how-it-works.md`** — registry mechanics, recipes, and the five gotchas (the `tsx: true` requirement, explicit targets, relative imports). Do not violate the gotchas; each one was paid for.
-3. **`docs/standards.md`** — the conversion rules for turning React-dependency components into Astro primitives. All new components follow it.
+3. **`docs/frontend-contract.md`** — the canonical internal contract: conversion rules, token system, layout (sections) contract, and the build/docs session pipeline. All new components and sections follow it. (`docs/standards.md` is a retired pointer stub.)
 
 ## Layout
 
@@ -29,7 +29,8 @@ Publishing = commit (including rebuilt `public/r/`) + push to `github.com/sethst
 
 ## Working rules
 
-- New component ship order: convert per standards.md §4 → item in `registry.json` (explicit targets) → `/dev` section → `registry:build` → commit + push.
+- Work runs as a two-stage pipeline (frontend-contract.md §8): **build sessions** (`/build-session`) create items and append them to `docs/graduation-queue.md`; **docs sessions** (`/docs-session`) review pending items against the contract and write their docs. Don't mix the stages.
+- New item ship order: convert per frontend-contract.md §4 (components) or §7 (sections) → item in `registry.json` (explicit targets) → `/dev` section → queue row → `registry:build` → commit + push. Publishing never waits for docs.
 - Never use `@/` aliases inside component sources (relative imports only) until the spike-2 alias test in the session manifest has been run and passed.
 - The user runs git/npm commands themselves; prepare changes and hand over the commands.
 - End of session: append an entry to `session_manifest/index.md` (done / decided / next).

@@ -9,7 +9,7 @@
  * primitives carry no icon dependency; icon *props* on richer components
  * use astro-icon).
  */
-import { cn } from '../../lib/utils';
+import { cn } from "../../lib/utils";
 
 interface Props {
   title: string;
@@ -17,18 +17,33 @@ interface Props {
   open?: boolean;
   class?: string;
   [key: string]: unknown;
+  /** Highlights the text and border with the theme's primary accent color when open */
+  highlight?: boolean;
 }
 
-const { title, open = false, class: className, ...rest } = Astro.props;
+const { title, open = false, class: className, highlight = false, ...rest } = Astro.props;
 ---
 
-<div class={cn(className)} data-accordion-item {...rest}>
+<div
+  class={cn(
+    !highlight && "has-[[aria-expanded=true]]:border-ring/40",
+    // Accent open state border
+    highlight && "has-[[aria-expanded=true]]:border-primary",
+    className,
+  )}
+  data-accordion-item
+  {...rest}
+>
   <h3>
     <button
       type="button"
       data-accordion-trigger
-      aria-expanded={open ? 'true' : 'false'}
-      class="group flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-foreground cursor-pointer transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-expanded={open ? "true" : "false"}
+      class={cn(
+        "group flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-sm font-medium text-foreground transition-colors hover:font-bold focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        // Accent open state text and icons
+        highlight && "aria-expanded:text-accent [&_svg]:group-aria-expanded:text-accent",
+      )}
     >
       {title}
       <svg
@@ -42,13 +57,13 @@ const { title, open = false, class: className, ...rest } = Astro.props;
         aria-hidden="true"
         class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-180"
       >
-        <path d="m6 9 6 6 6-6" />
+        <path d="m6 9 6 6 6-6"></path>
       </svg>
     </button>
   </h3>
   <div
     data-accordion-panel
-    data-state={open ? 'open' : 'closed'}
+    data-state={open ? "open" : "closed"}
     class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 data-[state=open]:grid-rows-[1fr]"
   >
     <div class="overflow-hidden">

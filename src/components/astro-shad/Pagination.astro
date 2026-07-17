@@ -1,0 +1,117 @@
+---
+/**
+ * Pagination.astro -- astro-shad pagination. Converted from shadcn
+ * ui/pagination.tsx.
+ *
+ * The instructive part: shadcn's pagination has NO Radix primitive and no
+ * React state at all -- it is plain anchor markup, because which page you
+ * are on is URL state, owned by the server/router. So the conversion is
+ * pure markup: zero client JS ships. The windowing math (which numbers and
+ * ellipses to show) runs in frontmatter at render time. Chevron/ellipsis
+ * icons are inlined SVG -- structurally needed, so zero deps.
+ *
+ *   <Pagination currentPage={5} totalPages={12} hrefFor={(p) => `/news?page=${p}`} />
+ *
+ * hrefFor is a server-side function prop (fine in Astro -- props never
+ * serialize to the client). Defaults to `?page=N` on the current path.
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  hrefFor?: (page: number) => string;
+  /** pages shown on each side of the current page */
+  siblingCount?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  currentPage,
+  totalPages,
+  hrefFor = (p: number) => `?page=${p}`,
+  siblingCount = 1,
+  class: className,
+  ...rest
+} = Astro.props;
+
+type Item = number | 'ellipsis';
+
+function pageItems(current: number, total: number, siblings: number): Item[] {
+  /* Everything fits: 1 .. total */
+  if (total <= 5 + siblings * 2) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const items: Item[] = [1];
+  const start = Math.max(2, current - siblings);
+  const end = Math.min(total - 1, current + siblings);
+  if (start > 2) items.push('ellipsis');
+  for (let p = start; p <= end; p++) items.push(p);
+  if (end < total - 1) items.push('ellipsis');
+  items.push(total);
+  return items;
+}
+
+const items = pageItems(currentPage, totalPages, siblingCount);
+const prevPage = currentPage > 1 ? currentPage - 1 : null;
+const nextPage = currentPage < totalPages ? currentPage + 1 : null;
+
+const ITEM =
+  'inline-flex h-9 min-w-9 items-center justify-center gap-1 rounded-sm px-2.5 text-sm font-medium transition-colors ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+const LINK = `${ITEM} text-muted-foreground hover:bg-muted hover:text-foreground`;
+const CURRENT = `${ITEM} border border-border bg-card text-foreground`;
+const DISABLED = `${ITEM} pointer-events-none text-muted-foreground/50`;
+---
+
+<nav aria-label="Pagination" class={cn('flex justify-center', className)} {...rest}>
+  <ul class="flex flex-wrap items-center gap-1">
+    <li>
+      {prevPage ? (
+        <a href={hrefFor(prevPage)} class={LINK} aria-label="Go to previous page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          <span class="hidden sm:inline">Previous</span>
+        </a>
+      ) : (
+        <span class={DISABLED} aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          <span class="hidden sm:inline">Previous</span>
+        </span>
+      )}
+    </li>
+
+    {items.map((item) =>
+      item === 'ellipsis' ? (
+        <li>
+          <span class={`${ITEM} text-muted-foreground/60`} aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+          </span>
+        </li>
+      ) : (
+        <li>
+          <a
+            href={hrefFor(item)}
+            class={item === currentPage ? CURRENT : LINK}
+            aria-current={item === currentPage ? 'page' : undefined}
+            aria-label={`Go to page ${item}`}
+          >{item}</a>
+        </li>
+      )
+    )}
+
+    <li>
+      {nextPage ? (
+        <a href={hrefFor(nextPage)} class={LINK} aria-label="Go to next page">
+          <span class="hidden sm:inline">Next</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        </a>
+      ) : (
+        <span class={DISABLED} aria-disabled="true">
+          <span class="hidden sm:inline">Next</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        </span>
+      )}
+    </li>
+  </ul>
+</nav>

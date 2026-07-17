@@ -1,0 +1,63 @@
+---
+/**
+ * TopBar.astro -- astro-shad site header, full-width variant: edge-to-edge
+ * bar with a bottom border and a contained inner row. Zero client JS --
+ * behaviour (mobile menu, theme toggle) belongs to whatever the consumer
+ * slots in.
+ *
+ * Three named slots, all optional: brand (left), nav (center-left of the
+ * gap), actions (right). justify-between spaces whichever are present.
+ * The nav wrapper hides below sm by default (the common pattern) --
+ * override via navClass.
+ *
+ *   <TopBar>
+ *     <a slot="brand" href="/" class="text-sm font-semibold">acme</a>
+ *     <Fragment slot="nav">
+ *       <a href="/docs">Docs</a><a href="/blog">Blog</a>
+ *     </Fragment>
+ *     <Button slot="actions" size="sm">Sign in</Button>
+ *   </TopBar>
+ *
+ * Sibling component: FloatingHeader.astro (detached rounded pill).
+ */
+import { cn } from "../../lib/utils";
+
+interface Props {
+  /** stick to the top of the scroll container */
+  sticky?: boolean;
+  /** classes for the inner row (defaults to a max-w-6xl container) */
+  containerClass?: string;
+  /** classes for the nav wrapper */
+  navClass?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { sticky = true, containerClass, navClass, class: className, ...rest } = Astro.props;
+---
+
+<header class={cn("z-30 border-b border-border bg-surface/90 backdrop-blur ", sticky && "sticky top-0", className)} {...rest}>
+  <div class={cn("mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3", containerClass)}>
+    {
+      Astro.slots.has("brand") && (
+        <div class="flex items-center gap-6">
+          <slot name="brand" />
+        </div>
+      )
+    }
+    {
+      Astro.slots.has("nav") && (
+        <nav class={cn("hidden items-center gap-4 text-sm text-muted-foreground sm:flex", navClass)}>
+          <slot name="nav" />
+        </nav>
+      )
+    }
+    {
+      Astro.slots.has("actions") && (
+        <div class="flex items-center gap-2">
+          <slot name="actions" />
+        </div>
+      )
+    }
+  </div>
+</header>

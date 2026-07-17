@@ -1,0 +1,17 @@
+---
+import Card from '../../../astro-shad/Card.astro';
+import Button from '../../../astro-shad/Button.astro';
+---
+
+<div class="grid w-full gap-4 sm:grid-cols-2">
+  <Card title="Notifications" description="Choose how you want to be reached.">
+    <p class="text-sm text-muted-foreground">Body content lives in the default slot.</p>
+    <div slot="footer" class="flex gap-2">
+      <Button size="sm">Save</Button>
+      <Button size="sm" variant="ghost">Cancel</Button>
+    </div>
+  </Card>
+  <Card>
+    <p class="text-sm text-muted-foreground">Bare card: no header, no footer -- just the default slot.</p>
+  </Card>
+</div>

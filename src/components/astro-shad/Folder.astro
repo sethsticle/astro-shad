@@ -1,0 +1,272 @@
+---
+/**
+ * Folder.astro -- astro-shad folder. Converted from react-bits Folder
+ * (React + Folder.css), behaviour in one processed script.
+ *
+ * The folder is not an SVG -- it is four plain boxes: a back rectangle
+ * whose ::after draws the tab nub, three paper rectangles, and two front
+ * flaps that fake the open fold with skew(+-15deg) scaleY(0.6) from a
+ * bottom transform-origin. React managed one boolean (open) and a
+ * paper-follows-cursor "magnet" offset; here open/close is data-state on
+ * the toggle and the magnet rides the individual `translate` property via
+ * --mx/--my, composing with the placement transforms. The original's JS
+ * darkenColor() helper became CSS color-mix(), which is what lets the
+ * folder color take any CSS color prop instead of a hex constant.
+ *
+ * `color` accepts any CSS color and defaults to the theme primary --
+ * the primitive stays brand-neutral. Paper shades stay literal whites:
+ * paper must read as paper in both themes.
+ *
+ *   <Folder color="#7c3aed" size={1.5} />
+ *
+ *   <Folder>                            <!-- optional paper content -->
+ *     <span slot="paper3">Notes</span>
+ *   </Folder>
+ *
+ *   <Folder>                            <!-- papers as links: pass an <a>.
+ *     <a slot="paper3" href="#reports">Reports</a>   The link fills the
+ *   </Folder>                               paper; the toggle ignores it. -->
+ *
+ * The toggle is role="button" (not <button>) so paper slots may hold real
+ * anchors -- links inside a native button are invalid HTML. Enter/Space
+ * handling lives in the shared script.
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** any CSS color for the folder; defaults to the theme primary */
+  color?: string;
+  /** scale multiplier on the 100x80px base drawing */
+  size?: number;
+  label?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { color = 'var(--primary)', size = 1, label = 'Toggle folder', class: className, ...rest } = Astro.props;
+---
+
+<div class={cn('fd-scale', className)} style={`--fd-size: ${size}; --fd-color: ${color}`} {...rest}>
+  <span class="fd-folder" data-astro-shad-folder data-state="closed" role="button" tabindex="0" aria-expanded="false" aria-label={label}>
+    <span class="fd-back">
+      <span class="fd-paper"><slot name="paper1" /></span>
+      <span class="fd-paper"><slot name="paper2" /></span>
+      <span class="fd-paper"><slot name="paper3" /></span>
+      <span class="fd-front"></span>
+      <span class="fd-front fd-right"></span>
+    </span>
+  </span>
+</div>
+
+<style>
+  .fd-scale {
+    display: inline-block;
+    transform: scale(var(--fd-size, 1));
+  }
+
+  .fd-folder {
+    /* darkenColor(color, 0.08) as color-mix */
+    --fd-back-color: color-mix(in srgb, var(--fd-color) 92%, black);
+    /* literal paper whites -- paper must stay paper in both themes */
+    --fd-paper-1: #e6e6e6;
+    --fd-paper-2: #f2f2f2;
+    --fd-paper-3: #ffffff;
+    display: block;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 200ms ease-in;
+  }
+  .fd-folder:hover,
+  .fd-folder[data-state='open'] {
+    transform: translateY(-8px);
+  }
+  .fd-folder:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  /* ── Back plate + tab nub ── */
+  .fd-back {
+    position: relative;
+    display: block;
+    width: 100px;
+    height: 80px;
+    background: var(--fd-back-color);
+    border-radius: 0 10px 10px 10px;
+  }
+  .fd-back::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    bottom: 98%;
+    left: 0;
+    width: 30px;
+    height: 10px;
+    background: var(--fd-back-color);
+    border-radius: 5px 5px 0 0;
+  }
+
+  /* ── Papers ── */
+  .fd-paper {
+    position: absolute;
+    z-index: 2;
+    bottom: 10%;
+    left: 50%;
+    transform: translate(-50%, 10%);
+    /* magnet offset composes with the placement transform */
+    translate: var(--mx, 0px) var(--my, 0px);
+    width: 70%;
+    height: 80%;
+    background: var(--fd-paper-1);
+    border-radius: 10px;
+    transition: all 300ms ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 4px;
+    font-size: 9px;
+    line-height: 1.2;
+    color: #333;
+  }
+  .fd-paper:nth-child(2) {
+    background: var(--fd-paper-2);
+    width: 80%;
+    height: 70%;
+  }
+  .fd-paper:nth-child(3) {
+    background: var(--fd-paper-3);
+    width: 90%;
+    height: 60%;
+  }
+  .fd-folder[data-state='closed']:hover .fd-paper {
+    transform: translate(-50%, 0%);
+  }
+
+  /* A linked paper: the anchor (slot content, hence :global) fills the
+     paper as its hit area. Only reachable once the folder is open -- the
+     front flap sits above it (z3 over z2) while closed. */
+  .fd-paper :global(a) {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    color: inherit;
+    text-decoration: none;
+  }
+  .fd-paper :global(a:hover) {
+    text-decoration: underline;
+  }
+  .fd-paper :global(a:focus-visible) {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+    border-radius: 10px;
+  }
+
+  /* ── Open: papers fan out, hover zooms one ── */
+  .fd-folder[data-state='open'] .fd-paper:nth-child(1) {
+    transform: translate(-120%, -70%) rotateZ(-15deg);
+  }
+  .fd-folder[data-state='open'] .fd-paper:nth-child(1):hover {
+    transform: translate(-120%, -70%) rotateZ(-15deg) scale(1.1);
+  }
+  .fd-folder[data-state='open'] .fd-paper:nth-child(2) {
+    transform: translate(10%, -70%) rotateZ(15deg);
+    height: 80%;
+  }
+  .fd-folder[data-state='open'] .fd-paper:nth-child(2):hover {
+    transform: translate(10%, -70%) rotateZ(15deg) scale(1.1);
+  }
+  .fd-folder[data-state='open'] .fd-paper:nth-child(3) {
+    transform: translate(-50%, -100%) rotateZ(5deg);
+    height: 80%;
+  }
+  .fd-folder[data-state='open'] .fd-paper:nth-child(3):hover {
+    transform: translate(-50%, -100%) rotateZ(5deg) scale(1.1);
+  }
+
+  /* ── Front flaps: skew + squash from the bottom edge fakes the fold ── */
+  .fd-front {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: block;
+    background: var(--fd-color);
+    border-radius: 5px 10px 10px 10px;
+    transform-origin: bottom;
+    transition: all 300ms ease-in-out;
+  }
+  .fd-folder:hover .fd-front,
+  .fd-folder[data-state='open'] .fd-front {
+    transform: skew(15deg) scaleY(0.6);
+  }
+  .fd-folder:hover .fd-right,
+  .fd-folder[data-state='open'] .fd-right {
+    transform: skew(-15deg) scaleY(0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fd-folder,
+    .fd-paper,
+    .fd-front {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function toggleFolder(folder: HTMLElement) {
+    const open = folder.dataset.state !== 'open';
+    folder.dataset.state = open ? 'open' : 'closed';
+    folder.setAttribute('aria-expanded', String(open));
+    if (!open) {
+      folder.querySelectorAll<HTMLElement>('.fd-paper').forEach((p) => {
+        p.style.removeProperty('--mx');
+        p.style.removeProperty('--my');
+      });
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const folder = target.closest<HTMLElement>('[data-astro-shad-folder]');
+    if (!folder) return;
+    /* clicks on a linked paper navigate; they never toggle the folder */
+    if (target.closest('a')) return;
+    toggleFolder(folder);
+  });
+
+  /* role="button" keyboard contract (the toggle is not a native button
+     so paper slots may hold real anchors) */
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const target = e.target as HTMLElement;
+    const folder = target.closest<HTMLElement>('[data-astro-shad-folder]');
+    if (!folder || target.closest('a')) return;
+    e.preventDefault();
+    toggleFolder(folder);
+  });
+
+  /* Magnet: open papers drift toward the cursor at 15% of the distance
+     from their center; snap back on pointer-out. */
+  document.addEventListener('pointermove', (e) => {
+    const paper = (e.target as HTMLElement).closest<HTMLElement>(
+      '[data-astro-shad-folder][data-state="open"] .fd-paper'
+    );
+    if (!paper) return;
+    const r = paper.getBoundingClientRect();
+    paper.style.setProperty('--mx', ((e.clientX - (r.left + r.width / 2)) * 0.15).toFixed(1) + 'px');
+    paper.style.setProperty('--my', ((e.clientY - (r.top + r.height / 2)) * 0.15).toFixed(1) + 'px');
+  });
+
+  document.addEventListener('pointerout', (e) => {
+    const paper = (e.target as HTMLElement).closest<HTMLElement>('[data-astro-shad-folder] .fd-paper');
+    if (!paper) return;
+    if (e.relatedTarget && paper.contains(e.relatedTarget as Node)) return;
+    paper.style.removeProperty('--mx');
+    paper.style.removeProperty('--my');
+  });
+</script>

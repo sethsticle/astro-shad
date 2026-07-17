@@ -1,0 +1,20 @@
+---
+import Accordion03 from "../../../astro-shad/Accordion-03.astro";
+import Accordion03Item from "../../../astro-shad/Accordion-03Item.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<Accordion03 class="w-full">
+  <Accordion03Item title="Is it accessible?">
+    Same behaviour contract as the base accordion -- ARIA wired, keyboard friendly.
+    <Icon slot="icon" name="lucide:box" size={16} />
+  </Accordion03Item>
+  <Accordion03Item title="Is it boxed?" open>
+    Divided flat list; with `highlight`, the open item picks up the accent color.
+    <Icon slot="icon" name="lucide:box" size={16} />
+  </Accordion03Item>
+  <Accordion03Item title="Can both variants coexist?">
+    Yes -- distinct data attributes keep the scripts independent on one page.
+    <Icon slot="icon" name="lucide:box" size={16} />
+  </Accordion03Item>
+</Accordion03>

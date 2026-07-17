@@ -1,0 +1,75 @@
+---
+/**
+ * Accordion-02Item.astro -- one boxed card row inside <Accordion02>.
+ * Same grid-rows 0fr -> 1fr height animation as the base AccordionItem;
+ * the frame (rounded border card, inset padding) is what makes it
+ * variant 02.
+ */
+import { cn } from "../../lib/utils";
+
+interface Props {
+  title: string;
+  /** Render this item expanded on load. */
+  open?: boolean;
+  class?: string;
+  [key: string]: unknown;
+  /** Highlights the text and border with the theme's primary accent color when open */
+  highlight?: boolean;
+}
+
+const { title, open = false, class: className, highlight = false, ...rest } = Astro.props;
+---
+
+<div
+  class={cn(
+    "rounded-lg border border-border bg-card transition-colors",
+    !highlight && "has-[[aria-expanded=true]]:border-ring/40",
+    // Accent open state border
+    highlight && "has-[[aria-expanded=true]]:border-primary",
+    className,
+  )}
+  data-accordion-02-item
+  {...rest}
+>
+  <h3>
+    <button
+      type="button"
+      data-accordion-02-trigger
+      aria-expanded={open ? "true" : "false"}
+      class={cn(
+        "group flex w-full cursor-pointer items-center justify-between gap-4 px-4 py-3.5 text-left text-sm font-medium text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        // Accent open state text and icons
+        highlight && "aria-expanded:text-accent [&_svg]:group-aria-expanded:text-accent",
+      )}
+    >
+      <div class="flex items-center gap-3">
+        <slot name="icon" />
+        {title}
+      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-180"
+      >
+        <path d="m6 9 6 6 6-6"></path>
+      </svg>
+    </button>
+  </h3>
+  <div
+    data-accordion-02-panel
+    data-state={open ? "open" : "closed"}
+    class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 data-[state=open]:grid-rows-[1fr]"
+  >
+    <div class="overflow-hidden">
+      <div class="px-4 pb-4 text-sm text-muted-foreground">
+        <slot />
+      </div>
+    </div>
+  </div>
+</div>

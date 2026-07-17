@@ -1,0 +1,45 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import ComponentPreview from "../../../components/docs/ComponentPreview.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import Snippet from "../../../components/docs/Snippet.astro";
+import BasicDemo from "../../../components/docs/demos/top-bar/Basic.astro";
+import basicSource from "../../../components/docs/demos/top-bar/Basic.astro?raw";
+---
+
+<DocsLayout
+  title="Top Bar"
+  description="Full-width site header: edge-to-edge bar with bottom border, contained inner row, brand/nav/actions slots. Zero client JS. Sibling of Floating Header."
+  registry="top-bar"
+  sourceFile="TopBar.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-6">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/top-bar" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      {
+        name: "sticky",
+        type: "boolean",
+        default: "true",
+        description: "Whether to stick the header to the top of the scroll container.",
+      },
+      {
+        name: "containerClass",
+        type: "string",
+        description: "Classes applied to the inner row. Defaults to a max-w-6xl container.",
+      },
+      {
+        name: "navClass",
+        type: "string",
+        description: "Classes for the nav wrapper. Useful for overriding the default mobile hidden behavior.",
+      },
+    ]}
+  />
+</DocsLayout>

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "rotating-text",
+  "title": "Rotating Text",
+  "description": "react-bits RotatingText minus react. ZERO client JS: per-instance keyframes generated in frontmatter, all words stacked in one inline-grid cell.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/RotatingText.astro",
+      "content": "---\n/**\n * RotatingText.astro -- astro-shad rotating word. Converted from react-bits\n * RotatingText, minus react. ZERO client JS.\n *\n * All words stack in one inline-grid cell; each runs the same keyframe\n * loop offset by its slot delay, so exactly one word is visible at a time\n * (exit of one overlaps entry of the next). The keyframe percentages\n * depend on the word count, so the @keyframes block is generated\n * per-instance in frontmatter and injected with a uid-scoped name -- the\n * Astro-native answer to \"CSS keyframes cannot read a variable\".\n *\n * Wrapper width fits the longest word automatically (grid sizing).\n *\n *   We teach <RotatingText class=\"text-primary\" words={['coding', 'robotics']} />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  words: string[];\n  /** seconds each word holds */\n  interval?: number;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { words, interval = 2.4, class: className, ...rest } = Astro.props;\n\nconst uid = crypto.randomUUID().slice(0, 6);\nconst n = words.length;\nconst total = n * interval;\n/* enter/exit take 0.4s, expressed as % of the whole loop */\nconst e = ((0.4 / total) * 100).toFixed(3);\nconst p = (100 / n).toFixed(3);\nconst pe = (100 / n + (0.4 / total) * 100).toFixed(3);\n\nconst css = `\n.rt-${uid} > span {\n  grid-area: 1 / 1;\n  opacity: 0;\n  animation: rt-${uid} ${total}s infinite;\n}\n@keyframes rt-${uid} {\n  0%      { opacity: 0; transform: translateY(65%); }\n  ${e}%   { opacity: 1; transform: translateY(0); }\n  ${p}%   { opacity: 1; transform: translateY(0); }\n  ${pe}%  { opacity: 0; transform: translateY(-65%); }\n  100%    { opacity: 0; transform: translateY(-65%); }\n}\n@media (prefers-reduced-motion: reduce) {\n  .rt-${uid} > span { animation: none; }\n  .rt-${uid} > span:first-child { opacity: 1; transform: none; }\n}`;\n---\n\n<span\n  class={cn(`rt-${uid} inline-grid overflow-hidden align-bottom whitespace-nowrap`, className)}\n  aria-label={words.join(', ')}\n  {...rest}\n>\n  {words.map((w, i) => (\n    <span aria-hidden=\"true\" style={`animation-delay: ${i * interval}s`}>{w}</span>\n  ))}\n</span>\n\n<Fragment set:html={`<style>${css}</style>`} />\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/RotatingText.astro"
+    }
+  ],
+  "type": "registry:component"
+}

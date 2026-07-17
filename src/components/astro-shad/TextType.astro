@@ -1,0 +1,95 @@
+---
+/**
+ * TextType.astro -- astro-shad typewriter. Converted from react-bits
+ * TextType, minus react.
+ *
+ * Types each string out, holds, deletes, cycles to the next. The full first
+ * string sits in aria-label so screen readers get one clean announcement
+ * while the animating text stays aria-hidden. Reduced motion / no JS shows
+ * the first string statically. The caret rides currentColor, so it matches
+ * whatever text color the caller sets via class.
+ *
+ *   <TextType class="text-2xl font-semibold" text={['One.', 'Two.']} />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  text: string | string[];
+  /** ms per typed character */
+  speed?: number;
+  /** ms hold at full string before deleting */
+  pause?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { text, speed = 55, pause = 1800, class: className, ...rest } = Astro.props;
+const strings = Array.isArray(text) ? text : [text];
+---
+
+<span
+  class={cn('whitespace-pre-wrap', className)}
+  data-astro-shad-texttype
+  data-strings={JSON.stringify(strings)}
+  data-speed={speed}
+  data-pause={pause}
+  aria-label={strings[0]}
+  {...rest}
+>
+  <span aria-hidden="true" data-tt-text>{strings[0]}</span><span class="tt-caret" aria-hidden="true"></span>
+</span>
+
+<style>
+  .tt-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 0.08em;
+    vertical-align: text-bottom;
+    background: currentColor;
+    animation: tt-blink 1s step-end infinite;
+  }
+  @keyframes tt-blink {
+    50% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tt-caret { animation: none; }
+  }
+</style>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-texttype]').forEach((el) => {
+    const strings: string[] = JSON.parse(el.dataset.strings || '[]');
+    const out = el.querySelector('[data-tt-text]');
+    if (reduce || strings.length === 0 || !out) return; /* server text stands */
+    const speed = Number(el.dataset.speed);
+    const pause = Number(el.dataset.pause);
+    let s = 0;
+    let i = 0;
+    let deleting = false;
+
+    (function tick() {
+      const str = strings[s];
+      if (!deleting) {
+        i++;
+        out.textContent = str.slice(0, i);
+        if (i === str.length) {
+          if (strings.length === 1) return;
+          deleting = true;
+          setTimeout(tick, pause);
+        } else {
+          setTimeout(tick, speed);
+        }
+      } else {
+        i--;
+        out.textContent = str.slice(0, i);
+        if (i === 0) {
+          deleting = false;
+          s = (s + 1) % strings.length;
+        }
+        setTimeout(tick, 28);
+      }
+    })();
+  });
+</script>

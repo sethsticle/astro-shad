@@ -1,0 +1,47 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/folder/Basic.astro';
+import basicSource from '../../../components/docs/demos/folder/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Folder"
+  description="react-bits Folder rebuilt as four CSS boxes + one delegated script: open/close toggle, papers that fan out and drift toward the cursor, front flaps faking the fold with skew + scaleY. Papers can hold content or real links."
+  registry="folder"
+  sourceFile="Folder.astro"
+>
+  <h2>Preview</h2>
+  <p>Click to open. While open, papers drift toward the cursor (15% magnet).</p>
+  <ComponentPreview code={basicSource} class="flex flex-wrap items-end gap-10 p-8 pt-16">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/folder" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'color', type: 'string (any CSS color)', default: 'var(--primary)', description: 'Folder fill; the darker back plate is derived via color-mix().' },
+      { name: 'size', type: 'number', default: '1', description: 'Scale multiplier on the 100x80px base drawing.' },
+      { name: 'label', type: 'string', default: "'Toggle folder'", description: 'Accessible name for the toggle.' },
+    ]}
+  />
+
+  <h2>Slots</h2>
+  <PropsTable
+    bare
+    rows={[
+      { name: 'paper1 / paper2 / paper3', type: 'slot', description: 'Optional paper content. Pass an <a> to make a paper a link -- only reachable once the folder is open; clicks on links never toggle the folder.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The toggle is role="button", not a native button, so paper slots may hold real anchors (links inside a button are invalid HTML). Enter/Space handled in the script.</li>
+    <li>Paper shades stay literal whites -- paper must read as paper in both themes.</li>
+  </ul>
+</DocsLayout>

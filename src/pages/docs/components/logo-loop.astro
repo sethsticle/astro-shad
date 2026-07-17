@@ -1,0 +1,38 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/logo-loop/Basic.astro';
+import basicSource from '../../../components/docs/demos/logo-loop/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Logo Loop"
+  description="react-bits LogoLoop minus react. ZERO client JS: classic duplicated-track CSS marquee -- slot content renders into two identical tracks translating -100% on a linear loop, edges faded via mask."
+  registry="logo-loop"
+  sourceFile="LogoLoop.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="block p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/logo-loop" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'speed', type: 'number', default: '24', description: 'Seconds per full cycle.' },
+      { name: 'gap', type: 'string', default: "'3.5rem'", description: 'Gap between items (any CSS length).' },
+      { name: 'pauseOnHover', type: 'boolean', default: 'true', description: 'Pause the marquee while hovered.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Fill the track generously: each track is min-width 100%, so logos narrower than the container leave dead space per cycle.</li>
+    <li>Reduced motion: static single row (the duplicate track hides).</li>
+  </ul>
+</DocsLayout>

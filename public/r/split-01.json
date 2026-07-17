@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "split-01",
+  "title": "Split 01 — media + content",
+  "description": "Layout section, ships populated: normal-height half/half split, media placeholder surface beside the content stack (swap the div for your img/video), reverse prop flips sides at md+.",
+  "registryDependencies": [
+    "@astro-shad/utils",
+    "@astro-shad/button"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/sections/Split-01.astro",
+      "content": "---\n/**\n * Split-01.astro -- layout section: normal-height half/half split, media\n * beside content. Ships populated (frontend-contract.md §7): <Split01 />\n * renders a complete block; make it yours by editing this copy you own.\n * The media half ships as a token-styled placeholder surface -- swap the\n * div for your <img>/<video>.\n *\n * `reverse` flips the media to the right at md+ (source order is\n * unchanged, so mobile always stacks media-first).\n */\nimport { cn } from \"../../../lib/utils\";\nimport Button from \"../Button.astro\";\n\ninterface Props {\n  /** Media on the right at md+ instead of the left. */\n  reverse?: boolean;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { reverse = false, class: className, ...rest } = Astro.props;\n---\n\n<section class={cn(\"py-16 md:py-24\", className)} {...rest}>\n  <div class=\"mx-auto grid w-full max-w-6xl items-center gap-10 px-6 md:grid-cols-2 md:gap-16\">\n    <div class={cn(reverse && \"md:order-last\")}>\n      <!-- media — swap this surface for your <img> or <video> -->\n      <div class=\"grid aspect-[4/3] w-full place-items-center rounded-lg border border-border bg-muted\">\n        <span class=\"text-xs text-muted-foreground\">media</span>\n      </div>\n    </div>\n    <div class=\"flex flex-col gap-6\">\n      <!-- content — yours to edit: comment out and replace -->\n      <h2 class=\"text-3xl font-semibold tracking-tight md:text-4xl\">Half picture, half point.</h2>\n      <p class=\"text-muted-foreground\">\n        The workhorse section: media on one side, the argument on the other. Alternate the `reverse` prop down the page for rhythm.\n      </p>\n      <div class=\"flex gap-3\">\n        <Button>Learn more</Button>\n      </div>\n    </div>\n  </div>\n</section>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/sections/Split-01.astro"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -1,0 +1,41 @@
+---
+/**
+ * Hero-02.astro -- layout section: full-height hero, content anchored
+ * bottom-left (editorial/photography composition). Ships populated
+ * (frontend-contract.md §7): <Hero02 /> renders a complete block; make
+ * it yours by editing this copy you own.
+ *
+ * `background` slot: absolute layer behind the content -- this
+ * composition usually carries a full-bleed image there.
+ *
+ *   <Hero02>
+ *     <img slot="background" src="..." class="h-full w-full object-cover" />
+ *   </Hero02>
+ */
+import { cn } from "../../../lib/utils";
+import Button from "../Button.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("relative isolate flex min-h-svh items-end", className)} {...rest}>
+  <div class="absolute inset-0 -z-10 overflow-hidden"><slot name="background" /></div>
+  <div class="mx-auto w-full max-w-6xl px-6 pb-16 md:pb-24">
+    <div class="flex max-w-xl flex-col gap-6">
+      <!-- content — yours to edit: comment out and replace -->
+      <p class="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">Est. 2026</p>
+      <h1 class="text-4xl font-semibold tracking-tight md:text-6xl">Built low and to the left.</h1>
+      <p class="text-muted-foreground">
+        The editorial composition: a full-bleed image in the background slot, the story anchored at the baseline.
+      </p>
+      <div class="flex gap-3">
+        <Button size="lg">Read the story</Button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,9 @@
+---
+import Accordion from '../../../astro-shad/Accordion.astro';
+import AccordionItem from '../../../astro-shad/AccordionItem.astro';
+---
+
+<Accordion multipleOpen class="w-full">
+  <AccordionItem title="First item">Both of these can stay open at once.</AccordionItem>
+  <AccordionItem title="Second item">multipleOpen skips the close-siblings step.</AccordionItem>
+</Accordion>

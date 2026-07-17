@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "top-bar",
+  "title": "Top Bar",
+  "description": "Full-width site header: edge-to-edge bar with bottom border, contained inner row, optional brand/nav/actions slots. Zero client JS. Sibling of floating-header.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/TopBar.astro",
+      "content": "---\n/**\n * TopBar.astro -- astro-shad site header, full-width variant: edge-to-edge\n * bar with a bottom border and a contained inner row. Zero client JS --\n * behaviour (mobile menu, theme toggle) belongs to whatever the consumer\n * slots in.\n *\n * Three named slots, all optional: brand (left), nav (center-left of the\n * gap), actions (right). justify-between spaces whichever are present.\n * The nav wrapper hides below sm by default (the common pattern) --\n * override via navClass.\n *\n *   <TopBar>\n *     <a slot=\"brand\" href=\"/\" class=\"text-sm font-semibold\">acme</a>\n *     <Fragment slot=\"nav\">\n *       <a href=\"/docs\">Docs</a><a href=\"/blog\">Blog</a>\n *     </Fragment>\n *     <Button slot=\"actions\" size=\"sm\">Sign in</Button>\n *   </TopBar>\n *\n * Sibling component: FloatingHeader.astro (detached rounded pill).\n */\nimport { cn } from \"../../lib/utils\";\n\ninterface Props {\n  /** stick to the top of the scroll container */\n  sticky?: boolean;\n  /** classes for the inner row (defaults to a max-w-6xl container) */\n  containerClass?: string;\n  /** classes for the nav wrapper */\n  navClass?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { sticky = true, containerClass, navClass, class: className, ...rest } = Astro.props;\n---\n\n<header class={cn(\"z-30 border-b border-border bg-surface/90 backdrop-blur \", sticky && \"sticky top-0\", className)} {...rest}>\n  <div class={cn(\"mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3\", containerClass)}>\n    {\n      Astro.slots.has(\"brand\") && (\n        <div class=\"flex items-center gap-6\">\n          <slot name=\"brand\" />\n        </div>\n      )\n    }\n    {\n      Astro.slots.has(\"nav\") && (\n        <nav class={cn(\"hidden items-center gap-4 text-sm text-muted-foreground sm:flex\", navClass)}>\n          <slot name=\"nav\" />\n        </nav>\n      )\n    }\n    {\n      Astro.slots.has(\"actions\") && (\n        <div class=\"flex items-center gap-2\">\n          <slot name=\"actions\" />\n        </div>\n      )\n    }\n  </div>\n</header>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/TopBar.astro"
+    }
+  ],
+  "type": "registry:component"
+}

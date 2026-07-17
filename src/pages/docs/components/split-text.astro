@@ -1,0 +1,34 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/split-text/Basic.astro';
+import basicSource from '../../../components/docs/demos/split-text/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Split Text"
+  description="react-bits SplitText minus react and gsap: the word/char split happens at BUILD time in frontmatter. Each unit carries a staggered transition-delay; an IntersectionObserver flips one attribute and CSS does the rest."
+  registry="split-text"
+  sourceFile="SplitText.astro"
+>
+  <h2>Preview</h2>
+  <p>Scroll-triggered -- re-enters view after a reload to replay.</p>
+  <ComponentPreview code={basicSource} class="flex flex-col gap-6 p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/split-text" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'text', type: 'string', description: 'Full text; also the aria-label (the span soup is aria-hidden).' },
+      { name: 'by', type: "'word' | 'char'", default: "'word'", description: 'Split granularity. Char mode never breaks mid-word (words are nowrap units).' },
+      { name: 'stagger', type: 'number', default: '45', description: 'ms between units.' },
+      { name: 'as', type: 'string', default: "'p'", description: 'Wrapper tag (h1, h2, p, ...).' },
+    ]}
+  />
+</DocsLayout>

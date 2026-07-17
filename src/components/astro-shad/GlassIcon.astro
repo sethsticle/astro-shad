@@ -1,0 +1,145 @@
+---
+/**
+ * GlassIcon.astro -- astro-shad glass icon tile. Converted from react-bits
+ * GlassIcons (React + hardcoded gradient set), zero client JS.
+ *
+ * One icon tile (compose a row/grid of them yourself). The icon comes via
+ * slot -- an inline SVG or a statically rendered icon component. The accent
+ * back plate takes ANY CSS color via the `accent` prop and defaults to the
+ * theme's --primary, so the primitive stays brand-neutral; hosts pass a
+ * token (`accent="var(--color-brand)"`) or a literal.
+ *
+ * Hover: the glass front lifts, the accent plate swings out further, and
+ * the label fades in below.
+ *
+ *   <GlassIcon label="Coding"><svg ...>...</svg></GlassIcon>
+ *   <GlassIcon accent="#7c3aed" label="Docs" href="/docs">...</GlassIcon>
+ *   <GlassIcon><svg ...>...</svg></GlassIcon>
+ *     ^ no label: no hover caption (use when a heading sits right below),
+ *       and with no href it renders as a decorative <span>, not a button.
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** hover caption + accessible name; omit when adjacent text labels it */
+  label?: string;
+  /** any CSS color for the back plate; defaults to the theme primary */
+  accent?: string;
+  href?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { label, accent = 'var(--primary)', href, class: className, ...rest } = Astro.props;
+
+const classes = cn(
+  'glass-icon rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+  className
+);
+const style = `--gi-accent: ${accent}`;
+---
+
+{href ? (
+  <a href={href} class={classes} style={style} aria-label={label} {...rest}>
+    <span class="gi-back" aria-hidden="true"></span>
+    <span class="gi-front"><slot /></span>
+    {label && <span class="gi-label" aria-hidden="true">{label}</span>}
+  </a>
+) : label ? (
+  <button type="button" class={classes} style={style} aria-label={label} {...rest}>
+    <span class="gi-back" aria-hidden="true"></span>
+    <span class="gi-front"><slot /></span>
+    <span class="gi-label" aria-hidden="true">{label}</span>
+  </button>
+) : (
+  <span class={classes} style={style} aria-hidden="true" {...rest}>
+    <span class="gi-back" aria-hidden="true"></span>
+    <span class="gi-front"><slot /></span>
+  </span>
+)}
+
+<style>
+  .glass-icon {
+    --gi-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  /* decorative (unlabeled, unlinked) tiles are not interactive */
+  span.glass-icon {
+    cursor: default;
+  }
+
+  /* Accent back plate -- swings out on hover */
+  .gi-back {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
+    background: linear-gradient(
+      135deg,
+      var(--gi-accent),
+      color-mix(in srgb, var(--gi-accent) 45%, transparent)
+    );
+    transform: rotate(8deg) translate(3px, 4px);
+    transition: transform 300ms var(--gi-ease);
+  }
+
+  /* Glass front -- blurs the accent plate behind it */
+  .gi-front {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+    background: color-mix(in srgb, var(--foreground) 8%, transparent);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    color: var(--foreground);
+    transition: transform 300ms var(--gi-ease);
+  }
+
+  .gi-label {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    left: 50%;
+    translate: -50% 0;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--foreground) 55%, transparent);
+    opacity: 0;
+    transition: opacity 250ms var(--gi-ease);
+  }
+
+  .glass-icon:hover .gi-back,
+  .glass-icon:focus-visible .gi-back {
+    transform: rotate(14deg) translate(6px, 7px);
+  }
+  .glass-icon:hover .gi-front,
+  .glass-icon:focus-visible .gi-front {
+    transform: translate(-2px, -3px);
+  }
+  .glass-icon:hover .gi-label,
+  .glass-icon:focus-visible .gi-label {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gi-back,
+    .gi-front,
+    .gi-label {
+      transition: none;
+    }
+    .glass-icon:hover .gi-back,
+    .glass-icon:hover .gi-front {
+      transform: none;
+    }
+  }
+</style>

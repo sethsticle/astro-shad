@@ -1,0 +1,179 @@
+---
+/**
+ * BentoCard.astro -- one cell inside <MagicBento>. Token-built card:
+ * label/title/description props plus a slot for custom content. Footprint
+ * via `span` (default 1x1 / wide 2x1 / tall 1x2).
+ *
+ * Hover glow is pure CSS -- no cursor tracking, no JS. CSS cannot know the
+ * pointer position, so instead of following the cursor the glow (a gradient
+ * painted into a 1px border frame via the mask-composite trick) sweeps
+ * diagonally across the card on a slow keyframe loop while hovered. The
+ * animation only moves background-position (no reflow) and sits paused
+ * until hover. (The react-bits original also had a "pixel dust" checker
+ * overlay -- dropped here; the glow is the effect worth keeping.)
+ *
+ * `glow` toggles the effect; `glowColors` takes a list of CSS colors that
+ * become successive stops of the sweeping gradient (default: theme
+ * primary).
+ *
+ *   <BentoCard label="DATA" title="18 schools" description="Live" />
+ *   <BentoCard span="wide" glowColors={['#60a5fa', '#c084fc']} title="...">
+ *     ...custom content...
+ *   </BentoCard>
+ *   <BentoCard glow={false} title="Quiet cell" />
+ */
+import { cn } from '../../lib/utils';
+
+type Span = 'default' | 'wide' | 'tall';
+
+const SPANS: Record<Span, string> = {
+  default: '',
+  wide: 'md:col-span-2',
+  tall: 'md:row-span-2',
+};
+
+interface Props {
+  label?: string;
+  title?: string;
+  description?: string;
+  /* Optional full-bleed image. Rendered above the text block, bleeding to
+   * the card edges (negative margins cancel the p-5), and grows to fill
+   * whatever vertical space the fixed 9rem grid row leaves over -- so it
+   * works in default, wide, and tall cells without a hardcoded height. */
+  image?: string;
+  imageAlt?: string;
+  /* Image as the cell's background: absolute cover layer behind the text,
+   * with a bottom scrim for legibility. Text flips to literal white. */
+  bgImage?: string;
+  span?: Span;
+  /** hover keyframe gradient sweep on/off */
+  glow?: boolean;
+  /** CSS colors used as successive gradient stops of the glow */
+  glowColors?: string[];
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  label,
+  title,
+  description,
+  image,
+  imageAlt = '',
+  bgImage,
+  span = 'default',
+  glow = true,
+  glowColors = ['var(--primary)'],
+  class: className,
+  ...rest
+} = Astro.props;
+
+/* Colors become successive radial stops, fading to transparent at 65%.
+ * One color: classic glow. Several: concentric color bands that sweep
+ * together. */
+const stops =
+  glowColors.length === 1
+    ? `${glowColors[0]}, transparent 65%`
+    : glowColors.map((c, i) => `${c} ${Math.round((i * 45) / (glowColors.length - 1))}%`).join(', ') +
+      ', transparent 65%';
+---
+
+<article
+  class={cn(
+    'bento-card relative flex flex-col justify-end gap-1.5 overflow-hidden rounded-lg border border-border bg-card p-5',
+    'transition-[border-color,translate] duration-200 hover:-translate-y-0.5 hover:border-ring/50',
+    'motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+    /* isolate opens a stacking context so the bg layer's -z-10 sits
+     * behind the text but in front of the card's bg-card. The hover
+     * pseudo-element (z-auto) still paints above the image. */
+    bgImage && 'isolate',
+    glow && 'bento-glow',
+    SPANS[span],
+    className
+  )}
+  style={glow ? `--bento-glow-stops: ${stops}` : undefined}
+  {...rest}
+>
+  {bgImage && (
+    <div class="absolute inset-0 -z-10">
+      <img src={bgImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10"></div>
+    </div>
+  )}
+  {image && (
+    <div class="-mx-5 -mt-5 mb-1 min-h-0 grow">
+      <img src={image} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" />
+    </div>
+  )}
+  {label && (
+    <p class="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{label}</p>
+  )}
+  {/* Title and description set explicit colors, so each needs the bgImage
+      swap to literal white -- theme foreground would vanish over the dark
+      scrim in light mode. */}
+  {title && (
+    <h3 class={cn('text-base font-semibold', bgImage ? 'text-white' : 'text-foreground')}>
+      {title}
+    </h3>
+  )}
+  {description && (
+    <p class={cn('text-sm leading-relaxed', bgImage ? 'text-white/70' : 'text-muted-foreground')}>
+      {description}
+    </p>
+  )}
+  <slot />
+</article>
+
+<style>
+  /* Glow painted into a 1px border frame (mask-composite trick).
+     The gradient tile is 2.5x the card; animating background-position 0%
+     -> 100% carries the glow center diagonally across. Parked until hover;
+     pausing (not removing) means the sweep resumes where it left off. */
+  .bento-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 350ms ease;
+    border-radius: inherit;
+    padding: 1px;
+    background-image: radial-gradient(circle at 50% 50%, var(--bento-glow-stops));
+    background-size: 250% 250%;
+    background-repeat: no-repeat;
+    background-position: 0% 0%;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    animation: bento-sweep 7s ease-in-out infinite alternate;
+    animation-play-state: paused;
+  }
+
+  .bento-glow:hover::before {
+    opacity: 1;
+    animation-play-state: running;
+  }
+
+  @keyframes bento-sweep {
+    from {
+      background-position: 0% 0%;
+    }
+    to {
+      background-position: 100% 100%;
+    }
+  }
+
+  /* Reduced motion: static centered glow, no sweep. */
+  @media (prefers-reduced-motion: reduce) {
+    .bento-glow::before {
+      animation: none;
+      transition: none;
+      background-position: 50% 50%;
+    }
+  }
+</style>

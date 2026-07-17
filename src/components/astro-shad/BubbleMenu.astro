@@ -1,0 +1,366 @@
+---
+/**
+ * BubbleMenu.astro -- astro-shad pills toggle menu. Converted from
+ * react-bits BubbleMenu (React + gsap).
+ *
+ * What gsap provided: on open, each pill scales 0 -> 1 with a back.out ease
+ * on a staggered delay (plus a small random jitter), while its label slides
+ * up and fades in; on close, everything reverses fast with no stagger. All
+ * of that is scale/translate/opacity -- CSS transitions keyed off one
+ * data-state attribute on the root, with per-pill delays computed at build
+ * time (jitter included). The React resize handler (rotation only on
+ * desktop) is just a media query. State is one attribute -- the DOM is the
+ * store; one processed script delegates the toggling.
+ *
+ * Neutral tokens: bubbles/pills sit on card/foreground/border slot
+ * utilities. Per-item hover fill is any CSS color via `hoverColor`,
+ * defaulting to the theme primary; hover text uses --background so the
+ * label stays readable over a strong fill in both themes.
+ *
+ *   <div class="relative h-[28rem]">      <!-- positioned ancestor -->
+ *     <BubbleMenu
+ *       items={[
+ *         { label: 'Home', href: '/', rotation: -8 },
+ *         { label: 'About', href: '/about', rotation: 8, hoverColor: '#7c3aed' },
+ *       ]}
+ *     >
+ *       <span slot="logo" class="text-xs font-semibold">LOGO</span>
+ *     </BubbleMenu>
+ *   </div>
+ *
+ *   <BubbleMenu fixed items={...}>  <!-- viewport-pinned site nav -->
+ *
+ * Default (absolute) mode positions against the nearest positioned
+ * ancestor; give the wrapper position: relative and a height.
+ */
+import { cn } from '../../lib/utils';
+
+interface Item {
+  label: string;
+  href: string;
+  ariaLabel?: string;
+  /** desktop-only tilt in degrees (flattened below 900px, pure CSS) */
+  rotation?: number;
+  /** any CSS color for the hover fill; defaults to the theme primary */
+  hoverColor?: string;
+}
+
+interface Props {
+  items: Item[];
+  /** pin to the viewport instead of the nearest positioned ancestor */
+  fixed?: boolean;
+  /** open animation duration in ms (gsap animationDuration) */
+  duration?: number;
+  /** per-pill stagger in ms (gsap staggerDelay) */
+  stagger?: number;
+  menuAriaLabel?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { items, fixed = false, duration = 500, stagger = 120, menuAriaLabel = 'Toggle menu', class: className, ...rest } = Astro.props;
+
+/* Per-pill open delays, with the same +-50ms jitter gsap added at runtime.
+ * Baked at build time -- the organic offset survives, just fixed per build.
+ * Label follows its pill after 10% of the duration (gsap's `-=90%` overlap). */
+const delays = items.map((_, i) => {
+  const jitter = Math.round(Math.random() * 100 - 50);
+  const d = Math.max(0, i * stagger + jitter);
+  return { pill: d, label: d + Math.round(duration * 0.1) };
+});
+---
+
+<div class={cn('bm-root', className)} data-astro-shad-bubble-menu data-state="closed" data-fixed={fixed ? '' : undefined} style={`--bm-duration: ${duration}ms`} {...rest}>
+  <nav class="bm-bar" aria-label="Main navigation">
+    <div class="bm-bubble bm-logo">
+      <slot name="logo" />
+    </div>
+    <button type="button" class="bm-bubble bm-toggle" data-bubble-toggle aria-label={menuAriaLabel} aria-pressed="false" aria-expanded="false">
+      <span class="bm-line"></span>
+      <span class="bm-line"></span>
+    </button>
+  </nav>
+
+  <div class="bm-overlay" aria-hidden="true">
+    <ul class="bm-list" role="menu" aria-label="Menu links">
+      {
+        items.map((item, i) => (
+          <li role="none" class="bm-col" style={`--d: ${delays[i].pill}ms; --dl: ${delays[i].label}ms`}>
+            <a
+              role="menuitem"
+              href={item.href}
+              aria-label={item.ariaLabel || item.label}
+              class="bm-pill"
+              style={`--item-rot: ${item.rotation ?? 0}deg; --hover-bg: ${item.hoverColor ?? 'var(--primary)'}`}>
+              <span class="bm-label">{item.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>
+
+<style>
+  .bm-root {
+    /* back.out(1.5) and power3 in/out as beziers */
+    --ease-back-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-power3-out: cubic-bezier(0.33, 1, 0.68, 1);
+    --ease-power3-in: cubic-bezier(0.32, 0, 0.67, 0);
+    --bm-close: 200ms;
+    display: contents;
+  }
+
+  /* ── Bar: logo bubble + toggle bubble ── */
+  .bm-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 2em;
+    pointer-events: none;
+    z-index: 99;
+  }
+  [data-fixed] .bm-bar {
+    position: fixed;
+  }
+
+  .bm-bubble {
+    --bubble-size: 46px;
+    height: var(--bubble-size);
+    border-radius: calc(var(--bubble-size) / 2);
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+  .bm-logo {
+    min-width: var(--bubble-size);
+    padding: 0 18px;
+    color: var(--foreground);
+  }
+  .bm-toggle {
+    width: var(--bubble-size);
+    flex: none;
+    flex-direction: column;
+    padding: 0;
+    cursor: pointer;
+  }
+  @media (min-width: 768px) {
+    .bm-bubble {
+      --bubble-size: 56px;
+    }
+  }
+
+  /* Hamburger -> X, driven by aria-pressed */
+  .bm-line {
+    width: 26px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--foreground);
+    transition: transform 300ms var(--ease-power3-out);
+    transform-origin: center;
+  }
+  .bm-line + .bm-line {
+    margin-top: 6px;
+  }
+  .bm-toggle[aria-pressed='true'] .bm-line:first-child {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .bm-toggle[aria-pressed='true'] .bm-line:last-child {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+
+  /* ── Overlay ── */
+  .bm-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 98;
+    visibility: hidden;
+    /* gsap's display:none onComplete -- hide after the close animation */
+    transition: visibility 0s linear calc(var(--bm-close) + 50ms);
+  }
+  [data-fixed] .bm-overlay {
+    position: fixed;
+  }
+  [data-state='open'] .bm-overlay {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .bm-list {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    width: 100%;
+    max-width: 1600px;
+    pointer-events: none;
+  }
+  [data-state='open'] .bm-list {
+    pointer-events: auto;
+  }
+
+  .bm-col {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex: 0 0 calc(100% / 3);
+    box-sizing: border-box;
+    /* closed state doubles as the fast, unstaggered close animation */
+    scale: 0;
+    transition: scale var(--bm-close) var(--ease-power3-in);
+  }
+  [data-state='open'] .bm-col {
+    scale: 1;
+    transition: scale var(--bm-duration) var(--ease-back-out) var(--d);
+  }
+  /* center a lone 4th/5th pill on the second row (original nth-child math) */
+  .bm-col:nth-child(4):nth-last-child(2) {
+    margin-left: calc(100% / 6);
+  }
+  .bm-col:nth-child(4):last-child {
+    margin-left: calc(100% / 3);
+  }
+
+  .bm-pill {
+    --pill-min-h: 20px;
+    --hover-bg: var(--primary);
+    width: 100%;
+    min-height: var(--pill-min-h);
+    padding: clamp(1.5rem, 2vw, 8rem) 0;
+    font-size: clamp(1.5rem, 3vw, 4rem);
+    font-weight: 500;
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    transition:
+      background 300ms var(--ease-power3-out),
+      color 300ms var(--ease-power3-out),
+      transform 300ms var(--ease-power3-out);
+  }
+  .bm-pill:hover {
+    transform: scale(1.06);
+    background: var(--hover-bg);
+    color: var(--background);
+  }
+  .bm-pill:active {
+    transform: scale(0.94);
+  }
+  .bm-pill:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* tilt is desktop-only -- this replaces the React resize handler */
+  @media (min-width: 900px) {
+    .bm-pill {
+      transform: rotate(var(--item-rot));
+    }
+    .bm-pill:hover {
+      transform: rotate(var(--item-rot)) scale(1.06);
+    }
+    .bm-pill:active {
+      transform: rotate(var(--item-rot)) scale(0.94);
+    }
+  }
+
+  .bm-label {
+    display: inline-block;
+    line-height: 1.2;
+    translate: 0 24px;
+    opacity: 0;
+    transition:
+      translate var(--bm-close) var(--ease-power3-in),
+      opacity var(--bm-close) var(--ease-power3-in);
+  }
+  [data-state='open'] .bm-label {
+    translate: 0 0;
+    opacity: 1;
+    transition:
+      translate var(--bm-duration) var(--ease-power3-out) var(--dl),
+      opacity var(--bm-duration) var(--ease-power3-out) var(--dl);
+  }
+
+  /* ── Mobile: full-width stacked pills under the bar ── */
+  @media (max-width: 899px) {
+    .bm-overlay {
+      align-items: flex-start;
+      padding-top: 120px;
+    }
+    .bm-list {
+      row-gap: 16px;
+    }
+    .bm-col {
+      flex: 0 0 100%;
+      margin-left: 0 !important;
+    }
+    .bm-pill {
+      --pill-min-h: 80px;
+      font-size: clamp(1.2rem, 3vw, 4rem);
+      padding: clamp(1rem, 2vw, 2rem) 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bm-col,
+    .bm-label,
+    .bm-pill,
+    .bm-line {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function setOpen(root: HTMLElement, open: boolean) {
+    root.dataset.state = open ? 'open' : 'closed';
+    const toggle = root.querySelector('[data-bubble-toggle]');
+    toggle?.setAttribute('aria-pressed', String(open));
+    toggle?.setAttribute('aria-expanded', String(open));
+    root.querySelector('.bm-overlay')?.setAttribute('aria-hidden', String(!open));
+  }
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const toggle = target.closest('[data-bubble-toggle]');
+    if (toggle) {
+      const root = toggle.closest<HTMLElement>('[data-astro-shad-bubble-menu]');
+      if (root) setOpen(root, root.dataset.state !== 'open');
+      return;
+    }
+    /* choosing an item closes the menu (matters for hash/SPA-ish hrefs) */
+    const link = target.closest('[data-astro-shad-bubble-menu] [role="menuitem"]');
+    if (link) {
+      const root = link.closest<HTMLElement>('[data-astro-shad-bubble-menu]');
+      if (root) setOpen(root, false);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    document
+      .querySelectorAll<HTMLElement>('[data-astro-shad-bubble-menu][data-state="open"]')
+      .forEach((root) => setOpen(root, false));
+  });
+</script>

@@ -1,0 +1,120 @@
+---
+/**
+ * SplitText.astro -- astro-shad staggered text reveal. Converted from
+ * react-bits SplitText (gsap SplitText clone), minus react and gsap.
+ *
+ * The trick gsap does at runtime -- splitting text into word/char spans --
+ * Astro does at BUILD time in frontmatter, for free. Each unit carries a
+ * staggered transition-delay; an IntersectionObserver flips one attribute
+ * on the wrapper when it scrolls into view and CSS does the rest.
+ *
+ * Accessibility: full text in aria-label on the wrapper, the span soup is
+ * aria-hidden. Reduced motion shows everything immediately.
+ *
+ *   <SplitText as="h2" class="text-3xl font-semibold"
+ *     text="Technology education that reaches every child." />
+ *   <SplitText by="char" stagger={20} text="pixel by pixel" />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  text: string;
+  by?: 'word' | 'char';
+  /** ms between units */
+  stagger?: number;
+  /** wrapper tag */
+  as?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  text,
+  by = 'word',
+  stagger = 45,
+  as = 'p',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = as as any;
+const words = text.split(' ');
+
+/* Precompute unit delays: word mode = one unit per word; char mode = one
+   unit per character, delays running across the whole string. */
+let unitIndex = 0;
+const wordUnits = words.map((word) => ({
+  word,
+  chars: (by === 'char' ? [...word] : [word]).map((u) => ({
+    u,
+    delay: stagger * unitIndex++,
+  })),
+}));
+---
+
+<Tag
+  class={cn('st', className)}
+  data-astro-shad-split
+  aria-label={text}
+  {...rest}
+>
+  {wordUnits.map(({ chars }, wi) => (
+    <>
+      <span class="st-word" aria-hidden="true">
+        {chars.map(({ u, delay }) => (
+          <span class="st-unit" style={`--st-d: ${delay}ms`}>{u}</span>
+        ))}
+      </span>
+      {wi < wordUnits.length - 1 && ' '}
+    </>
+  ))}
+</Tag>
+
+<style>
+  .st {
+    --st-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .st-word {
+    display: inline-block;
+    white-space: nowrap; /* never break mid-word in char mode */
+  }
+  .st-unit {
+    display: inline-block;
+    opacity: 0;
+    translate: 0 0.6em;
+    filter: blur(4px);
+    transition:
+      opacity 500ms var(--st-ease),
+      translate 600ms var(--st-ease),
+      filter 500ms var(--st-ease);
+    transition-delay: var(--st-d);
+  }
+  [data-inview] .st-unit {
+    opacity: 1;
+    translate: 0 0;
+    filter: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .st-unit {
+      transition: none;
+      opacity: 1;
+      translate: 0 0;
+      filter: none;
+    }
+  }
+</style>
+
+<script>
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.setAttribute('data-inview', '');
+          io.unobserve(en.target);
+        }
+      });
+    },
+    { threshold: 0.3 }
+  );
+  document.querySelectorAll('[data-astro-shad-split]').forEach((el) => io.observe(el));
+</script>

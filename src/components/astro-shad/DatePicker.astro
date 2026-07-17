@@ -1,0 +1,284 @@
+---
+/**
+ * DatePicker.astro -- react-less counterpart of shadcn's DatePicker
+ * (Popover + Calendar/react-day-picker). One field component: label, text
+ * input, calendar toggle, month-grid popover, description, and error slot.
+ *
+ * Follows the FormField conventions ([data-form-field] wrapper,
+ * [data-field-error] message node, aria wiring), so Form.astro validates it
+ * with zero extra code: the input is a real text input with a date pattern
+ * -- users can type 2026-08-15 or pick it; either way constraint validation
+ * applies. No react-day-picker: the month grid is ~60 lines of delegated
+ * vanilla JS rendering into the popover on open (client-built UI is the
+ * honest rung here -- the grid changes with every month click, so
+ * prerendering it buys nothing). Icons are inlined SVG, zero deps.
+ *
+ * min/max (ISO yyyy-mm-dd) disable out-of-range days and are also enforced
+ * as native min/max-style checks via the pattern + the picker itself.
+ *
+ *   <DatePicker name="visit_date" label="Preferred visit date" required
+ *     min="2026-07-01" max="2026-12-31" />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  name: string;
+  label: string;
+  required?: boolean;
+  description?: string;
+  /** custom message replacing the browser's validationMessage */
+  error?: string;
+  /** initial value, ISO yyyy-mm-dd */
+  value?: string;
+  min?: string;
+  max?: string;
+  placeholder?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  name,
+  label,
+  required,
+  description,
+  error,
+  value,
+  min,
+  max,
+  placeholder = 'YYYY-MM-DD',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const uid = crypto.randomUUID().slice(0, 6);
+const id = `${name}-${uid}`;
+const descId = description ? `${id}-desc` : undefined;
+const errId = `${id}-error`;
+
+const INPUT =
+  'w-full h-10 rounded-md border border-input bg-transparent px-3 py-2 pr-11 text-sm shadow-sm transition-colors ' +
+  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive';
+---
+
+<div
+  class={cn('relative flex flex-col gap-1.5', className)}
+  data-form-field
+  data-astro-shad-datepicker
+>
+  <label for={id} class="text-sm font-medium text-foreground">
+    {label}{required && <span class="text-destructive" aria-hidden="true"> *</span>}
+  </label>
+
+  <div class="relative">
+    <input
+      id={id}
+      name={name}
+      type="text"
+      class={INPUT}
+      required={required}
+      value={value}
+      placeholder={placeholder}
+      pattern="\d{4}-\d{2}-\d{2}"
+      autocomplete="off"
+      aria-describedby={[descId, errId].filter(Boolean).join(' ')}
+      data-error={error}
+      data-dp-input
+      data-min={min}
+      data-max={max}
+      {...rest}
+    />
+    <button
+      type="button"
+      data-dp-toggle
+      aria-label="Open calendar"
+      aria-expanded="false"
+      class="absolute top-1/2 right-1.5 grid h-8 w-8 -translate-y-1/2 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /></svg>
+    </button>
+  </div>
+
+  <div
+    data-dp-panel
+    hidden
+    class="absolute left-0 z-20 mt-1 w-72 rounded-md border border-border bg-popover p-3 shadow-lg"
+  >
+    <div class="mb-2 flex items-center justify-between">
+      <button type="button" data-dp-prev aria-label="Previous month" class="dp-nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+      </button>
+      <p data-dp-title class="text-sm font-medium text-foreground" aria-live="polite"></p>
+      <button type="button" data-dp-next aria-label="Next month" class="dp-nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+    </div>
+    <div data-dp-grid class="grid grid-cols-7 gap-0.5"></div>
+  </div>
+
+  {description && <p id={descId} class="text-xs text-muted-foreground">{description}</p>}
+  <p id={errId} data-field-error hidden aria-live="polite" class="text-xs text-destructive"></p>
+</div>
+
+<style is:global>
+  /* is:global: day cells are created at runtime and would miss Astro's
+     scoping attribute. dp-* names are unique to this component. */
+  .dp-nav {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-sm);
+    color: color-mix(in srgb, var(--foreground) 60%, transparent);
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+  .dp-nav:hover { background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+
+  .dp-head {
+    display: grid;
+    place-items: center;
+    height: 1.75rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  }
+  .dp-day {
+    display: grid;
+    place-items: center;
+    height: 2rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--foreground) 80%, transparent);
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+  .dp-day:hover { background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+  .dp-day:disabled {
+    color: color-mix(in srgb, var(--foreground) 25%, transparent);
+    pointer-events: none;
+  }
+  .dp-day[data-today] { box-shadow: inset 0 0 0 1px var(--primary); }
+  .dp-day[data-selected] {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const iso = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
+
+  function render(dp: HTMLElement) {
+    const input = dp.querySelector<HTMLInputElement>('[data-dp-input]')!;
+    const panel = dp.querySelector<HTMLElement>('[data-dp-panel]')!;
+    const grid = dp.querySelector<HTMLElement>('[data-dp-grid]')!;
+    const y = Number(panel.dataset.year);
+    const m = Number(panel.dataset.month); /* 0-based */
+
+    dp.querySelector('[data-dp-title]')!.textContent = new Intl.DateTimeFormat(undefined, {
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(y, m, 1));
+
+    grid.innerHTML = '';
+    WEEKDAYS.forEach((w) => {
+      const el = document.createElement('span');
+      el.className = 'dp-head';
+      el.textContent = w;
+      grid.appendChild(el);
+    });
+
+    const today = new Date();
+    const todayIso = iso(today.getFullYear(), today.getMonth(), today.getDate());
+    const min = input.dataset.min || '';
+    const max = input.dataset.max || '';
+    /* Monday-first: JS getDay() is 0=Sunday */
+    const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+    const days = new Date(y, m + 1, 0).getDate();
+
+    for (let b = 0; b < lead; b++) grid.appendChild(document.createElement('span'));
+
+    for (let d = 1; d <= days; d++) {
+      const date = iso(y, m, d);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dp-day';
+      btn.textContent = String(d);
+      btn.dataset.dpDay = date;
+      btn.setAttribute('aria-label', date);
+      if ((min && date < min) || (max && date > max)) btn.disabled = true;
+      if (date === todayIso) btn.dataset.today = '';
+      if (date === input.value) btn.dataset.selected = '';
+      grid.appendChild(btn);
+    }
+  }
+
+  function closeAll(except?: HTMLElement) {
+    document.querySelectorAll<HTMLElement>('[data-astro-shad-datepicker]').forEach((dp) => {
+      if (dp === except) return;
+      dp.querySelector<HTMLElement>('[data-dp-panel]')!.hidden = true;
+      dp.querySelector('[data-dp-toggle]')!.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.closest) return;
+
+    const toggle = t.closest('[data-dp-toggle]');
+    if (toggle) {
+      const dp = toggle.closest<HTMLElement>('[data-astro-shad-datepicker]')!;
+      const panel = dp.querySelector<HTMLElement>('[data-dp-panel]')!;
+      const opening = panel.hidden;
+      closeAll(dp);
+      if (opening) {
+        const input = dp.querySelector<HTMLInputElement>('[data-dp-input]')!;
+        const base = /^\d{4}-\d{2}-\d{2}$/.test(input.value)
+          ? new Date(input.value + 'T00:00:00')
+          : new Date();
+        panel.dataset.year = String(base.getFullYear());
+        panel.dataset.month = String(base.getMonth());
+        render(dp);
+      }
+      panel.hidden = !opening;
+      toggle.setAttribute('aria-expanded', String(opening));
+      return;
+    }
+
+    const nav = t.closest('[data-dp-prev], [data-dp-next]');
+    if (nav) {
+      const dp = nav.closest<HTMLElement>('[data-astro-shad-datepicker]')!;
+      const panel = dp.querySelector<HTMLElement>('[data-dp-panel]')!;
+      const m = Number(panel.dataset.month) + (nav.hasAttribute('data-dp-next') ? 1 : -1);
+      const d = new Date(Number(panel.dataset.year), m, 1);
+      panel.dataset.year = String(d.getFullYear());
+      panel.dataset.month = String(d.getMonth());
+      render(dp);
+      return;
+    }
+
+    const day = t.closest<HTMLElement>('[data-dp-day]');
+    if (day) {
+      const dp = day.closest<HTMLElement>('[data-astro-shad-datepicker]')!;
+      const input = dp.querySelector<HTMLInputElement>('[data-dp-input]')!;
+      input.value = day.dataset.dpDay || '';
+      /* bubbles so Form.astro's reward-early revalidation clears errors */
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      closeAll();
+      input.focus();
+      return;
+    }
+
+    /* click anywhere else closes open pickers */
+    if (!t.closest('[data-astro-shad-datepicker]')) closeAll();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
+</script>

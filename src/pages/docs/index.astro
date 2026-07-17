@@ -1,0 +1,70 @@
+---
+/**
+ * /docs -- introduction + component index. The docs shell itself is built
+ * from astro-shad primitives on the neutral theme: this site is the
+ * registry's first consumer.
+ */
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Snippet from '../../components/docs/Snippet.astro';
+import Card from '../../components/astro-shad/Card.astro';
+import { NAV } from '../../components/docs/docs-nav';
+
+const componentGroups = NAV.filter((g) => g.label !== 'Getting started');
+---
+
+<DocsLayout
+  title="astro-shad"
+  description="A personal shadcn-compatible registry of hand-converted .astro components: HTML + Tailwind v4 + minimal vanilla JS, zero React runtime. Same shadcn authoring feel, none of the client weight."
+>
+  <h2>How it works</h2>
+  <p>
+    Components are plain <code>.astro</code> files delivered byte-identical through the shadcn CLI.
+    You copy-to-own: once installed, the file is yours to edit. Every component styles itself only
+    through the token contract in <code>theme.css</code> -- re-branding is a token-value change,
+    never a markup change.
+  </p>
+
+  <h2>Install</h2>
+  <p>
+    One-time setup in your Astro + Tailwind v4 project -- the token contract and <code>cn()</code> come first.
+    Starting a project from scratch? Follow the full
+    <a href="/docs/usage" class="text-primary underline-offset-4 hover:underline">usage &amp; requirements</a> walkthrough instead.
+  </p>
+  <Snippet
+    lang="bash"
+    code={`npx shadcn add @astro-shad/theme @astro-shad/utils
+npx shadcn add @astro-shad/button   # then any component`}
+  />
+  <p class="mt-4">Three things every consumer must have (each one was paid for -- see the repo docs):</p>
+  <ul class="docs-list">
+    <li><code>"tsx": true</code> in <code>components.json</code> -- without it the CLI silently rewrites <code>.astro</code> files.</li>
+    <li><code>@import "./theme.css"</code> after Tailwind in your global stylesheet.</li>
+    <li>Components import <code>cn()</code> relatively (<code>../../lib/utils</code>) -- keep the installed layout.</li>
+  </ul>
+
+  <h2>Components</h2>
+  {componentGroups.map((group) => (
+    <section class="mb-8">
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.label}</p>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {group.items.map((item) => (
+          <a href={item.href} class="group">
+            <Card class="h-full transition-colors group-hover:border-ring/60">
+              <p class="text-sm font-semibold">
+                {item.title}
+                {item.status === 'experimental' && <span class="ml-1.5 text-[10px] font-normal text-muted-foreground">experimental</span>}
+              </p>
+            </Card>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <h2>Workflow</h2>
+  <p>
+    Components are converted per <code>docs/frontend-contract.md</code>, QA'd on the
+    <a href="/dev" class="text-primary underline-offset-4 hover:underline">/dev playground</a> (all
+    variants, both themes, token trials), and documented here once proven from a consumer repo.
+  </p>
+</DocsLayout>

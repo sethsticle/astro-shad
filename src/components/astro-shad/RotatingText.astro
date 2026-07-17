@@ -1,0 +1,66 @@
+---
+/**
+ * RotatingText.astro -- astro-shad rotating word. Converted from react-bits
+ * RotatingText, minus react. ZERO client JS.
+ *
+ * All words stack in one inline-grid cell; each runs the same keyframe
+ * loop offset by its slot delay, so exactly one word is visible at a time
+ * (exit of one overlaps entry of the next). The keyframe percentages
+ * depend on the word count, so the @keyframes block is generated
+ * per-instance in frontmatter and injected with a uid-scoped name -- the
+ * Astro-native answer to "CSS keyframes cannot read a variable".
+ *
+ * Wrapper width fits the longest word automatically (grid sizing).
+ *
+ *   We teach <RotatingText class="text-primary" words={['coding', 'robotics']} />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  words: string[];
+  /** seconds each word holds */
+  interval?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { words, interval = 2.4, class: className, ...rest } = Astro.props;
+
+const uid = crypto.randomUUID().slice(0, 6);
+const n = words.length;
+const total = n * interval;
+/* enter/exit take 0.4s, expressed as % of the whole loop */
+const e = ((0.4 / total) * 100).toFixed(3);
+const p = (100 / n).toFixed(3);
+const pe = (100 / n + (0.4 / total) * 100).toFixed(3);
+
+const css = `
+.rt-${uid} > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: rt-${uid} ${total}s infinite;
+}
+@keyframes rt-${uid} {
+  0%      { opacity: 0; transform: translateY(65%); }
+  ${e}%   { opacity: 1; transform: translateY(0); }
+  ${p}%   { opacity: 1; transform: translateY(0); }
+  ${pe}%  { opacity: 0; transform: translateY(-65%); }
+  100%    { opacity: 0; transform: translateY(-65%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-${uid} > span { animation: none; }
+  .rt-${uid} > span:first-child { opacity: 1; transform: none; }
+}`;
+---
+
+<span
+  class={cn(`rt-${uid} inline-grid overflow-hidden align-bottom whitespace-nowrap`, className)}
+  aria-label={words.join(', ')}
+  {...rest}
+>
+  {words.map((w, i) => (
+    <span aria-hidden="true" style={`animation-delay: ${i * interval}s`}>{w}</span>
+  ))}
+</span>
+
+<Fragment set:html={`<style>${css}</style>`} />

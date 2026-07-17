@@ -1,0 +1,47 @@
+---
+/**
+ * DevBoard.astro -- one horizontal slide in the /dev playground canvas.
+ * Dev-only chrome; NOT a registry item.
+ *
+ * Each board is a full-width snap slide that scrolls vertically inside
+ * itself. Pagination and keyboard nav in dev.astro count boards
+ * automatically -- adding a <DevBoard> is the only step to add a slide.
+ *
+ * Two zones, deliberately split:
+ * - the header strip is CHROME: fixed literal colors, never token
+ *   utilities, so sidebar toggles can never restyle it;
+ * - the preview area is TOKEN-SCOPED: bg-background/text-foreground
+ *   resolve against whatever vars the sidebar sets on #preview-scope,
+ *   so only the components inside respond to the controls.
+ *
+ *   <DevBoard index={1} title="Buttons" note="Button.astro">...</DevBoard>
+ */
+interface Props {
+  index: number;
+  title: string;
+  note?: string;
+}
+
+const { index, title, note } = Astro.props;
+const num = String(index).padStart(2, '0');
+---
+
+<section
+  class="flex w-full flex-none snap-start flex-col overflow-hidden"
+  data-board
+  aria-label={`Board ${num}: ${title}`}
+>
+  <!-- chrome header strip: fixed palette -->
+  <header class="flex flex-none items-baseline gap-3 border-b border-[#26262b] bg-[#131316] px-6 py-3.5">
+    <span class="text-[10px] font-semibold tracking-widest text-[#6e6e76]">{num}</span>
+    <h2 class="text-sm font-semibold text-[#e4e4e7]">{title}</h2>
+    {note && <span class="hidden truncate text-xs text-[#6e6e76] sm:inline">{note}</span>}
+  </header>
+
+  <!-- token-scoped preview area (pb keeps content clear of the pagination pills) -->
+  <div class="min-h-0 flex-1 overflow-y-auto bg-background text-foreground">
+    <div class="px-6 pt-8 pb-24 md:px-10 md:pt-10">
+      <slot />
+    </div>
+  </div>
+</section>

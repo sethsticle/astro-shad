@@ -1,0 +1,36 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/tabs/Basic.astro';
+import basicSource from '../../../components/docs/demos/tabs/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Tabs"
+  description="shadcn tabs with Radix replaced by ~20 lines of vanilla JS. Tabs declared as a prop, panels as named slots keyed by id. Click + arrow-key activation, ARIA wired."
+  registry="tabs"
+  sourceFile="Tabs.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/tabs" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'tabs', type: '{ id: string; label: string }[]', description: 'Trigger list. Each id doubles as the panel slot name and a DOM id -- keep them unique per page.' },
+      { name: 'initial', type: 'string', default: 'first tab', description: 'id of the initially active tab.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>State is DOM attributes (<code>aria-selected</code>, <code>tabindex</code>, <code>hidden</code>) -- the reference implementation for interactivity ladder rung 3.</li>
+  </ul>
+</DocsLayout>

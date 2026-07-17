@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "floating-header",
+  "title": "Floating Header",
+  "description": "Floating site header: detached radius-adjustable pill (translucent card fill + blur) with brand/nav/actions slots. Zero client JS. Sibling of top-bar.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/FloatingHeader.astro",
+      "content": "---\n/**\n * FloatingHeader.astro -- astro-shad site header, floating variant: a\n * detached, radius-adjustable pill that hovers below the top edge\n * (translucent card fill + blur). Zero client JS.\n *\n * Same slot contract as TopBar (brand / nav / actions, all optional);\n * `radius` is the personality knob. Width is a layout concern -- set\n * max-w-* / mx-* via class (defaults to a mx-2 full-width pill).\n *\n *   <FloatingHeader radius=\"full\" class=\"max-w-3xl sm:mx-auto\">\n *     <a slot=\"brand\" href=\"/\" class=\"text-sm font-semibold\">acme</a>\n *     <Fragment slot=\"nav\"><a href=\"/docs\">Docs</a></Fragment>\n *     <Button slot=\"actions\" size=\"sm\">Sign in</Button>\n *   </FloatingHeader>\n *\n * Sibling component: TopBar.astro (edge-to-edge bar).\n */\nimport { cn } from \"../../lib/utils\";\n\ntype Radius = \"lg\" | \"xl\" | \"2xl\" | \"3xl\" | \"full\";\n\n/* Literal strings so Tailwind's scanner sees every class. */\nconst RADII: Record<Radius, string> = {\n  lg: \"rounded-lg\",\n  xl: \"rounded-xl\",\n  \"2xl\": \"rounded-2xl\",\n  \"3xl\": \"rounded-3xl\",\n  full: \"rounded-full\",\n};\n\ninterface Props {\n  /** stick just below the top of the scroll container */\n  sticky?: boolean;\n  radius?: Radius;\n  /** classes for the inner row */\n  containerClass?: string;\n  /** classes for the nav wrapper */\n  navClass?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { sticky = true, radius = \"3xl\", containerClass, navClass, class: className, ...rest } = Astro.props;\n---\n\n<header\n  class={cn(\n    \"z-30 mx-4 xl:mx-auto xl:max-w-6xl flex justify-between border border-border bg-card/80 backdrop-blur\",\n    RADII[radius],\n    sticky && \"sticky top-2\",\n    className,\n  )}\n  {...rest}\n>\n  <div class={cn(\"flex w-full items-center justify-between gap-6 px-6 py-3\", containerClass)}>\n    {\n      Astro.slots.has(\"brand\") && (\n        <div class=\"flex items-center gap-6\">\n          <slot name=\"brand\" />\n        </div>\n      )\n    }\n    {\n      Astro.slots.has(\"nav\") && (\n        <nav class={cn(\"hidden items-center gap-4 text-sm text-muted-foreground sm:flex\", navClass)}>\n          <slot name=\"nav\" />\n        </nav>\n      )\n    }\n    {\n      Astro.slots.has(\"actions\") && (\n        <div class=\"flex items-center gap-2\">\n          <slot name=\"actions\" />\n        </div>\n      )\n    }\n  </div>\n</header>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/FloatingHeader.astro"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -1,0 +1,47 @@
+---
+import { cn } from "../../lib/utils";
+
+interface Props {
+  type?: "single" | "multiple";
+  /** boolean alias for type="multiple" */
+  multipleOpen?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { type = "single", multipleOpen = false, class: className, ...rest } = Astro.props;
+const mode = multipleOpen ? "multiple" : type;
+---
+
+<div class={cn("flex w-full flex-col", className)} data-astro-shad-accordion-03={mode} {...rest}>
+  <slot />
+</div>
+
+<script>
+  function setOpen(trigger: Element, open: boolean) {
+    trigger.setAttribute("aria-expanded", String(open));
+    const panel = trigger.closest("[data-accordion-03-item]")?.querySelector<HTMLElement>("[data-accordion-03-panel]");
+    if (panel) panel.dataset.state = open ? "open" : "closed";
+  }
+
+  // 1. Updated the root query selector
+  document.querySelectorAll<HTMLElement>("[data-astro-shad-accordion-03]").forEach((root) => {
+    root.addEventListener("click", (e) => {
+      // 2. Updated the trigger selector
+      const trigger = (e.target as HTMLElement).closest("[data-accordion-03-trigger]");
+
+      // 3. Updated the safety check root selector
+      if (!trigger || trigger.closest("[data-astro-shad-accordion-03]") !== root) return;
+
+      const isOpen = trigger.getAttribute("aria-expanded") === "true";
+
+      // 4. Updated the dataset camelCase property mapping
+      if (root.dataset.astroShadAccordion03 === "single" && !isOpen) {
+        // 5. Updated the sibling closer query selector
+        root.querySelectorAll('[data-accordion-03-trigger][aria-expanded="true"]').forEach((other) => setOpen(other, false));
+      }
+
+      setOpen(trigger, !isOpen);
+    });
+  });
+</script>

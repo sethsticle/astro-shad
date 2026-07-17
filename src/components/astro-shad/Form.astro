@@ -1,0 +1,119 @@
+---
+/**
+ * Form.astro -- react-less counterpart of the shadcn <Form> (react-hook-form
+ * + zod). Same authoring feel, different engine: the browser's native
+ * Constraint Validation API does the checking, and one processed delegated
+ * script does the painting.
+ *
+ * Timing matches react-hook-form's default ("validate on submit"), plus the
+ * standard reward-early rule: nothing is checked until the submit button is
+ * pressed; after a failed submit, an invalid field re-validates on every
+ * input so the error clears the moment it is fixed. There is no polling and
+ * no per-keystroke checking of untouched fields.
+ *
+ * novalidate suppresses the browser's native error bubbles so messages
+ * render inline in each FormField's [data-field-error] slot instead --
+ * validation still runs via checkValidity().
+ *
+ * `demo` prevents actual submission and shows the success banner -- for
+ * playgrounds and endpoint-less mockups. Real forms omit it and submit
+ * normally to `action`. Client validation is UX only: the endpoint must
+ * re-validate everything server-side regardless.
+ *
+ *   <Form action="/api/contact" method="post">
+ *     <FormField name="email" label="Email" type="email" required />
+ *     <Button type="submit">Send</Button>
+ *   </Form>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  action?: string;
+  method?: 'post' | 'get' | 'dialog';
+  /** block submission and show the success banner instead (dev/mock use) */
+  demo?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  action,
+  method = 'post',
+  demo = false,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<form
+  novalidate
+  data-astro-shad-form
+  data-demo={demo ? '' : undefined}
+  action={action}
+  method={method}
+  class={cn('flex flex-col gap-5', className)}
+  {...rest}
+>
+  <slot />
+  <p
+    data-form-success
+    hidden
+    aria-live="polite"
+    class="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground"
+  >
+  </p>
+</form>
+
+<script>
+  function validateField(control: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+    if (!control.willValidate) return true;
+    const ok = control.checkValidity();
+    control.setAttribute('aria-invalid', String(!ok));
+    const wrap = control.closest('[data-form-field]');
+    const err = wrap?.querySelector<HTMLElement>('[data-field-error]');
+    if (err) {
+      err.textContent = ok ? '' : control.dataset.error || control.validationMessage;
+      err.hidden = ok;
+    }
+    return ok;
+  }
+
+  document.addEventListener('submit', (e) => {
+    const form = (e.target as HTMLElement).closest<HTMLFormElement>('[data-astro-shad-form]');
+    if (!form) return;
+
+    let firstBad: HTMLElement | null = null;
+    form
+      .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        'input, select, textarea'
+      )
+      .forEach((c) => {
+        if (!validateField(c) && !firstBad) firstBad = c;
+      });
+
+    const success = form.querySelector<HTMLElement>('[data-form-success]');
+    if (firstBad) {
+      e.preventDefault();
+      if (success) success.hidden = true;
+      (firstBad as HTMLElement).focus();
+      return;
+    }
+    if (form.hasAttribute('data-demo')) {
+      e.preventDefault();
+      if (success) {
+        success.textContent = 'Valid. Demo mode -- nothing was submitted.';
+        success.hidden = false;
+      }
+    }
+  });
+
+  /* Reward early: a field marked invalid re-validates as the user types,
+     so the error clears immediately. Untouched fields stay silent. */
+  function revalidate(e: Event) {
+    const c = e.target as HTMLInputElement | null;
+    if (!c || !c.closest || !c.closest('[data-astro-shad-form]')) return;
+    if (c.getAttribute('aria-invalid') === 'true') validateField(c);
+  }
+  document.addEventListener('input', revalidate);
+  document.addEventListener('change', revalidate);
+</script>

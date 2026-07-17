@@ -1,0 +1,16 @@
+---
+import BubbleMenu from '../../../astro-shad/BubbleMenu.astro';
+---
+
+<div class="relative h-[24rem] w-full overflow-hidden rounded-lg border border-border bg-muted/30">
+  <BubbleMenu
+    items={[
+      { label: 'Home', href: '#home', rotation: -8 },
+      { label: 'Docs', href: '#docs', rotation: 8, hoverColor: '#60a5fa' },
+      { label: 'Registry', href: '#registry', rotation: -4, hoverColor: '#c084fc' },
+      { label: 'About', href: '#about', rotation: 6, hoverColor: '#f59e0b' },
+    ]}
+  >
+    <span slot="logo" class="text-xs font-semibold tracking-widest">ASTRO-SHAD</span>
+  </BubbleMenu>
+</div>

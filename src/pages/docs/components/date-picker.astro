@@ -1,0 +1,43 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/date-picker/Basic.astro';
+import basicSource from '../../../components/docs/demos/date-picker/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Date Picker"
+  description="shadcn's DatePicker without Popover or react-day-picker: a real text input with a date pattern plus a ~60-line vanilla JS month-grid popover. Type the date or pick it -- either way constraint validation applies."
+  registry="date-picker"
+  sourceFile="DatePicker.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="max-w-sm p-8 pb-40">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/date-picker" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'name', type: 'string', description: 'Control name.' },
+      { name: 'label', type: 'string', description: 'Visible label.' },
+      { name: 'required', type: 'boolean', description: 'Native constraint.' },
+      { name: 'value', type: 'string', description: 'Initial value, ISO yyyy-mm-dd.' },
+      { name: 'min / max', type: 'string', description: 'ISO bounds; out-of-range days are disabled in the grid.' },
+      { name: 'placeholder', type: 'string', default: "'YYYY-MM-DD'", description: 'Input placeholder.' },
+      { name: 'description', type: 'string', description: 'Helper text under the control.' },
+      { name: 'error', type: 'string', description: "Custom message replacing the browser's validationMessage." },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Follows the FormField conventions (<code>data-form-field</code> wrapper, error node, aria wiring) -- a surrounding <code>&lt;Form&gt;</code> validates it with zero extra code.</li>
+    <li>The month grid is client-built on open: it changes with every month click, so prerendering buys nothing (the honest rung 3 case).</li>
+  </ul>
+</DocsLayout>

@@ -1,136 +1,1048 @@
 ---
 /**
  * /dev -- the astro-shad playground. Every registry component renders
- * here against the neutral theme before it ships (the "storybook" of
- * the registry). New components must add a section.
+ * here before it ships (the "storybook" of the registry). New components
+ * must add a <DevBoard>.
+ *
+ * Modeled on shadcn.com/create: a token-control sidebar, a bordered canvas
+ * holding a horizontal snap scroller of DevBoard slides, and floating
+ * pagination pills.
+ *
+ * ARCHITECTURE -- chrome vs preview:
+ * The sidebar, canvas frame, board headers, and pills are CHROME: styled
+ * once with fixed literal colors, never token utilities, so no control can
+ * restyle them. All token overrides (and the dark/light attribute) land on
+ * #preview-scope -- the scroller element -- as inline styles, so ONLY the
+ * astro-shad components inside the boards respond. This works because
+ * every component styles itself via var(--token) references and theme.css
+ * scopes its light overrides with [data-theme="light"], not html[...].
+ *
+ * Radius note: --radius-sm/md/lg are defined at :root as calc() of
+ * --radius, and var() inside a custom property resolves where it is
+ * DECLARED -- so overriding --radius alone on the scope does nothing.
+ * The radius control therefore sets all four vars directly.
+ *
+ * "Copy tokens" emits a theme.css-format override block (:root +
+ * [data-theme="light"]) for graduating a trial into a consumer's theme.
+ * Fonts load via a dev-only Google Fonts link; nothing ships with
+ * components.
  */
-import '../styles/global.css';
-import Button from '../components/astro-shad/Button.astro';
-import Badge from '../components/astro-shad/Badge.astro';
-import Card from '../components/astro-shad/Card.astro';
-import Tabs from '../components/astro-shad/Tabs.astro';
-import Accordion from '../components/astro-shad/Accordion.astro';
-import AccordionItem from '../components/astro-shad/AccordionItem.astro';
+import "../styles/global.css";
+import { Icon } from "astro-icon/components";
+import DevBoard from "../components/dev/DevBoard.astro";
+import Button from "../components/astro-shad/Button.astro";
+import Badge from "../components/astro-shad/Badge.astro";
+import Card from "../components/astro-shad/Card.astro";
+import Tabs from "../components/astro-shad/Tabs.astro";
+import Accordion from "../components/astro-shad/Accordion.astro";
+import AccordionItem from "../components/astro-shad/AccordionItem.astro";
+import GlassIcon from "../components/astro-shad/GlassIcon.astro";
+import Folder from "../components/astro-shad/Folder.astro";
+import Pagination from "../components/astro-shad/Pagination.astro";
+import BubbleMenu from "../components/astro-shad/BubbleMenu.astro";
+import Form from "../components/astro-shad/Form.astro";
+import FormField from "../components/astro-shad/FormField.astro";
+import DatePicker from "../components/astro-shad/DatePicker.astro";
+import MagicBento from "../components/astro-shad/MagicBento.astro";
+import BentoCard from "../components/astro-shad/BentoCard.astro";
+import TextType from "../components/astro-shad/TextType.astro";
+import RotatingText from "../components/astro-shad/RotatingText.astro";
+import SplitText from "../components/astro-shad/SplitText.astro";
+import CountUp from "../components/astro-shad/CountUp.astro";
+import CurvedLoop from "../components/astro-shad/CurvedLoop.astro";
+import LogoLoop from "../components/astro-shad/LogoLoop.astro";
+import TopBar from "../components/astro-shad/TopBar.astro";
+import FloatingHeader from "../components/astro-shad/FloatingHeader.astro";
+import Hero01 from "../components/astro-shad/sections/Hero-01.astro";
+import Hero02 from "../components/astro-shad/sections/Hero-02.astro";
+import Hero03 from "../components/astro-shad/sections/Hero-03.astro";
+import Split01 from "../components/astro-shad/sections/Split-01.astro";
+import FeatureGrid01 from "../components/astro-shad/sections/FeatureGrid-01.astro";
+import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
     <title>astro-shad / dev</title>
+    <!-- dev-only font menu; components never ship font dependencies -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Playfair+Display:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased">
-    <header class="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/90 px-8 py-4 backdrop-blur">
-      <div class="flex items-baseline gap-3">
-        <h1 class="text-lg font-semibold">astro-shad</h1>
-        <span class="text-sm text-muted-foreground">component playground · neutral theme</span>
-      </div>
-      <Button id="theme-toggle" variant="outline" size="sm">Toggle theme</Button>
-    </header>
+  <body class="h-screen overflow-hidden bg-[#0b0b0c] font-sans text-[#e4e4e7] antialiased">
+    <div class="flex h-full gap-3 p-3">
+      <!-- ── Sidebar: token controls (chrome -- fixed palette) ── -->
+      <aside id="sidebar" class="z-40 flex w-72 flex-none flex-col overflow-hidden rounded-lg border border-[#26262b] bg-[#131316]">
+        <header class="border-b border-[#26262b] px-5 py-4">
+          <p class="text-[9px] font-semibold tracking-[0.2em] text-[#6e6e76]">ASTRO-SHAD</p>
+          <h1 class="mt-1 text-base font-semibold">Playground</h1>
+          <p class="mt-1 text-xs leading-relaxed text-[#6e6e76]">
+            Overrides apply to the components in the boards only. Session-only until copied into theme.css.
+          </p>
+        </header>
 
-    <main class="mx-auto flex max-w-3xl flex-col gap-14 px-8 py-12">
-      <section class="flex flex-col gap-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Button</h2>
-        <div class="flex flex-wrap items-center gap-3">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="inverse">Inverse</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="destructive">Destructive</Button>
-        </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <Button size="sm">Small</Button>
-          <Button size="md">Medium</Button>
-          <Button size="lg">Large</Button>
-          <Button disabled>Disabled</Button>
-          <Button href="#" variant="outline">As link</Button>
-        </div>
-      </section>
-
-      <section class="flex flex-col gap-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Badge</h2>
-        <div class="flex flex-wrap items-center gap-3">
-          <Badge>Primary</Badge>
-          <Badge variant="secondary">Secondary</Badge>
-          <Badge variant="destructive">Destructive</Badge>
-          <Badge variant="outline">Outline</Badge>
-          <Badge variant="accent">Accent</Badge>
-          <Badge variant="outline" href="#">As link</Badge>
-        </div>
-      </section>
-
-      <section class="flex flex-col gap-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Card</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <Card title="Notifications" description="Choose how you want to be reached.">
-            <p class="text-sm text-muted-foreground">
-              Body content lives in the default slot. Header spacing collapses
-              when no title, description, or header slot is given.
-            </p>
-            <div slot="footer" class="flex gap-2">
-              <Button size="sm">Save</Button>
-              <Button size="sm" variant="ghost">Cancel</Button>
+        <div class="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+          <div>
+            <p class="ctl-label">Mode</p>
+            <div class="grid grid-cols-2 gap-1.5" data-group="mode">
+              <button class="ctl" data-value="dark">Dark</button>
+              <button class="ctl" data-value="light">Light</button>
             </div>
-          </Card>
-          <Card>
-            <p class="text-sm text-muted-foreground">
-              Bare card: no header, no footer -- just the default slot.
-            </p>
-          </Card>
+          </div>
+
+          <div>
+            <p class="ctl-label">Theme preset</p>
+            <div class="grid grid-cols-2 gap-1.5" data-group="preset">
+              <button class="ctl" data-value="default">Default</button>
+              <button class="ctl" data-value="violet">Violet</button>
+              <button class="ctl" data-value="blue">Blue</button>
+              <button class="ctl" data-value="emerald">Emerald</button>
+              <button class="ctl" data-value="rose">Rose</button>
+              <button class="ctl" data-value="amber">Amber</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="ctl-label">Base color</p>
+            <div class="grid grid-cols-3 gap-1.5" data-group="base">
+              <button class="ctl" data-value="neutral">Neutral</button>
+              <button class="ctl" data-value="stone">Stone</button>
+              <button class="ctl" data-value="zinc">Zinc</button>
+              <button class="ctl" data-value="slate">Slate</button>
+              <button class="ctl" data-value="gray">Gray</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="ctl-label">Accent</p>
+            <div class="flex flex-wrap items-center gap-2.5" data-group="accent">
+              <button
+                class="dot"
+                data-value="none"
+                style="background:linear-gradient(135deg,#fafafa 50%,#0a0a0a 50%)"
+                aria-label="Preset accent"></button>
+              <button class="dot" data-value="#8b5cf6" style="background:#8b5cf6" aria-label="Violet accent"></button>
+              <button class="dot" data-value="#3b82f6" style="background:#3b82f6" aria-label="Blue accent"></button>
+              <button class="dot" data-value="#10b981" style="background:#10b981" aria-label="Emerald accent"></button>
+              <button class="dot" data-value="#f43f5e" style="background:#f43f5e" aria-label="Rose accent"></button>
+              <button class="dot" data-value="#f59e0b" style="background:#f59e0b" aria-label="Amber accent"></button>
+              <input
+                id="accent-custom"
+                type="color"
+                value="#8b5cf6"
+                aria-label="Custom accent"
+                class="h-6 w-6 cursor-pointer rounded-full border border-[#26262b] bg-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="ctl-label">Heading font</p>
+            <div class="grid grid-cols-1 gap-1.5" data-group="headingFont">
+              <button class="ctl" data-value="default">Inherit content font</button>
+              <button class="ctl" data-value="grotesk" style="font-family:'Space Grotesk',sans-serif">Space Grotesk</button>
+              <button class="ctl" data-value="playfair" style="font-family:'Playfair Display',serif">Playfair Display</button>
+              <button class="ctl" data-value="mono" style="font-family:'JetBrains Mono',monospace">JetBrains Mono</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="ctl-label">Content font</p>
+            <div class="grid grid-cols-1 gap-1.5" data-group="contentFont">
+              <button class="ctl" data-value="default">System</button>
+              <button class="ctl" data-value="inter" style="font-family:'Inter',sans-serif">Inter</button>
+              <button class="ctl" data-value="grotesk" style="font-family:'Space Grotesk',sans-serif">Space Grotesk</button>
+              <button class="ctl" data-value="mono" style="font-family:'JetBrains Mono',monospace">JetBrains Mono</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="ctl-label">Radius</p>
+            <div class="grid grid-cols-3 gap-1.5" data-group="radius">
+              <button class="ctl" data-value="default">Default</button>
+              <button class="ctl" data-value="0">0</button>
+              <button class="ctl" data-value="0.3">0.3</button>
+              <button class="ctl" data-value="0.5">0.5</button>
+              <button class="ctl" data-value="0.75">0.75</button>
+              <button class="ctl" data-value="1">1.0</button>
+            </div>
+          </div>
         </div>
-      </section>
 
-      <section class="flex flex-col gap-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Tabs</h2>
-        <Tabs
-          tabs={[
-            { id: 'account', label: 'Account' },
-            { id: 'password', label: 'Password' },
-            { id: 'team', label: 'Team' },
-          ]}
+        <footer class="space-y-2.5 border-t border-[#26262b] px-5 py-4">
+          <pre
+            id="readout"
+            class="max-h-40 overflow-y-auto rounded-sm border border-[#26262b] bg-[#0b0b0c] p-3 text-[10px] leading-relaxed text-[#9d9da6]">
+          </pre>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button id="copy-tokens" class="ctl">Copy tokens</button>
+            <button id="reset-tokens" class="ctl">Reset</button>
+          </div>
+        </footer>
+      </aside>
+
+      <!-- mobile backdrop for the off-canvas sidebar -->
+      <div id="sidebar-backdrop" class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
+
+      <!-- ── Canvas: horizontal board scroller (chrome frame) ── -->
+      <div class="relative min-w-0 flex-1">
+        <button
+          id="sidebar-toggle"
+          class="absolute top-2 left-2 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-md border border-[#26262b] bg-[#131316] text-[#e4e4e7] shadow-lg"
+          aria-label="Toggle sidebar"
+          aria-expanded="true"
         >
-          <Card slot="account" title="Account">
-            <p class="text-sm text-muted-foreground">Account panel. Arrow keys move between triggers.</p>
-          </Card>
-          <Card slot="password" title="Password">
-            <p class="text-sm text-muted-foreground">Password panel.</p>
-          </Card>
-          <Card slot="team" title="Team">
-            <p class="text-sm text-muted-foreground">Team panel.</p>
-          </Card>
-        </Tabs>
-      </section>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg
+          >
+        </button>
 
-      <section class="flex flex-col gap-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Accordion · single</h2>
-        <Accordion>
-          <AccordionItem title="Is it accessible?">
-            Trigger is a real button with aria-expanded; panel animates via the CSS grid-rows trick.
-          </AccordionItem>
-          <AccordionItem title="Is it styled?" open>
-            Neutral tokens only -- re-brand by overriding theme.css values, never this markup.
-          </AccordionItem>
-          <AccordionItem title="Is it animated?">
-            Height transition with no measured heights and no JS animation code.
-          </AccordionItem>
-        </Accordion>
-      </section>
+        <div class="h-full overflow-hidden rounded-lg border border-[#26262b]">
+          <!-- #preview-scope: ALL token overrides + data-theme land here -->
+          <div id="preview-scope" class="flex h-full snap-x snap-mandatory overflow-x-auto scroll-smooth">
+            <DevBoard index={1} title="Buttons & Badges" note="Button.astro · Badge.astro">
+              <div class="dev-group">
+                <p class="dev-group-title">Button variants</p>
+                <div class="dev-row">
+                  <Button>Primary</Button>
+                  <Button variant="secondary">Secondary</Button>
+                  <Button variant="inverse">Inverse</Button>
+                  <Button variant="outline">Outline</Button>
+                  <Button variant="ghost">Ghost</Button>
+                  <Button variant="destructive">Destructive</Button>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">Sizes & states</p>
+                <div class="dev-row">
+                  <Button size="sm">Small</Button>
+                  <Button size="md">Medium</Button>
+                  <Button size="lg">Large</Button>
+                  <Button disabled>Disabled</Button>
+                  <Button href="#" variant="outline">As link</Button>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">Icon slots -- astro-icon rendered at build time, zero runtime</p>
+                <div class="dev-row">
+                  <Button><Icon slot="icon-left" name="lucide:download" size={16} />Download</Button>
+                  <Button variant="secondary"><Icon slot="icon-left" name="lucide:plus" size={16} />New item</Button>
+                  <Button variant="outline">Next<Icon slot="icon-right" name="lucide:arrow-right" size={16} /></Button>
+                  <Button variant="ghost"
+                    ><Icon slot="icon-left" name="lucide:settings" size={16} />Settings<Icon
+                      slot="icon-right"
+                      name="lucide:chevron-down"
+                      size={14}
+                    /></Button
+                  >
+                  <Button variant="destructive"><Icon slot="icon-left" name="lucide:trash-2" size={16} />Delete</Button>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">Badges</p>
+                <div class="dev-row">
+                  <Badge>Primary</Badge>
+                  <Badge variant="secondary">Secondary</Badge>
+                  <Badge variant="destructive">Destructive</Badge>
+                  <Badge variant="outline">Outline</Badge>
+                  <Badge variant="accent">Accent</Badge>
+                  <Badge variant="outline" href="#">As link</Badge>
+                </div>
+              </div>
+            </DevBoard>
 
-      <section class="flex flex-col gap-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Accordion · multiple</h2>
-        <Accordion type="multiple">
-          <AccordionItem title="First item">Both of these can stay open at once.</AccordionItem>
-          <AccordionItem title="Second item">type="multiple" skips the close-siblings step.</AccordionItem>
-        </Accordion>
-      </section>
-    </main>
+            <DevBoard index={2} title="Cards" note="Card.astro · props + named slots · image / bgImage">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <Card title="Notifications" description="Choose how you want to be reached.">
+                  <p class="text-sm text-muted-foreground">
+                    Body content lives in the default slot. Header spacing collapses when no title, description, or header slot is given.
+                  </p>
+                  <div slot="footer" class="flex gap-2">
+                    <Button size="sm">Save</Button>
+                    <Button size="sm" variant="ghost">Cancel</Button>
+                  </div>
+                </Card>
+                <Card>
+                  <p class="text-sm text-muted-foreground">Bare card: no header, no footer -- just the default slot.</p>
+                </Card>
+                <Card
+                  image="https://picsum.photos/seed/astro-shad/640/300"
+                  imageAlt="Placeholder"
+                  title="Image card"
+                  description="image prop renders edge-to-edge above the header."
+                >
+                  <p class="text-sm text-muted-foreground">The image slot wins over the prop when both exist.</p>
+                </Card>
+                <Card
+                  bgImage="https://picsum.photos/seed/astro-bg/640/400"
+                  title="Background image"
+                  description="Absolute cover layer behind the content with a bottom scrim."
+                >
+                  <p class="text-sm text-white/80">Text goes literal white -- the scrim is dark in both themes.</p>
+                </Card>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={3} title="Glass Icons & Folders" note="GlassIcon.astro · Folder.astro · react-bits conversions">
+              <div class="dev-group">
+                <p class="dev-group-title">Glass icons via astro-icon -- string names, inlined at build</p>
+                <div class="flex flex-wrap items-start gap-6 pb-8">
+                  <GlassIcon label="Coding"><Icon name="lucide:cpu" size={22} /></GlassIcon>
+                  <GlassIcon accent="#60a5fa" label="Robotics"><Icon name="lucide:bot" size={22} /></GlassIcon>
+                  <GlassIcon accent="#c084fc" label="Launch"><Icon name="lucide:rocket" size={22} /></GlassIcon>
+                  <GlassIcon accent="#f59e0b" label="Learning"><Icon name="lucide:graduation-cap" size={22} /></GlassIcon>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">Glass icons with hardcoded inline SVG -- hover for label</p>
+                <div class="flex flex-wrap items-start gap-6 pb-8">
+                  <GlassIcon label="Default">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      ><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9"></rect><path
+                        d="M15 2v2"></path><path d="M15 20v2"></path><path d="M2 15h2"></path><path d="M2 9h2"></path><path d="M20 15h2"
+                      ></path><path d="M20 9h2"></path><path d="M9 2v2"></path><path d="M9 20v2"></path></svg
+                    >
+                  </GlassIcon>
+                  <GlassIcon accent="#60a5fa" label="Blue accent">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      ><path
+                        d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+                      ></path></svg
+                    >
+                  </GlassIcon>
+                  <GlassIcon accent="#c084fc" label="As link" href="#glass">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      ><path
+                        d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
+                      ></path><path d="M18 14h-8"></path><path d="M15 18h-5"></path><path d="M10 6h8v4h-8V6Z"></path></svg
+                    >
+                  </GlassIcon>
+                  <GlassIcon accent="#f59e0b">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      ><path
+                        d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+                      ></path></svg
+                    >
+                  </GlassIcon>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">Folders -- click to open, papers follow the cursor</p>
+                <div class="flex flex-wrap items-end gap-10 pt-6">
+                  <Folder label="Default folder" />
+                  <Folder color="#60a5fa" label="Blue folder">
+                    <span slot="paper3">Docs</span>
+                  </Folder>
+                  <Folder color="#c084fc" size={1.2} label="Linked papers folder">
+                    <a slot="paper3" href="#reports">Reports</a>
+                  </Folder>
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={4} title="Tabs & Pagination" note="client state (component script) vs URL state (zero JS)">
+              <div class="dev-group">
+                <p class="dev-group-title">Tabs -- arrow keys move between triggers</p>
+                <Tabs
+                  tabs={[
+                    { id: "account", label: "Account" },
+                    { id: "password", label: "Password" },
+                    { id: "team", label: "Team" },
+                  ]}
+                >
+                  <Card slot="account" title="Account">
+                    <p class="text-sm text-muted-foreground">Account panel.</p>
+                  </Card>
+                  <Card slot="password" title="Password">
+                    <p class="text-sm text-muted-foreground">Password panel.</p>
+                  </Card>
+                  <Card slot="team" title="Team">
+                    <p class="text-sm text-muted-foreground">Team panel.</p>
+                  </Card>
+                </Tabs>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">Pagination -- plain anchors, the query string is the store</p>
+                <div class="flex flex-col gap-3">
+                  <Pagination currentPage={5} totalPages={12} hrefFor={(p: number) => `#page-${p}`} />
+                  <Pagination currentPage={1} totalPages={3} hrefFor={(p: number) => `#page-${p}`} />
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={5} title="Bubble Menu" note="BubbleMenu.astro · gsap stagger rebuilt as CSS delays">
+              <div class="relative h-[26rem] overflow-hidden rounded-lg border border-border bg-muted/30">
+                <BubbleMenu
+                  items={[
+                    { label: "Home", href: "#home", rotation: -8 },
+                    { label: "Docs", href: "#docs", rotation: 8, hoverColor: "#60a5fa" },
+                    { label: "Registry", href: "#registry", rotation: -4, hoverColor: "#c084fc" },
+                    { label: "About", href: "#about", rotation: 6, hoverColor: "#f59e0b" },
+                  ]}
+                >
+                  <span slot="logo" class="text-xs font-semibold tracking-widest">ASTRO-SHAD</span>
+                </BubbleMenu>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={6} title="Forms" note="Form.astro · FormField.astro · DatePicker.astro · native Constraint Validation API">
+              <div class="max-w-xl">
+                <Card title="Contact" description="Submit empty to see inline errors; they clear as you fix them.">
+                  <Form demo>
+                    <FormField name="name" label="Full name" required minlength="2" />
+                    <FormField name="email" label="Email" type="email" required />
+                    <FormField
+                      name="province"
+                      label="Province"
+                      type="select"
+                      placeholder="Select a province"
+                      options={["Gauteng", "Western Cape", "KwaZulu-Natal"]}
+                      required
+                    />
+                    <DatePicker name="visit_date" label="Preferred visit date" required min="2026-07-01" max="2026-12-31" />
+                    <FormField name="message" label="Message" type="textarea" description="Optional -- anything else we should know." />
+                    <FormField
+                      name="consent"
+                      label="I agree to be contacted about this enquiry."
+                      type="checkbox"
+                      required
+                      error="Please accept the consent to continue."
+                    />
+                    <div><Button type="submit">Send</Button></div>
+                  </Form>
+                </Card>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={7} title="Accordion" note="single vs multipleOpen · grid-rows 0fr->1fr height animation">
+              <div class="dev-group">
+                <p class="dev-group-title">Single (default)</p>
+                <Accordion>
+                  <AccordionItem title="Is it accessible?">
+                    Trigger is a real button with aria-expanded; panel animates via the CSS grid-rows trick.
+                  </AccordionItem>
+                  <AccordionItem title="Is it styled?" open>
+                    Neutral tokens only -- re-brand by overriding theme.css values, never this markup.
+                  </AccordionItem>
+                  <AccordionItem title="Is it animated?">
+                    Height transition with no measured heights and no JS animation code.
+                  </AccordionItem>
+                </Accordion>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">multipleOpen</p>
+                <Accordion multipleOpen>
+                  <AccordionItem title="First item">Both of these can stay open at once.</AccordionItem>
+                  <AccordionItem title="Second item">multipleOpen (alias for type="multiple") skips the close-siblings step.</AccordionItem>
+                </Accordion>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={8} title="Bento" note="MagicBento.astro · BentoCard.astro · hover glow on pure CSS keyframes">
+              <MagicBento size="md">
+                <BentoCard
+                  span="wide"
+                  label="Glow"
+                  title="Keyframe gradient sweep"
+                  description="Hover: the border glow sweeps diagonally on a pure CSS loop."
+                />
+                <BentoCard label="Default" title="Primary glow" description="glowColors defaults to the theme primary." />
+                <BentoCard
+                  label="Colors list"
+                  title="Two-color glow"
+                  description="glowColors={['#60a5fa', '#c084fc']}"
+                  glowColors={["#60a5fa", "#c084fc"]}
+                />
+                <BentoCard glow={false} label="Quiet" title="glow={false}" description="No sweep on this cell." />
+                <BentoCard
+                  span="tall"
+                  bgImage="https://picsum.photos/seed/bento/480/700"
+                  label="BG image"
+                  title="Background cell"
+                  description="Cover layer + scrim behind the text."
+                />
+                <BentoCard
+                  image="https://picsum.photos/seed/bento2/480/280"
+                  title="Image cell"
+                  description="Full-bleed image above the text."
+                />
+              </MagicBento>
+            </DevBoard>
+
+            <DevBoard index={9} title="Text FX" note="TextType · RotatingText · SplitText · CountUp -- react-bits conversions">
+              <div class="flex flex-col gap-8">
+                <TextType class="text-2xl font-semibold" text={["Typewriter effect.", "Types, holds, deletes.", "Cycles forever."]} />
+                <p class="text-2xl font-semibold">
+                  We ship <RotatingText class="text-primary" words={["components", "primitives", "tokens", "zero JS"]} /> for Astro.
+                </p>
+                <SplitText as="p" class="text-2xl font-semibold" text="Staggered reveal, split at build time." />
+                <SplitText by="char" stagger={20} class="text-2xl font-semibold" text="pixel by pixel" />
+                <p class="text-4xl font-semibold">
+                  <CountUp to={412} suffix="+" />
+                  <span class="text-base font-normal text-muted-foreground">installs</span>
+                  <CountUp to={92.5} decimals={1} suffix="%" class="ml-6" />
+                  <span class="text-base font-normal text-muted-foreground">satisfaction</span>
+                </p>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={10} title="Curved Loop" note="text on an SVG path · experimental custom path prop">
+              <CurvedLoop class="font-semibold text-primary/70" text="ASTRO SHAD · REGISTRY · " speed={80} curve={0.85} />
+              <CurvedLoop
+                flip
+                class="-mt-24 font-semibold text-muted-foreground/40"
+                text="HTML · TAILWIND · VANILLA JS · "
+                speed={60}
+                curve={0.85}
+              />
+              <p class="dev-group-title mt-8">Experimental: custom svg path</p>
+              <CurvedLoop
+                class="font-semibold text-primary/60"
+                text="CUSTOM PATH · WAVES · "
+                speed={70}
+                viewBox="0 0 1440 200"
+                path="M 0 100 C 240 20, 480 180, 720 100 S 1200 20, 1440 100"
+              />
+            </DevBoard>
+
+            <DevBoard index={11} title="Logo Loop" note="LogoLoop.astro · duplicated-track CSS marquee, zero JS">
+              <LogoLoop speed={22} class="text-muted-foreground">
+                <span class="text-lg font-semibold">Astro</span>
+                <span class="text-lg font-semibold">Tailwind</span>
+                <span class="text-lg font-semibold">shadcn</span>
+                <span class="text-lg font-semibold">Vanilla JS</span>
+                <span class="text-lg font-semibold">Zero React</span>
+                <span class="text-lg font-semibold">Tokens</span>
+              </LogoLoop>
+            </DevBoard>
+
+            <DevBoard
+              index={12}
+              title="Headers"
+              note="TopBar.astro · FloatingHeader.astro · brand/nav/actions slots · sticky off here so the demos stack"
+            >
+              <div class="dev-group">
+                <p class="dev-group-title">TopBar -- full-width, border-b</p>
+                <div class="overflow-hidden rounded-lg border border-border">
+                  <TopBar sticky={false}>
+                    <a slot="brand" href="#" class="text-sm font-semibold tracking-tight">astro-shad</a>
+                    <Fragment slot="nav">
+                      <a href="#" class="transition-colors hover:text-foreground">Docs</a>
+                      <a href="#" class="transition-colors hover:text-foreground">Playground</a>
+                      <a href="#" class="transition-colors hover:text-foreground">GitHub</a>
+                    </Fragment>
+                    <Button slot="actions" variant="outline" size="sm">Sign in</Button>
+                  </TopBar>
+                  <div class="h-24 bg-muted/20"></div>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">FloatingHeader -- detached pill, radius prop</p>
+                <div class="flex flex-col gap-4 rounded-lg border border-border bg-muted/20 p-4">
+                  <FloatingHeader sticky={false}>
+                    <a slot="brand" href="#" class="text-sm font-semibold tracking-tight">radius="3xl" (default)</a>
+                    <Fragment slot="nav">
+                      <a href="#" class="transition-colors hover:text-foreground">Docs</a>
+                      <a href="#" class="transition-colors hover:text-foreground">Blog</a>
+                    </Fragment>
+                    <Button slot="actions" variant="outline" size="sm">Theme</Button>
+                  </FloatingHeader>
+                  <FloatingHeader sticky={false} radius="full">
+                    <a slot="brand" href="#" class="text-sm font-semibold tracking-tight">radius="full"</a>
+                    <Fragment slot="nav">
+                      <a href="#" class="transition-colors hover:text-foreground">Docs</a>
+                      <a href="#" class="transition-colors hover:text-foreground">Blog</a>
+                    </Fragment>
+                    <Button slot="actions" size="sm"><Icon slot="icon-left" name="lucide:sun" size={14} />Theme</Button>
+                  </FloatingHeader>
+                  <FloatingHeader sticky={false} radius="lg">
+                    <a slot="brand" href="#" class="text-sm font-semibold tracking-tight">radius="lg"</a>
+                    <Button slot="actions" variant="ghost" size="sm">Actions only</Button>
+                  </FloatingHeader>
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard
+              index={13}
+              title="Layout sections"
+              note="sections/ · ship populated · <Hero01 /> is the whole demo · customise by editing your installed copy"
+            >
+              <div class="dev-group">
+                <p class="dev-group-title">hero-01 -- full-height, centered stack</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Hero01 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">hero-02 -- content anchored bottom-left</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Hero02 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">hero-03 -- centered + footer feature strip (auto-fit columns)</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Hero03 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">split-01 -- media left (default)</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Split01 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">split-01 -- reverse: media right at md+</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Split01 reverse /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">feature-grid-01 -- columns=3 (default)</p>
+                <div class="overflow-hidden rounded-lg border border-border"><FeatureGrid01 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">feature-grid-01 -- columns=4</p>
+                <div class="overflow-hidden rounded-lg border border-border"><FeatureGrid01 columns={4} /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">cta-01 -- narrow centered band on card surface</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Cta01 /></div>
+              </div>
+            </DevBoard>
+          </div>
+        </div>
+
+        <!-- ── Pagination pills (built by script from board count) ── -->
+        <nav
+          id="pagination"
+          class="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1 rounded-md border border-[#26262b] bg-[#131316] p-1 shadow-lg"
+          aria-label="Boards"
+        >
+        </nav>
+      </div>
+    </div>
+
+    <style is:global>
+      /* is:global because the pagination pills are created at runtime and
+         would miss Astro's scoping attribute. All selectors are page-unique
+         classes/ids. CHROME styles use fixed literal colors on purpose --
+         the token controls must never restyle the shell. */
+      .ctl-label {
+        margin-bottom: 0.5rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6e6e76;
+      }
+      .ctl {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #9d9da6;
+        border: 1px solid #26262b;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+      .ctl:hover {
+        color: #e4e4e7;
+        border-color: #4b4b53;
+      }
+      .ctl[aria-pressed="true"] {
+        background: #e4e4e7;
+        border-color: #e4e4e7;
+        color: #0b0b0c;
+      }
+      .dot {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 9999px;
+        border: 1px solid #26262b;
+        cursor: pointer;
+      }
+      .dot[aria-pressed="true"] {
+        outline: 2px solid #e4e4e7;
+        outline-offset: 2px;
+      }
+      .pill {
+        padding: 0.35rem 0.6rem;
+        font-size: 10px;
+        font-weight: 600;
+        color: #6e6e76;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+      .pill[aria-current="true"] {
+        background: #e4e4e7;
+        color: #0b0b0c;
+      }
+
+      /* Board content helpers (inside the preview scope -- token-styled) */
+      .dev-group {
+        margin-bottom: 2.5rem;
+      }
+      .dev-group-title {
+        margin-bottom: 1rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+      .dev-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      /* Preview-scope font hooks: content font on the scope, heading font
+         via one scoped rule. Unset by default -- inherit as normal. */
+      #preview-scope {
+        font-family: var(--font-content, inherit);
+      }
+      #preview-scope :is(h1, h2, h3, h4, h5, h6) {
+        font-family: var(--font-heading, inherit);
+      }
+
+      /* Hide the scroller's own scrollbar; pills are the pagination */
+      #preview-scope {
+        scrollbar-width: none;
+      }
+      #preview-scope::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ── Collapsible sidebar ──
+         Mobile: fixed off-canvas drawer. Desktop: static column that
+         collapses away entirely. State = data-sidebar on <body>. */
+      @media (max-width: 767px) {
+        #sidebar {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          border-radius: 0;
+          transform: translateX(-100%);
+          transition: transform 250ms ease;
+        }
+        body[data-sidebar="open"] #sidebar {
+          transform: none;
+        }
+        body[data-sidebar="open"] #sidebar-backdrop {
+          display: block;
+        }
+      }
+      @media (min-width: 768px) {
+        body[data-sidebar="closed"] #sidebar {
+          display: none;
+        }
+      }
+    </style>
 
     <script>
-      document.getElementById('theme-toggle')?.addEventListener('click', () => {
-        const el = document.documentElement;
-        el.dataset.theme = el.dataset.theme === 'light' ? 'dark' : 'light';
+      /* ═══ Token controls ═══
+         All overrides land as inline custom properties on #preview-scope,
+         never :root -- chrome is untouched by design. */
+      const scope = document.getElementById("preview-scope") as HTMLElement;
+      const readout = document.getElementById("readout") as HTMLElement;
+
+      const alpha = (hex: string, a: number) => {
+        const n = parseInt(hex.slice(1), 16);
+        return `rgb(${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255} / ${a})`;
+      };
+      const lum = (hex: string) => {
+        const n = parseInt(hex.slice(1), 16);
+        return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+      };
+      /* readable text over an accent fill */
+      const onColor = (hex: string) => (lum(hex) > 0.6 ? "#09090b" : "#fafafa");
+
+      /* ── Base color: shadcn neutral families as full slot-var maps ── */
+      type VarMap = Record<string, string>;
+      const scale = (s50: string, s100: string, s200: string, s400: string, s800: string, s900: string, s950: string) => ({
+        dark: {
+          "--background": s950,
+          "--foreground": s50,
+          "--card": s900,
+          "--card-foreground": s50,
+          "--popover": s800,
+          "--popover-foreground": s50,
+          "--primary": s50,
+          "--primary-foreground": s950,
+          "--secondary": s800,
+          "--secondary-foreground": s50,
+          "--muted": s800,
+          "--muted-foreground": alpha(s50, 0.45),
+          "--accent": s800,
+          "--accent-foreground": s50,
+          "--border": alpha(s50, 0.12),
+          "--input": alpha(s50, 0.15),
+          "--ring": s400,
+        },
+        light: {
+          "--background": s50,
+          "--foreground": s900,
+          "--card": "#ffffff",
+          "--card-foreground": s900,
+          "--popover": s100,
+          "--popover-foreground": s900,
+          "--primary": s900,
+          "--primary-foreground": s50,
+          "--secondary": s200,
+          "--secondary-foreground": s900,
+          "--muted": s100,
+          "--muted-foreground": alpha(s900, 0.5),
+          "--accent": s100,
+          "--accent-foreground": s900,
+          "--border": alpha(s900, 0.12),
+          "--input": alpha(s900, 0.1),
+          "--ring": s400,
+        },
       });
+      const BASES: Record<string, { dark: VarMap; light: VarMap }> = {
+        neutral: scale("#fafafa", "#f5f5f5", "#e5e5e5", "#a3a3a3", "#262626", "#171717", "#0a0a0a"),
+        stone: scale("#fafaf9", "#f5f5f4", "#e7e5e4", "#a8a29e", "#292524", "#1c1917", "#0c0a09"),
+        zinc: scale("#fafafa", "#f4f4f5", "#e4e4e7", "#a1a1aa", "#27272a", "#18181b", "#09090b"),
+        slate: scale("#f8fafc", "#f1f5f9", "#e2e8f0", "#94a3b8", "#1e293b", "#0f172a", "#020617"),
+        gray: scale("#f9fafb", "#f3f4f6", "#e5e7eb", "#9ca3af", "#1f2937", "#111827", "#030712"),
+      };
+
+      /* ── Theme presets: arbitrary per-mode var maps.
+         PASTE-FRIENDLY: tweakcn / shadcn theme.css presets drop straight in
+         here as { dark: {...vars}, light: {...vars} } entries. ── */
+      const preset = (dark: string, light: string) => ({
+        dark: { "--primary": dark, "--primary-foreground": onColor(dark), "--ring": dark },
+        light: { "--primary": light, "--primary-foreground": onColor(light), "--ring": light },
+      });
+      const PRESETS: Record<string, { dark: VarMap; light: VarMap }> = {
+        default: { dark: {}, light: {} },
+        violet: preset("#8b5cf6", "#7c3aed"),
+        blue: preset("#3b82f6", "#2563eb"),
+        emerald: preset("#10b981", "#059669"),
+        rose: preset("#f43f5e", "#e11d48"),
+        amber: preset("#f59e0b", "#d97706"),
+      };
+
+      const FONTS: Record<string, string> = {
+        inter: "'Inter', system-ui, sans-serif",
+        grotesk: "'Space Grotesk', system-ui, sans-serif",
+        playfair: "'Playfair Display', serif",
+        mono: "'JetBrains Mono', monospace",
+      };
+
+      const DEFAULTS = {
+        mode: "dark",
+        preset: "default",
+        base: "neutral",
+        accent: "none",
+        headingFont: "default",
+        contentFont: "default",
+        radius: "default",
+      };
+      type State = typeof DEFAULTS;
+      const state: State = { ...DEFAULTS };
+
+      /* Build the override map for one mode. Order: base neutrals, then
+         preset (wins on what it sets), then accent, then radius/fonts. */
+      function overridesFor(mode: "dark" | "light"): VarMap {
+        const o: VarMap = {};
+        if (state.base !== DEFAULTS.base) Object.assign(o, BASES[state.base][mode]);
+        Object.assign(o, PRESETS[state.preset][mode]);
+        if (state.accent !== "none") {
+          o["--primary"] = state.accent;
+          o["--primary-foreground"] = onColor(state.accent);
+          o["--ring"] = state.accent;
+        }
+        if (state.radius !== "default") {
+          /* --radius-sm/md/lg are calc()ed at :root, so var() inside them
+             resolves there -- set all four here for the scope to win. */
+          const r = parseFloat(state.radius);
+          o["--radius"] = `${r}rem`;
+          o["--radius-sm"] = `calc(${r}rem - 2px)`;
+          o["--radius-md"] = `${r}rem`;
+          o["--radius-lg"] = `calc(${r}rem + 2px)`;
+        }
+        if (state.headingFont !== "default") o["--font-heading"] = FONTS[state.headingFont];
+        if (state.contentFont !== "default") o["--font-content"] = FONTS[state.contentFont];
+        return o;
+      }
+
+      function apply() {
+        /* mode: attribute on the SCOPE, not <html> -- theme.css light
+           overrides are [data-theme="light"], so this flips only the
+           preview area. Chrome never changes. */
+        if (state.mode === "light") scope.dataset.theme = "light";
+        else delete scope.dataset.theme;
+
+        /* replace all inline vars with the current mode's override set */
+        scope.removeAttribute("style");
+        const current = overridesFor(state.mode as "dark" | "light");
+        Object.entries(current).forEach(([k, v]) => scope.style.setProperty(k, v));
+
+        /* pressed states */
+        document.querySelectorAll<HTMLElement>("[data-group]").forEach((group) => {
+          const key = group.dataset.group as keyof State;
+          group.querySelectorAll<HTMLElement>("[data-value]").forEach((btn) => {
+            btn.setAttribute("aria-pressed", String(btn.dataset.value === state[key]));
+          });
+        });
+
+        /* readout: theme.css-format override block, both modes */
+        const block = (sel: string, vars: VarMap) => {
+          const keys = Object.keys(vars).filter((k) => !k.startsWith("--font-"));
+          return keys.length ? `${sel} {\n${keys.map((k) => `  ${k}: ${vars[k]};`).join("\n")}\n}` : "";
+        };
+        const dark = overridesFor("dark");
+        const light = overridesFor("light");
+        const fonts = ["--font-heading", "--font-content"].filter((k) => dark[k]).map((k) => `  ${k}: ${dark[k]};`);
+        const parts = [
+          block(":root", dark),
+          block('[data-theme="light"]', light),
+          fonts.length ? `/* fonts: wire these up in your own global.css */\n:root {\n${fonts.join("\n")}\n}` : "",
+        ].filter(Boolean);
+        readout.textContent = parts.length ? parts.join("\n\n") : "/* no overrides -- at theme.css defaults */";
+      }
+
+      document.querySelectorAll<HTMLElement>("[data-group]").forEach((group) => {
+        group.addEventListener("click", (e) => {
+          const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-value]");
+          if (!btn) return;
+          (state as Record<string, string>)[group.dataset.group!] = btn.dataset.value!;
+          apply();
+        });
+      });
+
+      const customAccent = document.getElementById("accent-custom") as HTMLInputElement;
+      customAccent.addEventListener("input", () => {
+        state.accent = customAccent.value;
+        apply();
+      });
+
+      document.getElementById("reset-tokens")!.addEventListener("click", () => {
+        Object.assign(state, DEFAULTS, { mode: state.mode });
+        apply();
+      });
+
+      const copyBtn = document.getElementById("copy-tokens")!;
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(readout.textContent || "").then(() => {
+          const label = copyBtn.textContent;
+          copyBtn.textContent = "Copied";
+          setTimeout(() => (copyBtn.textContent = label), 1200);
+        });
+      });
+
+      /* ═══ Collapsible sidebar ═══ */
+      const sidebarToggle = document.getElementById("sidebar-toggle")!;
+      const backdrop = document.getElementById("sidebar-backdrop")!;
+      let sidebarOpen = matchMedia("(min-width: 768px)").matches;
+
+      function syncSidebar() {
+        document.body.dataset.sidebar = sidebarOpen ? "open" : "closed";
+        sidebarToggle.setAttribute("aria-expanded", String(sidebarOpen));
+      }
+      sidebarToggle.addEventListener("click", () => {
+        sidebarOpen = !sidebarOpen;
+        syncSidebar();
+      });
+      backdrop.addEventListener("click", () => {
+        sidebarOpen = false;
+        syncSidebar();
+      });
+
+      /* ═══ Board pagination ═══ */
+      const scroller = scope;
+      const boards = scroller.querySelectorAll("[data-board]");
+      const nav = document.getElementById("pagination")!;
+      const pills: HTMLButtonElement[] = [];
+
+      boards.forEach((_, i) => {
+        const pill = document.createElement("button");
+        pill.className = "pill";
+        pill.textContent = String(i + 1).padStart(2, "0");
+        pill.setAttribute("aria-label", `Board ${i + 1}`);
+        pill.addEventListener("click", () => goTo(i));
+        nav.appendChild(pill);
+        pills.push(pill);
+      });
+
+      function goTo(i: number) {
+        scroller.scrollTo({ left: i * scroller.clientWidth, behavior: "smooth" });
+      }
+      function currentIndex() {
+        return Math.min(boards.length - 1, Math.max(0, Math.round(scroller.scrollLeft / scroller.clientWidth)));
+      }
+      function syncPills() {
+        const idx = currentIndex();
+        pills.forEach((p, i) => p.setAttribute("aria-current", String(i === idx)));
+      }
+
+      let ticking = false;
+      scroller.addEventListener("scroll", () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          syncPills();
+          ticking = false;
+        });
+      });
+
+      document.addEventListener("keydown", (e) => {
+        const t = e.target as HTMLElement;
+        if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+        /* Tabs own their arrow keys -- do not flip boards */
+        if (t && t.closest && t.closest('[role="tablist"]')) return;
+        if (e.key === "ArrowRight") goTo(Math.min(boards.length - 1, currentIndex() + 1));
+        if (e.key === "ArrowLeft") goTo(Math.max(0, currentIndex() - 1));
+      });
+
+      apply();
+      syncSidebar();
+      syncPills();
     </script>
   </body>
 </html>

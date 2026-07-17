@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "split-text",
+  "title": "Split Text",
+  "description": "react-bits SplitText minus react + gsap: the word/char split happens at build time in frontmatter; an IntersectionObserver flips one attribute and CSS staggers the reveal.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/SplitText.astro",
+      "content": "---\n/**\n * SplitText.astro -- astro-shad staggered text reveal. Converted from\n * react-bits SplitText (gsap SplitText clone), minus react and gsap.\n *\n * The trick gsap does at runtime -- splitting text into word/char spans --\n * Astro does at BUILD time in frontmatter, for free. Each unit carries a\n * staggered transition-delay; an IntersectionObserver flips one attribute\n * on the wrapper when it scrolls into view and CSS does the rest.\n *\n * Accessibility: full text in aria-label on the wrapper, the span soup is\n * aria-hidden. Reduced motion shows everything immediately.\n *\n *   <SplitText as=\"h2\" class=\"text-3xl font-semibold\"\n *     text=\"Technology education that reaches every child.\" />\n *   <SplitText by=\"char\" stagger={20} text=\"pixel by pixel\" />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  text: string;\n  by?: 'word' | 'char';\n  /** ms between units */\n  stagger?: number;\n  /** wrapper tag */\n  as?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst {\n  text,\n  by = 'word',\n  stagger = 45,\n  as = 'p',\n  class: className,\n  ...rest\n} = Astro.props;\n\nconst Tag = as as any;\nconst words = text.split(' ');\n\n/* Precompute unit delays: word mode = one unit per word; char mode = one\n   unit per character, delays running across the whole string. */\nlet unitIndex = 0;\nconst wordUnits = words.map((word) => ({\n  word,\n  chars: (by === 'char' ? [...word] : [word]).map((u) => ({\n    u,\n    delay: stagger * unitIndex++,\n  })),\n}));\n---\n\n<Tag\n  class={cn('st', className)}\n  data-astro-shad-split\n  aria-label={text}\n  {...rest}\n>\n  {wordUnits.map(({ chars }, wi) => (\n    <>\n      <span class=\"st-word\" aria-hidden=\"true\">\n        {chars.map(({ u, delay }) => (\n          <span class=\"st-unit\" style={`--st-d: ${delay}ms`}>{u}</span>\n        ))}\n      </span>\n      {wi < wordUnits.length - 1 && ' '}\n    </>\n  ))}\n</Tag>\n\n<style>\n  .st {\n    --st-ease: cubic-bezier(0.4, 0, 0.2, 1);\n  }\n  .st-word {\n    display: inline-block;\n    white-space: nowrap; /* never break mid-word in char mode */\n  }\n  .st-unit {\n    display: inline-block;\n    opacity: 0;\n    translate: 0 0.6em;\n    filter: blur(4px);\n    transition:\n      opacity 500ms var(--st-ease),\n      translate 600ms var(--st-ease),\n      filter 500ms var(--st-ease);\n    transition-delay: var(--st-d);\n  }\n  [data-inview] .st-unit {\n    opacity: 1;\n    translate: 0 0;\n    filter: none;\n  }\n  @media (prefers-reduced-motion: reduce) {\n    .st-unit {\n      transition: none;\n      opacity: 1;\n      translate: 0 0;\n      filter: none;\n    }\n  }\n</style>\n\n<script>\n  const io = new IntersectionObserver(\n    (entries) => {\n      entries.forEach((en) => {\n        if (en.isIntersecting) {\n          en.target.setAttribute('data-inview', '');\n          io.unobserve(en.target);\n        }\n      });\n    },\n    { threshold: 0.3 }\n  );\n  document.querySelectorAll('[data-astro-shad-split]').forEach((el) => io.observe(el));\n</script>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/SplitText.astro"
+    }
+  ],
+  "type": "registry:component"
+}

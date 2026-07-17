@@ -1,0 +1,11 @@
+---
+import Folder from '../../../astro-shad/Folder.astro';
+---
+
+<Folder label="Default folder" />
+<Folder color="#60a5fa" label="Blue folder">
+  <span slot="paper3">Docs</span>
+</Folder>
+<Folder color="#c084fc" size={1.2} label="Linked papers folder">
+  <a slot="paper3" href="#reports">Reports</a>
+</Folder>

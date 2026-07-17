@@ -1,0 +1,27 @@
+---
+import Form from '../../../astro-shad/Form.astro';
+import FormField from '../../../astro-shad/FormField.astro';
+import Button from '../../../astro-shad/Button.astro';
+---
+
+<Form demo class="w-full">
+  <FormField name="name" label="Full name" required minlength="2" />
+  <FormField name="email" label="Email" type="email" required />
+  <FormField
+    name="province"
+    label="Province"
+    type="select"
+    placeholder="Select a province"
+    options={['Gauteng', 'Western Cape', 'KwaZulu-Natal']}
+    required
+  />
+  <FormField name="message" label="Message" type="textarea" description="Optional." />
+  <FormField
+    name="consent"
+    label="I agree to be contacted."
+    type="checkbox"
+    required
+    error="Please accept the consent to continue."
+  />
+  <div><Button type="submit">Send</Button></div>
+</Form>

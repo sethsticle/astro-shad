@@ -1,0 +1,221 @@
+---
+/**
+ * DocsLayout.astro -- shell for every /docs page: sticky header, left
+ * sidebar generated from docs-nav.ts, content column.
+ *
+ * Deliberately the OPPOSITE of /dev's chrome policy: the docs shell is
+ * built from astro-shad primitives and styled entirely by theme.css
+ * tokens -- the docs site is the registry's first real consumer and its
+ * living proof. Re-brand theme.css and the whole site follows.
+ *
+ *   <DocsLayout title="Button" description="..." registry="button">
+ *     ...sections...
+ *   </DocsLayout>
+ */
+import "../styles/global.css";
+import Button from "../components/astro-shad/Button.astro";
+import Badge from "../components/astro-shad/Badge.astro";
+import FloatingHeader from "../components/astro-shad/FloatingHeader.astro";
+import { NAV, GITHUB, SOURCE_BASE } from "../components/docs/docs-nav";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** registry item name -- shown as the install hint chip */
+  registry?: string;
+  /** component source file name for the GitHub link, e.g. "Button.astro" */
+  sourceFile?: string;
+}
+
+const { title, description, registry, sourceFile } = Astro.props;
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/docs";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · astro-shad</title>
+    <meta name="description" content={description} />
+    <script is:inline>
+      if (localStorage.getItem("astro-shad-theme") === "light") {
+        document.documentElement.dataset.theme = "light";
+      }
+    </script>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    <FloatingHeader class="">
+      <Fragment slot="brand">
+        <button
+          id="docs-nav-toggle"
+          class="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground md:hidden"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg
+          >
+        </button>
+        <a href="/docs" class="text-sm font-semibold tracking-tight">astro-shad</a>
+      </Fragment>
+      <Fragment slot="nav">
+        <a href="/docs" class="transition-colors hover:text-foreground">Docs</a>
+        <a href="/dev" class="transition-colors hover:text-foreground">Playground</a>
+        <a href={GITHUB} target="_blank" rel="noreferrer" class="transition-colors hover:text-foreground">GitHub</a>
+      </Fragment>
+      <Button slot="actions" id="theme-toggle" variant="outline" size="sm">Theme</Button>
+    </FloatingHeader>
+
+    <div class="mx-auto flex max-w-6xl gap-10 px-6">
+      <div id="docs-nav-backdrop" class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
+
+      <aside
+        id="docs-sidebar"
+        class="w-56 flex-none space-y-7 self-start py-8 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:hidden max-md:w-64 max-md:overflow-y-auto max-md:border-r max-md:border-border max-md:bg-background max-md:px-6 md:sticky md:top-[57px] md:max-h-[calc(100vh-57px)] md:overflow-y-auto"
+      >
+        {
+          NAV.map((group) => (
+            <details open class="group/navgroup">
+              <summary class="mb-2 flex cursor-pointer list-none items-center justify-between text-xs font-semibold tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+                {group.label}
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  class="transition-transform group-open/navgroup:rotate-180"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <ul class="flex flex-col gap-0.5">
+                {group.items.map((item) => {
+                  const current = path === item.href;
+                  return (
+                    <li>
+                      <a
+                        href={item.href}
+                        aria-current={current ? "page" : undefined}
+                        class:list={[
+                          "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                          current
+                            ? "bg-muted font-medium text-foreground"
+                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                        ]}
+                      >
+                        {item.title}
+                        {item.status === "experimental" && (
+                          <Badge variant="outline" class="px-1.5 py-0 text-[9px]">
+                            exp
+                          </Badge>
+                        )}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          ))
+        }
+      </aside>
+
+      <main class="docs-content min-w-0 flex-1 py-8 pb-24">
+        <div class="mb-10 border-b border-border pb-6">
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-semibold tracking-tight">{title}</h1>
+            {registry && <Badge variant="accent">@astro-shad/{registry}</Badge>}
+            {
+              sourceFile && (
+                <a
+                  href={`${SOURCE_BASE}/${sourceFile}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  class="text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                >
+                  Source ↗
+                </a>
+              )
+            }
+          </div>
+          {description && <p class="mt-2 max-w-2xl text-muted-foreground">{description}</p>}
+        </div>
+        <slot />
+      </main>
+    </div>
+
+    <style is:global>
+      /* Content rhythm for docs pages -- keeps per-page markup lean. */
+      .docs-content h2 {
+        margin: 2.5rem 0 1rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .docs-content h2:first-child {
+        margin-top: 0;
+      }
+      .docs-content > p,
+      .docs-content section > p {
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        line-height: 1.7;
+        color: var(--muted-foreground);
+      }
+      .docs-content code:not(pre code) {
+        border-radius: 4px;
+        background: var(--muted);
+        padding: 0.1em 0.35em;
+        font-size: 0.8em;
+      }
+      .docs-content pre.astro-code {
+        overflow-x: auto;
+        padding: 1rem 1.25rem;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+      }
+      .docs-content ul.docs-list {
+        margin-bottom: 1rem;
+        list-style: disc;
+        padding-left: 1.25rem;
+        font-size: 0.875rem;
+        line-height: 1.7;
+        color: var(--muted-foreground);
+      }
+      .docs-content ul.docs-list li {
+        margin-bottom: 0.25rem;
+      }
+    </style>
+
+    <script>
+      document.getElementById("theme-toggle")?.addEventListener("click", () => {
+        const el = document.documentElement;
+        el.dataset.theme = el.dataset.theme === "light" ? "dark" : "light";
+        localStorage.setItem("astro-shad-theme", el.dataset.theme);
+      });
+
+      const sidebar = document.getElementById("docs-sidebar")!;
+      const backdrop = document.getElementById("docs-nav-backdrop")!;
+      const toggle = document.getElementById("docs-nav-toggle")!;
+      function setNav(open: boolean) {
+        sidebar.classList.toggle("max-md:hidden", !open);
+        backdrop.classList.toggle("hidden", !open);
+        toggle.setAttribute("aria-expanded", String(open));
+      }
+      toggle.addEventListener("click", () => setNav(sidebar.classList.contains("max-md:hidden")));
+      backdrop.addEventListener("click", () => setNav(false));
+    </script>
+  </body>
+</html>

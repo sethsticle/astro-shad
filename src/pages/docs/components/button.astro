@@ -1,0 +1,70 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import VariantsDemo from '../../../components/docs/demos/button/Variants.astro';
+import variantsSource from '../../../components/docs/demos/button/Variants.astro?raw';
+import SizesDemo from '../../../components/docs/demos/button/Sizes.astro';
+import sizesSource from '../../../components/docs/demos/button/Sizes.astro?raw';
+import IconsDemo from '../../../components/docs/demos/button/Icons.astro';
+import iconsSource from '../../../components/docs/demos/button/Icons.astro?raw';
+---
+
+<DocsLayout
+  title="Button"
+  description="shadcn button converted to a self-contained .astro file. Renders an anchor when href is given, a button otherwise. Zero client JS."
+  registry="button"
+  sourceFile="Button.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={variantsSource}>
+    <VariantsDemo />
+  </ComponentPreview>
+
+  <h2>Sizes & states</h2>
+  <ComponentPreview code={sizesSource}>
+    <SizesDemo />
+  </ComponentPreview>
+
+  <h2>Icons</h2>
+  <p>
+    Optional <code>icon-left</code> / <code>icon-right</code> slots render either side of the label;
+    the flex gap spaces them and empty slots render nothing. Any static SVG works -- astro-icon
+    string names are the registry convention (inlined at build, zero runtime).
+  </p>
+  <ComponentPreview code={iconsSource}>
+    <IconsDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/button" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'variant', type: "'primary' | 'secondary' | 'inverse' | 'outline' | 'ghost' | 'destructive'", default: "'primary'", description: 'Visual style. inverse flips with the theme (foreground fill, background text).' },
+      { name: 'size', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Height and horizontal padding.' },
+      { name: 'href', type: 'string', description: 'When set, renders an anchor instead of a button.' },
+      { name: 'type', type: "'button' | 'submit' | 'reset'", default: "'button'", description: 'Button type (ignored when href is set).' },
+      { name: 'target / rel', type: 'string', description: 'Passed through to the anchor when href is set.' },
+      { name: 'disabled', type: 'boolean', description: 'Native disabled state (button rendering only).' },
+    ]}
+  />
+
+  <h2>Slots</h2>
+  <PropsTable
+    bare
+    rows={[
+      { name: 'default', type: 'slot', description: 'Button label.' },
+      { name: 'icon-left', type: 'slot', description: 'Rendered before the label.' },
+      { name: 'icon-right', type: 'slot', description: 'Rendered after the label.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The cva shape from shadcn survives as plain <code>VARIANTS</code>/<code>SIZES</code> maps -- add a variant by adding a key (a brand "sprite" look is one VARIANTS entry in your copy, not a new component).</li>
+    <li>Polymorphism is Astro-native: <code>href</code> decides the tag; there is no <code>asChild</code>.</li>
+  </ul>
+</DocsLayout>

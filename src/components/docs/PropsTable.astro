@@ -1,0 +1,51 @@
+---
+/**
+ * PropsTable.astro -- docs props reference table. Rows are declared in the
+ * page frontmatter; every astro-shad component also accepts `class` and
+ * arbitrary rest attributes (aria-*, data-*, id), noted in the footer once
+ * instead of repeated per row.
+ */
+interface Row {
+  name: string;
+  type: string;
+  default?: string;
+  description: string;
+}
+
+interface Props {
+  rows: Row[];
+  /** hide the standard class/rest footer note (e.g. for slot tables) */
+  bare?: boolean;
+}
+
+const { rows, bare = false } = Astro.props;
+---
+
+<div class="overflow-x-auto rounded-lg border border-border">
+  <table class="w-full border-collapse text-left text-sm">
+    <thead>
+      <tr class="border-b border-border bg-muted/50">
+        <th class="px-4 py-2.5 font-semibold">Prop</th>
+        <th class="px-4 py-2.5 font-semibold">Type</th>
+        <th class="px-4 py-2.5 font-semibold">Default</th>
+        <th class="px-4 py-2.5 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr class="border-b border-border last:border-0">
+          <td class="px-4 py-2.5 font-mono text-xs font-semibold text-primary">{row.name}</td>
+          <td class="px-4 py-2.5 font-mono text-xs text-muted-foreground">{row.type}</td>
+          <td class="px-4 py-2.5 font-mono text-xs text-muted-foreground">{row.default ?? '—'}</td>
+          <td class="px-4 py-2.5 text-muted-foreground">{row.description}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+{!bare && (
+  <p class="mt-2 text-xs text-muted-foreground">
+    All components also accept <code>class</code> (merged via <code>cn()</code>) and arbitrary rest
+    attributes (<code>aria-*</code>, <code>data-*</code>, <code>id</code>, ...).
+  </p>
+)}

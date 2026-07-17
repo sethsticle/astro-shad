@@ -1,0 +1,51 @@
+---
+/**
+ * VariantBlock.astro -- one component variant on a docs family page:
+ * anchor heading + registry chip, live preview with code disclosure, and
+ * the install line. Family pages with multiple style variants stack one
+ * of these per variant; adding a variant to the docs = one demo file +
+ * one VariantBlock.
+ *
+ *   import Demo02 from '../../../components/docs/demos/accordion/Boxed02.astro';
+ *   import demo02Source from '../../../components/docs/demos/accordion/Boxed02.astro?raw';
+ *
+ *   <VariantBlock title="Accordion 02 · boxed" registry="accordion-02" source={demo02Source}>
+ *     <Demo02 />
+ *   </VariantBlock>
+ */
+import Badge from "../astro-shad/Badge.astro";
+import Snippet from "./Snippet.astro";
+import ComponentPreview from "./ComponentPreview.astro";
+
+interface Props {
+  /** variant heading; the registry name doubles as the anchor id */
+  title?: string;
+  /** registry item name -> chip + install line */
+  registry: string;
+  /** raw demo source (?raw import) */
+  source: string;
+  /** classes for the preview area (passthrough to ComponentPreview) */
+  previewClass?: string;
+}
+
+const { title, registry, source, previewClass } = Astro.props;
+---
+
+<section class="mb-10 flex scroll-mt-20 flex-col gap-3" id={title ? registry : undefined}>
+  {
+    title && (
+      <div class="flex flex-wrap items-center gap-3">
+        <h3 class="text-base font-semibold">
+          <a href={`#${registry}`} class="hover:underline">
+            {title}
+          </a>
+        </h3>
+        <Badge variant="accent">@astro-shad/{registry}</Badge>
+      </div>
+    )
+  }
+  <ComponentPreview code={source} class={previewClass}>
+    <slot />
+  </ComponentPreview>
+  <Snippet lang="bash" code={`npx shadcn add @astro-shad/${registry}`} />
+</section>

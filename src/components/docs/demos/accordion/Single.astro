@@ -1,0 +1,12 @@
+---
+import Accordion from "../../../astro-shad/Accordion.astro";
+import AccordionItem from "../../../astro-shad/AccordionItem.astro";
+---
+
+<Accordion class="w-full">
+  <AccordionItem title="Is it accessible?" highlight>
+    Trigger is a real button with aria-expanded; the panel animates via the CSS grid-rows trick.
+  </AccordionItem>
+  <AccordionItem title="Is it styled?" open highlight> Neutral tokens only -- re-brand by overriding theme.css values. </AccordionItem>
+  <AccordionItem title="Is it animated?" highlight> Height transition with no measured heights and no JS animation code. </AccordionItem>
+</Accordion>

@@ -1,0 +1,63 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import SingleDemo from "../../../components/docs/demos/accordion/Single.astro";
+import singleSource from "../../../components/docs/demos/accordion/Single.astro?raw";
+import MultipleDemo from "../../../components/docs/demos/accordion/Multiple.astro";
+import multipleSource from "../../../components/docs/demos/accordion/Multiple.astro?raw";
+import Boxed02Demo from "../../../components/docs/demos/accordion/Boxed02.astro";
+import boxed02Source from "../../../components/docs/demos/accordion/Boxed02.astro?raw";
+import Icons03Demo from "../../../components/docs/demos/accordion/Icons.astro";
+import icons03Source from "../../../components/docs/demos/accordion/Icons.astro?raw";
+---
+
+<DocsLayout
+  title="Accordion"
+  description="shadcn accordion with Radix replaced by minimal vanilla JS. Accordion root + AccordionItem children, single/multiple modes, CSS grid-rows height animation -- no measured heights."
+  registry="accordion"
+  sourceFile="Accordion.astro"
+>
+  <h2>Variants</h2>
+  <VariantBlock title="Accordion" registry="accordion" source={singleSource} previewClass="flex flex-col gap-8 p-8">
+    <SingleDemo />
+  </VariantBlock>
+
+  <VariantBlock title="Accordion multiple" registry="accordion" source={multipleSource} previewClass="flex flex-col gap-8 p-8">
+    <MultipleDemo />
+  </VariantBlock>
+
+  <VariantBlock title="Accordion 02 · boxed" registry="accordion-02" source={boxed02Source} previewClass="flex flex-col gap-8 p-8">
+    <Boxed02Demo />
+  </VariantBlock>
+
+  <VariantBlock title="Accordion 03 · icons" registry="accordion-03" source={icons03Source} previewClass="flex flex-col gap-8 p-8">
+    <Icons03Demo />
+  </VariantBlock>
+
+  <p class="mt-2">
+    The base registry item ships two files: <code>Accordion.astro</code> (behaviour) + <code>AccordionItem.astro</code> (markup). Style variants
+    are separate registry items.
+  </p>
+
+  <h2>Accordion props</h2>
+  <PropsTable
+    rows={[
+      { name: "type", type: "'single' | 'multiple'", default: "'single'", description: "single closes the other items when one opens." },
+      {
+        name: "multipleOpen",
+        type: "boolean",
+        default: "false",
+        description: 'Boolean alias for type="multiple"; wins when both are passed.',
+      },
+    ]}
+  />
+
+  <h2>AccordionItem props</h2>
+  <PropsTable
+    rows={[
+      { name: "title", type: "string", description: "Trigger label." },
+      { name: "open", type: "boolean", default: "false", description: "Render this item expanded on load." },
+    ]}
+  />
+</DocsLayout>

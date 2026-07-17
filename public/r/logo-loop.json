@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "logo-loop",
+  "title": "Logo Loop",
+  "description": "react-bits LogoLoop minus react. ZERO client JS: classic duplicated-track CSS marquee with edge fade mask, speed/gap/pauseOnHover knobs.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/LogoLoop.astro",
+      "content": "---\n/**\n * LogoLoop.astro -- astro-shad infinite logo marquee. Converted from\n * react-bits LogoLoop, minus react. ZERO client JS.\n *\n * Classic CSS marquee: the slot content renders into TWO identical tracks\n * (second aria-hidden), each translating -100% on a linear loop -- as the\n * first exits, the second is exactly where the first began. Edges fade via\n * mask. Fill the track generously: each track is min-width 100%, so if the\n * logos are narrower than the container there will be dead space per cycle.\n *\n * Knobs: speed (s per cycle), gap, pauseOnHover. Reduced motion: static\n * single row.\n *\n *   <LogoLoop speed={28} class=\"text-muted-foreground\">\n *     <img ... /> <span>Partner</span> <svg ... />\n *   </LogoLoop>\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  /** seconds per full cycle */\n  speed?: number;\n  gap?: string;\n  pauseOnHover?: boolean;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst {\n  speed = 24,\n  gap = '3.5rem',\n  pauseOnHover = true,\n  class: className,\n  ...rest\n} = Astro.props;\n\nconst content = await Astro.slots.render('default');\n---\n\n<div\n  class={cn('logoloop', pauseOnHover && 'logoloop-pause', className)}\n  style={`--ll-speed: ${speed}s; --ll-gap: ${gap}`}\n  {...rest}\n>\n  <div class=\"ll-track\" set:html={content} />\n  <div class=\"ll-track\" aria-hidden=\"true\" set:html={content} />\n</div>\n\n<style>\n  .logoloop {\n    display: flex;\n    overflow: hidden;\n    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);\n  }\n  .ll-track {\n    display: flex;\n    flex: none;\n    align-items: center;\n    gap: var(--ll-gap);\n    min-width: 100%;\n    padding-right: var(--ll-gap);\n    animation: ll-marquee var(--ll-speed) linear infinite;\n  }\n  .logoloop-pause:hover .ll-track {\n    animation-play-state: paused;\n  }\n  @keyframes ll-marquee {\n    to { transform: translateX(-100%); }\n  }\n  @media (prefers-reduced-motion: reduce) {\n    .ll-track { animation: none; }\n    .ll-track[aria-hidden] { display: none; }\n  }\n</style>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/LogoLoop.astro"
+    }
+  ],
+  "type": "registry:component"
+}

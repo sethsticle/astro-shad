@@ -1,0 +1,37 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/glass-icon/Basic.astro';
+import basicSource from '../../../components/docs/demos/glass-icon/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Glass Icon"
+  description="react-bits GlassIcons converted to a zero-JS .astro tile: glass front, accent back plate that swings out on hover, label caption that fades in below. Compose rows/grids of them yourself."
+  registry="glass-icon"
+  sourceFile="GlassIcon.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="flex flex-wrap items-start gap-6 p-8 pb-16">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/glass-icon" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'label', type: 'string', description: 'Hover caption + accessible name. Omit when adjacent text labels it -- unlabeled, unlinked tiles render as a decorative <span>.' },
+      { name: 'accent', type: 'string (any CSS color)', default: 'var(--primary)', description: 'Back plate color. Pass a token (var(--color-brand)) or a literal.' },
+      { name: 'href', type: 'string', description: 'Renders an <a>; with label but no href, a <button>.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The icon comes via the default slot -- inline SVG or a statically rendered icon component (Tier A icon rule).</li>
+  </ul>
+</DocsLayout>

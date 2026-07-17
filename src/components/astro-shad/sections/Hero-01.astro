@@ -1,0 +1,44 @@
+---
+/**
+ * Hero-01.astro -- layout section: full-height hero, centered content
+ * stack. Ships populated (frontend-contract.md §7): <Hero01 /> renders a
+ * complete block with zero props. The demo content below IS the
+ * wireframe -- it shows the composition; make it yours by editing this
+ * copy you own (comment out the content block and replace it).
+ *
+ * `background` slot: absolute layer behind the content for imagery,
+ * vignettes, gradients (effects items drop in here).
+ *
+ *   <Hero01>
+ *     <img slot="background" src="..." class="h-full w-full object-cover opacity-30" />
+ *   </Hero01>
+ */
+import { cn } from "../../../lib/utils";
+import Badge from "../Badge.astro";
+import Button from "../Button.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("relative isolate grid min-h-svh place-items-center", className)} {...rest}>
+  <div class="absolute inset-0 -z-10 overflow-hidden"><slot name="background" /></div>
+  <div class="mx-auto w-full max-w-6xl px-6">
+    <div class="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
+      <!-- content — yours to edit: comment out and replace -->
+      <Badge variant="accent">Introducing sections</Badge>
+      <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">Skeletons first, components second.</h1>
+      <p class="text-muted-foreground">
+        Every section ships as a working page block. This copy is yours the moment it installs -- edit it, don't configure it.
+      </p>
+      <div class="flex gap-3">
+        <Button size="lg">Get started</Button>
+        <Button size="lg" variant="outline">Browse layouts</Button>
+      </div>
+    </div>
+  </div>
+</section>

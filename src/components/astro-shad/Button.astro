@@ -10,8 +10,18 @@
  *
  * Renders <a> when href is given, <button> otherwise.
  *
+ * Optional icon slots render either side of the label (the flex gap in
+ * BASE spaces them automatically; empty slots render nothing):
+ *
  *   <Button href="/get-involved" size="lg">Get Involved</Button>
  *   <Button variant="destructive" type="submit">Delete</Button>
+ *   <Button><Icon slot="icon-left" name="lucide:download" size={16} />Download</Button>
+ *   <Button variant="outline">Next<Icon slot="icon-right" name="lucide:arrow-right" size={16} /></Button>
+ *
+ * CUSTOMISING YOUR COPY: this file is yours after install. New looks are
+ * one key in VARIANTS (and a Variant union member) -- e.g. a brand
+ * "sprite" variant is `sprite: 'rounded-none border-2 ...'` here, not a
+ * new component.
  */
 import { cn } from '../../lib/utils';
 
@@ -68,10 +78,10 @@ const classes = cn(BASE, VARIANTS[variant], SIZES[size], className);
 
 {href ? (
   <a href={href} class={classes} target={target} rel={rel} {...rest}>
-    <slot />
+    <slot name="icon-left" /><slot /><slot name="icon-right" />
   </a>
 ) : (
   <button type={type} class={classes} disabled={disabled} {...rest}>
-    <slot />
+    <slot name="icon-left" /><slot /><slot name="icon-right" />
   </button>
 )}

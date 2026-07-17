@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "hero-02",
+  "title": "Hero 02 — bottom-left",
+  "description": "Layout section, ships populated: full-height hero with content anchored bottom-left (editorial composition) + background slot for the full-bleed image. Customise by editing the installed copy.",
+  "registryDependencies": [
+    "@astro-shad/utils",
+    "@astro-shad/button"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/sections/Hero-02.astro",
+      "content": "---\n/**\n * Hero-02.astro -- layout section: full-height hero, content anchored\n * bottom-left (editorial/photography composition). Ships populated\n * (frontend-contract.md §7): <Hero02 /> renders a complete block; make\n * it yours by editing this copy you own.\n *\n * `background` slot: absolute layer behind the content -- this\n * composition usually carries a full-bleed image there.\n *\n *   <Hero02>\n *     <img slot=\"background\" src=\"...\" class=\"h-full w-full object-cover\" />\n *   </Hero02>\n */\nimport { cn } from \"../../../lib/utils\";\nimport Button from \"../Button.astro\";\n\ninterface Props {\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { class: className, ...rest } = Astro.props;\n---\n\n<section class={cn(\"relative isolate flex min-h-svh items-end\", className)} {...rest}>\n  <div class=\"absolute inset-0 -z-10 overflow-hidden\"><slot name=\"background\" /></div>\n  <div class=\"mx-auto w-full max-w-6xl px-6 pb-16 md:pb-24\">\n    <div class=\"flex max-w-xl flex-col gap-6\">\n      <!-- content — yours to edit: comment out and replace -->\n      <p class=\"text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase\">Est. 2026</p>\n      <h1 class=\"text-4xl font-semibold tracking-tight md:text-6xl\">Built low and to the left.</h1>\n      <p class=\"text-muted-foreground\">\n        The editorial composition: a full-bleed image in the background slot, the story anchored at the baseline.\n      </p>\n      <div class=\"flex gap-3\">\n        <Button size=\"lg\">Read the story</Button>\n      </div>\n    </div>\n  </div>\n</section>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/sections/Hero-02.astro"
+    }
+  ],
+  "type": "registry:component"
+}

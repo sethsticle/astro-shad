@@ -1,0 +1,120 @@
+---
+/**
+ * CurvedLoop.astro -- astro-shad marquee text on a curved path. Converted
+ * from react-bits CurvedLoop, minus react.
+ *
+ * The one thing CSS cannot do here: text on an SVG path moves via the
+ * textPath startOffset attribute, and a seamless loop requires knowing the
+ * pixel length of one text repeat -- which depends on the loaded font. So a
+ * small script measures one unit (after document.fonts.ready), fills the
+ * path with enough repeats, and advances startOffset in a rAF loop,
+ * wrapping at exactly one unit length. rAF auto-pauses in background tabs.
+ *
+ * No JS / reduced motion: the server-rendered single unit sits static on
+ * the curve.
+ *
+ * Inherits text color (fill: currentColor) -- set font/color via class.
+ *
+ *   <CurvedLoop class="font-semibold text-primary"
+ *     text="ASTRO SHAD · " speed={80} />
+ *
+ * EXPERIMENTAL: `path` accepts a raw SVG path `d` string (pair it with
+ * `viewBox` sized to your path) and replaces the generated arc entirely --
+ * curve/flip are then ignored. The marquee mechanics are path-agnostic
+ * (getTotalLength works on any path), so any open curve should loop:
+ *
+ *   <CurvedLoop text="WAVES · " viewBox="0 0 1200 200"
+ *     path="M 0 100 C 300 20 600 180 900 100 S 1200 100 1200 100" />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** one repeat unit -- include trailing separator, e.g. "BRAND · " */
+  text: string;
+  /** px per second */
+  speed?: number;
+  /** curve depth 0..1 (0 flat, 1 deep) -- ignored when `path` is given */
+  curve?: number;
+  /** mirror the arc downward (pair a flipped one under a normal one) */
+  flip?: boolean;
+  /** EXPERIMENTAL: custom SVG path `d`, replaces the generated arc */
+  path?: string;
+  /** viewBox for a custom path; default matches the generated arc */
+  viewBox?: string;
+  fontSize?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  text,
+  speed = 70,
+  curve = 0.6,
+  flip = false,
+  path,
+  viewBox = '0 0 1440 240',
+  fontSize = 36,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const uid = crypto.randomUUID().slice(0, 6);
+/* Quadratic arc. The control point overshoots (x320) for a sharp bend --
+   at curve=1 the arc's apex travels ~160 units of the 240 viewBox.
+   flip mirrors the geometry so the text bows downward instead. */
+const d =
+  path ??
+  (flip
+    ? `M 0 60 Q 720 ${60 + curve * 320} 1440 60`
+    : `M 0 180 Q 720 ${180 - curve * 320} 1440 180`);
+---
+
+<div class={cn('overflow-hidden', className)} data-astro-shad-curvedloop data-speed={speed} aria-label={text} {...rest}>
+  <svg viewBox={viewBox} width="100%" aria-hidden="true">
+    <path id={`clp-${uid}`} d={d} fill="none"></path>
+    <text font-size={fontSize} fill="currentColor">
+      <textPath href={`#clp-${uid}`} data-cl-textpath startOffset="0">{text}</textPath>
+    </text>
+    <!-- hidden measuring twin: same font context, exactly one unit -->
+    <text font-size={fontSize} visibility="hidden" data-cl-measure>{text}</text>
+  </svg>
+</div>
+
+<script>
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll<HTMLElement>('[data-astro-shad-curvedloop]').forEach((el) => {
+      const tp = el.querySelector<SVGTextPathElement>('[data-cl-textpath]');
+      const measure = el.querySelector<SVGTextElement>('[data-cl-measure]');
+      const path = el.querySelector<SVGPathElement>('path');
+      if (!tp || !measure || !path) return;
+      const unit = tp.textContent || '';
+      const speed = Number(el.dataset.speed);
+
+      function start() {
+        const unitLen = measure!.getComputedTextLength();
+        if (!unitLen) return;
+        const pathLen = path!.getTotalLength();
+        /* fill the path plus one spare unit so the wrap is invisible */
+        const repeats = Math.ceil(pathLen / unitLen) + 2;
+        tp!.textContent = unit.repeat(repeats);
+
+        let offset = 0;
+        let last = performance.now();
+        (function frame(now: number) {
+          offset -= (speed * (now - last)) / 1000;
+          last = now;
+          if (offset <= -unitLen) offset += unitLen;
+          tp!.setAttribute('startOffset', String(offset));
+          requestAnimationFrame(frame);
+        })(last);
+      }
+
+      /* measure only once real fonts are in, else lengths are wrong */
+      if (document.fonts && document.fonts.status !== 'loaded') {
+        document.fonts.ready.then(start);
+      } else {
+        start();
+      }
+    });
+  }
+</script>

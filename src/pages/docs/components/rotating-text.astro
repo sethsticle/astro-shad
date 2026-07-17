@@ -1,0 +1,36 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/rotating-text/Basic.astro';
+import basicSource from '../../../components/docs/demos/rotating-text/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Rotating Text"
+  description="react-bits RotatingText minus react. ZERO client JS: all words stack in one inline-grid cell running the same per-instance keyframe loop, offset by slot delays -- the keyframes are generated in frontmatter."
+  registry="rotating-text"
+  sourceFile="RotatingText.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/rotating-text" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'words', type: 'string[]', description: 'Words to rotate through. Wrapper width fits the longest word automatically (grid sizing).' },
+      { name: 'interval', type: 'number', default: '2.4', description: 'Seconds each word holds.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Reduced motion shows the first word statically; the full list sits in aria-label.</li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,79 @@
+---
+/**
+ * FloatingHeader.astro -- astro-shad site header, floating variant: a
+ * detached, radius-adjustable pill that hovers below the top edge
+ * (translucent card fill + blur). Zero client JS.
+ *
+ * Same slot contract as TopBar (brand / nav / actions, all optional);
+ * `radius` is the personality knob. Width is a layout concern -- set
+ * max-w-* / mx-* via class (defaults to a mx-2 full-width pill).
+ *
+ *   <FloatingHeader radius="full" class="max-w-3xl sm:mx-auto">
+ *     <a slot="brand" href="/" class="text-sm font-semibold">acme</a>
+ *     <Fragment slot="nav"><a href="/docs">Docs</a></Fragment>
+ *     <Button slot="actions" size="sm">Sign in</Button>
+ *   </FloatingHeader>
+ *
+ * Sibling component: TopBar.astro (edge-to-edge bar).
+ */
+import { cn } from "../../lib/utils";
+
+type Radius = "lg" | "xl" | "2xl" | "3xl" | "full";
+
+/* Literal strings so Tailwind's scanner sees every class. */
+const RADII: Record<Radius, string> = {
+  lg: "rounded-lg",
+  xl: "rounded-xl",
+  "2xl": "rounded-2xl",
+  "3xl": "rounded-3xl",
+  full: "rounded-full",
+};
+
+interface Props {
+  /** stick just below the top of the scroll container */
+  sticky?: boolean;
+  radius?: Radius;
+  /** classes for the inner row */
+  containerClass?: string;
+  /** classes for the nav wrapper */
+  navClass?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { sticky = true, radius = "3xl", containerClass, navClass, class: className, ...rest } = Astro.props;
+---
+
+<header
+  class={cn(
+    "z-30 mx-4 xl:mx-auto xl:max-w-6xl flex justify-between border border-border bg-card/80 backdrop-blur",
+    RADII[radius],
+    sticky && "sticky top-2",
+    className,
+  )}
+  {...rest}
+>
+  <div class={cn("flex w-full items-center justify-between gap-6 px-6 py-3", containerClass)}>
+    {
+      Astro.slots.has("brand") && (
+        <div class="flex items-center gap-6">
+          <slot name="brand" />
+        </div>
+      )
+    }
+    {
+      Astro.slots.has("nav") && (
+        <nav class={cn("hidden items-center gap-4 text-sm text-muted-foreground sm:flex", navClass)}>
+          <slot name="nav" />
+        </nav>
+      )
+    }
+    {
+      Astro.slots.has("actions") && (
+        <div class="flex items-center gap-2">
+          <slot name="actions" />
+        </div>
+      )
+    }
+  </div>
+</header>

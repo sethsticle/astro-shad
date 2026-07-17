@@ -1,0 +1,14 @@
+---
+import TopBar from '../../../astro-shad/TopBar.astro';
+import Button from '../../../astro-shad/Button.astro';
+---
+
+<TopBar sticky={false}>
+  <a slot="brand" href="#" class="text-sm font-semibold tracking-tight">astro-shad</a>
+  <Fragment slot="nav">
+    <a href="#" class="transition-colors hover:text-foreground">Docs</a>
+    <a href="#" class="transition-colors hover:text-foreground">Playground</a>
+    <a href="#" class="transition-colors hover:text-foreground">GitHub</a>
+  </Fragment>
+  <Button slot="actions" variant="outline" size="sm">Sign in</Button>
+</TopBar>

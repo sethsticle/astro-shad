@@ -1,0 +1,44 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/magic-bento/Basic.astro';
+import basicSource from '../../../components/docs/demos/magic-bento/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Magic Bento"
+  description="Bento layout grid + cell card, zero JS. The react-bits cursor-tracking glow became a hover-triggered CSS keyframe sweep painted into a 1px border frame -- choosable per cell, with a colors list."
+  registry="magic-bento"
+  sourceFile="MagicBento.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/magic-bento" />
+  <p class="mt-2">One registry item, two files: <code>MagicBento.astro</code> (grid) + <code>BentoCard.astro</code> (cell).</p>
+
+  <h2>MagicBento props</h2>
+  <PropsTable
+    rows={[
+      { name: 'size', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Column count at the md breakpoint (2/3/4); one column on mobile.' },
+    ]}
+  />
+
+  <h2>BentoCard props</h2>
+  <PropsTable
+    rows={[
+      { name: 'label', type: 'string', description: 'Small uppercase eyebrow.' },
+      { name: 'title / description', type: 'string', description: 'Text block, bottom-aligned.' },
+      { name: 'span', type: "'default' | 'wide' | 'tall'", default: "'default'", description: 'Footprint: 1x1 / 2x1 / 1x2.' },
+      { name: 'glow', type: 'boolean', default: 'true', description: 'Hover keyframe gradient sweep on/off.' },
+      { name: 'glowColors', type: 'string[]', default: "['var(--primary)']", description: 'CSS colors used as successive gradient stops of the sweep.' },
+      { name: 'image', type: 'string', description: 'Full-bleed image above the text, filling leftover row height.' },
+      { name: 'bgImage', type: 'string', description: 'Cover layer + scrim behind the text; text flips to literal white.' },
+    ]}
+  />
+</DocsLayout>

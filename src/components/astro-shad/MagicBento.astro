@@ -1,0 +1,44 @@
+---
+/**
+ * MagicBento.astro -- astro-shad bento layout grid. Pure layout, zero JS
+ * (the react-bits original's cursor-glow pointer tracking was stripped:
+ * pointermove + getBoundingClientRect was unnecessary weight; the hover
+ * glow lives on <BentoCard> as a pure CSS keyframe sweep instead).
+ *
+ * `size` sets the column count at the md breakpoint; everything is one
+ * column on mobile. Cards choose their own footprint via the `span` prop
+ * on <BentoCard> (default / wide / tall).
+ *
+ *   sm -> 2 columns    md -> 3 columns    lg -> 4 columns
+ *
+ *   <MagicBento size="md">
+ *     <BentoCard span="wide" title="..." />
+ *     <BentoCard title="..." />
+ *   </MagicBento>
+ */
+import { cn } from '../../lib/utils';
+
+type Size = 'sm' | 'md' | 'lg';
+
+/* Literal strings so Tailwind's scanner sees every class. */
+const SIZES: Record<Size, string> = {
+  sm: 'md:grid-cols-2',
+  md: 'md:grid-cols-3',
+  lg: 'md:grid-cols-4',
+};
+
+interface Props {
+  size?: Size;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { size = 'md', class: className, ...rest } = Astro.props;
+---
+
+<div
+  class={cn('grid grid-cols-1 gap-4 md:auto-rows-[9rem]', SIZES[size], className)}
+  {...rest}
+>
+  <slot />
+</div>

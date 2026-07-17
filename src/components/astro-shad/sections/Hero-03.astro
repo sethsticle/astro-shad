@@ -1,0 +1,49 @@
+---
+/**
+ * Hero-03.astro -- layout section: full-height centered hero + a feature
+ * strip anchored at the bottom edge (the usual 3-4 column icons/features
+ * row). Ships populated (frontend-contract.md §7): <Hero03 /> renders a
+ * complete block; make it yours by editing this copy you own.
+ *
+ * The strip is an auto-fit grid (minmax(13rem,1fr)) -- give it 3 or 4
+ * cells and the columns adapt; narrow screens wrap.
+ *
+ * `background` slot: absolute layer behind everything.
+ */
+import { cn } from "../../../lib/utils";
+import Button from "../Button.astro";
+import Card from "../Card.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("relative isolate flex min-h-svh flex-col", className)} {...rest}>
+  <div class="absolute inset-0 -z-10 overflow-hidden"><slot name="background" /></div>
+  <div class="grid flex-1 place-items-center">
+    <div class="mx-auto w-full max-w-6xl px-6">
+      <div class="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
+        <!-- content — yours to edit: comment out and replace -->
+        <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">Everything above the fold.</h1>
+        <p class="text-muted-foreground">Centered headline up top, proof points pinned to the bottom edge.</p>
+        <div class="flex gap-3">
+          <Button size="lg">Start now</Button>
+          <Button size="lg" variant="ghost">See how it works</Button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mx-auto w-full max-w-6xl px-6 pb-12">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-4">
+      <!-- feature strip — 3 or 4 cells, columns adapt -->
+      <Card title="Fast" description="Static HTML out of the box." />
+      <Card title="Lean" description="Zero React runtime shipped." />
+      <Card title="Yours" description="Copy-and-own, edit freely." />
+      <Card title="Proven" description="Byte-identical delivery." />
+    </div>
+  </div>
+</section>

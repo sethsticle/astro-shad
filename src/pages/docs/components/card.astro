@@ -1,0 +1,52 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/card/Basic.astro';
+import basicSource from '../../../components/docs/demos/card/Basic.astro?raw';
+import ImagesDemo from '../../../components/docs/demos/card/Images.astro';
+import imagesSource from '../../../components/docs/demos/card/Images.astro?raw';
+---
+
+<DocsLayout
+  title="Card"
+  description="shadcn card collapsed into one .astro file: title/description props plus header, default, footer, and image slots, with optional image and bgImage shortcuts. Zero client JS."
+  registry="card"
+  sourceFile="Card.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="grid gap-4 p-8 sm:grid-cols-2">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Images</h2>
+  <ComponentPreview code={imagesSource} class="grid gap-4 p-8 sm:grid-cols-2">
+    <ImagesDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/card" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'title', type: 'string', description: 'Header title (h3). The header slot replaces title/description entirely.' },
+      { name: 'description', type: 'string', description: 'Muted line under the title.' },
+      { name: 'image', type: 'string', description: 'Convenience src for the image slot -- renders edge-to-edge above the header. The slot wins if both are given.' },
+      { name: 'imageAlt', type: 'string', default: "''", description: 'Alt text for the image prop.' },
+      { name: 'bgImage', type: 'string', description: 'Image as the card background: absolute cover layer + bottom scrim behind all content; text flips to literal white.' },
+    ]}
+  />
+
+  <h2>Slots</h2>
+  <PropsTable
+    bare
+    rows={[
+      { name: 'default', type: 'slot', description: 'Card body.' },
+      { name: 'header', type: 'slot', description: 'Custom header markup, replaces title/description.' },
+      { name: 'footer', type: 'slot', description: 'Footer row.' },
+      { name: 'image', type: 'slot', description: 'Custom top image markup, wins over the image prop.' },
+    ]}
+  />
+</DocsLayout>

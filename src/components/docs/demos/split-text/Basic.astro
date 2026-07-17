@@ -1,0 +1,8 @@
+---
+import SplitText from '../../../astro-shad/SplitText.astro';
+---
+
+<div class="flex w-full flex-col gap-6">
+  <SplitText as="p" class="text-2xl font-semibold" text="Staggered reveal, split at build time." />
+  <SplitText by="char" stagger={20} class="text-2xl font-semibold" text="pixel by pixel" />
+</div>

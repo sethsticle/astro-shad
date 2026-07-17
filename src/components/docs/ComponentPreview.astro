@@ -1,0 +1,55 @@
+---
+/**
+ * ComponentPreview.astro -- docs live-demo frame: the rendered component
+ * on the site theme, with the source snippet in a zero-JS <details>
+ * disclosure below (no Tabs here on purpose -- multiple previews per page
+ * would collide on Tabs' DOM ids).
+ *
+ * `code` is normally a ?raw import of a demo file from
+ * src/components/docs/demos/ -- one source of truth rendered live AND
+ * shown as text, so the two can never drift. Repo-relative component
+ * imports in that source are rewritten to the consumer's installed
+ * layout before display.
+ */
+import Snippet from "./Snippet.astro";
+
+interface Props {
+  /** demo source shown under the preview (?raw import); omit for preview-only */
+  code?: string;
+  lang?: string;
+  class?: string;
+}
+
+const { code: rawCode, lang = "astro", class: className } = Astro.props;
+const code = rawCode?.replace(/(\.\.\/)+astro-shad\//g, "../components/astro-shad/").trim();
+---
+
+<div class="overflow-hidden rounded-lg border border-border bg-surface">
+  <div class={className ?? "flex flex-wrap items-center gap-3 p-8"}>
+    <slot />
+  </div>
+  {
+    code && (
+      <details class="group border-t border-border">
+        <summary class="flex cursor-pointer items-center gap-1.5 bg-muted/50 px-4 py-4 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            class="transition-transform group-open:rotate-90"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+          Usage
+        </summary>
+        <Snippet code={code} lang={lang} />
+      </details>
+    )
+  }
+</div>

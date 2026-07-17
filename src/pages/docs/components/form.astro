@@ -1,0 +1,49 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import ContactDemo from '../../../components/docs/demos/form/Contact.astro';
+import contactSource from '../../../components/docs/demos/form/Contact.astro?raw';
+---
+
+<DocsLayout
+  title="Form"
+  description="react-less counterpart of shadcn's Form (react-hook-form + zod): the native Constraint Validation API does the checking, one delegated script does the painting. Validate on submit, reward-early revalidation, inline errors."
+  registry="form"
+  sourceFile="Form.astro"
+>
+  <h2>Preview</h2>
+  <p>Demo mode -- submit empty to see inline errors; they clear as you fix them.</p>
+  <ComponentPreview code={contactSource} class="max-w-md p-8">
+    <ContactDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/form" />
+  <p class="mt-2">One registry item, two files: <code>Form.astro</code> (validation engine) + <code>FormField.astro</code> (labelled control).</p>
+
+  <h2>Form props</h2>
+  <PropsTable
+    rows={[
+      { name: 'action', type: 'string', description: 'Endpoint -- real forms submit normally; the endpoint must re-validate server-side regardless.' },
+      { name: 'method', type: "'post' | 'get' | 'dialog'", default: "'post'", description: 'Form method.' },
+      { name: 'demo', type: 'boolean', default: 'false', description: 'Block submission and show the success banner instead -- for playgrounds and endpoint-less mockups.' },
+    ]}
+  />
+
+  <h2>FormField props</h2>
+  <PropsTable
+    rows={[
+      { name: 'name', type: 'string', description: 'Control name.' },
+      { name: 'label', type: 'string', description: 'Visible label, wired via for/id.' },
+      { name: 'type', type: "'text' | 'email' | 'tel' | 'url' | 'password' | 'number' | 'date' | 'textarea' | 'select' | 'checkbox'", default: "'text'", description: 'Control type.' },
+      { name: 'required', type: 'boolean', description: 'Native constraint -- as are pattern, minlength, min, max via rest spread. The DOM attributes ARE the schema.' },
+      { name: 'placeholder', type: 'string', description: 'Placeholder (select: disabled first option).' },
+      { name: 'description', type: 'string', description: 'Helper text under the control.' },
+      { name: 'error', type: 'string', description: "Custom message replacing the browser's validationMessage for any failure on this field." },
+      { name: 'options', type: "(string | { value; label })[]", description: 'Select options.' },
+      { name: 'rows', type: 'number', default: '4', description: 'Textarea rows.' },
+    ]}
+  />
+</DocsLayout>

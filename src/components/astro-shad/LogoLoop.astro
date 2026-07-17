@@ -1,0 +1,75 @@
+---
+/**
+ * LogoLoop.astro -- astro-shad infinite logo marquee. Converted from
+ * react-bits LogoLoop, minus react. ZERO client JS.
+ *
+ * Classic CSS marquee: the slot content renders into TWO identical tracks
+ * (second aria-hidden), each translating -100% on a linear loop -- as the
+ * first exits, the second is exactly where the first began. Edges fade via
+ * mask. Fill the track generously: each track is min-width 100%, so if the
+ * logos are narrower than the container there will be dead space per cycle.
+ *
+ * Knobs: speed (s per cycle), gap, pauseOnHover. Reduced motion: static
+ * single row.
+ *
+ *   <LogoLoop speed={28} class="text-muted-foreground">
+ *     <img ... /> <span>Partner</span> <svg ... />
+ *   </LogoLoop>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** seconds per full cycle */
+  speed?: number;
+  gap?: string;
+  pauseOnHover?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  speed = 24,
+  gap = '3.5rem',
+  pauseOnHover = true,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await Astro.slots.render('default');
+---
+
+<div
+  class={cn('logoloop', pauseOnHover && 'logoloop-pause', className)}
+  style={`--ll-speed: ${speed}s; --ll-gap: ${gap}`}
+  {...rest}
+>
+  <div class="ll-track" set:html={content} />
+  <div class="ll-track" aria-hidden="true" set:html={content} />
+</div>
+
+<style>
+  .logoloop {
+    display: flex;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
+  .ll-track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--ll-gap);
+    min-width: 100%;
+    padding-right: var(--ll-gap);
+    animation: ll-marquee var(--ll-speed) linear infinite;
+  }
+  .logoloop-pause:hover .ll-track {
+    animation-play-state: paused;
+  }
+  @keyframes ll-marquee {
+    to { transform: translateX(-100%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ll-track { animation: none; }
+    .ll-track[aria-hidden] { display: none; }
+  }
+</style>

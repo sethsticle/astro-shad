@@ -1,0 +1,8 @@
+---
+import Pagination from '../../../astro-shad/Pagination.astro';
+---
+
+<div class="flex w-full flex-col gap-4">
+  <Pagination currentPage={5} totalPages={12} hrefFor={(p: number) => `#page-${p}`} />
+  <Pagination currentPage={1} totalPages={3} hrefFor={(p: number) => `#page-${p}`} />
+</div>

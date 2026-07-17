@@ -1,0 +1,36 @@
+---
+/**
+ * Cta-01.astro -- layout section: narrow centered call-to-action band on
+ * a card surface. Ships populated (frontend-contract.md §7): <Cta01 />
+ * renders a complete block; make it yours by editing this copy you own.
+ *
+ * `background` slot: absolute layer INSIDE the band -- gradients, glows,
+ * patterns (effects items drop in here).
+ */
+import { cn } from "../../../lib/utils";
+import Button from "../Button.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("py-16 md:py-24", className)} {...rest}>
+  <div class="mx-auto w-full max-w-6xl px-6">
+    <div class="relative isolate overflow-hidden rounded-xl border border-border bg-card px-6 py-12 md:py-16">
+      <div class="absolute inset-0 -z-10"><slot name="background" /></div>
+      <div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
+        <!-- content — yours to edit: comment out and replace -->
+        <h2 class="text-3xl font-semibold tracking-tight md:text-4xl">Ready when you are.</h2>
+        <p class="text-muted-foreground">One narrow band, one decision. Every site ends with this section.</p>
+        <div class="flex gap-3">
+          <Button size="lg">Get started</Button>
+          <Button size="lg" variant="outline">Talk to us</Button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

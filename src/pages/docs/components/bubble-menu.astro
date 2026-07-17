@@ -1,0 +1,38 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/bubble-menu/Basic.astro';
+import basicSource from '../../../components/docs/demos/bubble-menu/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Bubble Menu"
+  description="react-bits BubbleMenu minus react + gsap: staggered pill open/close rebuilt as CSS transitions keyed off one data-state attribute, per-pill delays (jitter included) baked at build time."
+  registry="bubble-menu"
+  sourceFile="BubbleMenu.astro"
+>
+  <h2>Preview</h2>
+  <p>Click the hamburger bubble. Escape or choosing an item closes the menu.</p>
+  <ComponentPreview code={basicSource} class="p-4">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/bubble-menu" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'items', type: '{ label; href; ariaLabel?; rotation?; hoverColor? }[]', description: 'Menu pills. rotation is a desktop-only tilt in degrees (flattened below 900px, pure CSS); hoverColor is any CSS color, defaults to the theme primary.' },
+      { name: 'fixed', type: 'boolean', default: 'false', description: 'Pin to the viewport instead of the nearest positioned ancestor. Default mode needs a position: relative wrapper with a height.' },
+      { name: 'duration', type: 'number', default: '500', description: 'Open animation duration in ms.' },
+      { name: 'stagger', type: 'number', default: '120', description: 'Per-pill stagger in ms; a ±50ms jitter is baked per build.' },
+      { name: 'menuAriaLabel', type: 'string', default: "'Toggle menu'", description: 'Accessible name for the toggle bubble.' },
+    ]}
+  />
+
+  <h2>Slots</h2>
+  <PropsTable bare rows={[{ name: 'logo', type: 'slot', description: 'Content of the logo bubble.' }]} />
+</DocsLayout>

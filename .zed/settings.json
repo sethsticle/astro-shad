@@ -1,0 +1,27 @@
+{
+  // Zed project settings -- formatting rides the project-local prettier
+  // (devDependencies) + .prettierrc, whose "plugins" field is how Zed
+  // discovers prettier-plugin-astro / prettier-plugin-tailwindcss.
+  // Requires the "Astro" extension (zed: extensions) for the language
+  // itself; "Emmet" extension for abbreviation expansion.
+  "languages": {
+    "Astro": {
+      "formatter": "prettier",
+      "format_on_save": "on",
+      // keep the defaults, add tailwind completions inside .astro files
+      "language_servers": ["...", "tailwindcss-language-server"]
+    },
+    "TypeScript": {
+      "formatter": "prettier",
+      "format_on_save": "on"
+    },
+    "JSON": {
+      "formatter": "prettier",
+      "format_on_save": "on"
+    },
+    "JSONC": {
+      "formatter": "prettier",
+      "format_on_save": "on"
+    }
+  }
+}

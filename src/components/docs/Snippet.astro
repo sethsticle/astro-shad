@@ -1,0 +1,17 @@
+---
+/**
+ * Snippet.astro -- docs code block. One wrapper around Astro's built-in
+ * Shiki <Code> so the highlight theme is set in exactly one place.
+ * The block stays dark in both site themes (standard docs convention).
+ */
+import { Code } from 'astro:components';
+
+interface Props {
+  code: string;
+  lang?: string;
+}
+
+const { code, lang = 'astro' } = Astro.props;
+---
+
+<Code code={code} lang={lang as any} theme="github-dark" />

@@ -1,0 +1,93 @@
+---
+/**
+ * CountUp.astro -- astro-shad animated counter. Converted from react-bits
+ * CountUp, minus react.
+ *
+ * The FINAL value is server-rendered as real text: no JS, crawlers, and
+ * reduced-motion all see the finished number. When JS runs and the element
+ * scrolls into view, it rewinds to `from` and eases up to `to` with one
+ * rAF loop, formatted by Intl.NumberFormat.
+ *
+ *   <CountUp to={412} suffix="+" class="text-4xl font-semibold" />
+ *   <CountUp to={92.5} decimals={1} suffix="%" locale="en-ZA" />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  to: number;
+  from?: number;
+  /** ms */
+  duration?: number;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  /** Intl.NumberFormat locale for the grouping/decimal style */
+  locale?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  to,
+  from = 0,
+  duration = 1600,
+  decimals = 0,
+  prefix = '',
+  suffix = '',
+  locale = 'en-US',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const formatted = new Intl.NumberFormat(locale, {
+  minimumFractionDigits: decimals,
+  maximumFractionDigits: decimals,
+}).format(to);
+---
+
+<span
+  class={cn('tabular-nums', className)}
+  data-astro-shad-countup
+  data-from={from}
+  data-to={to}
+  data-duration={duration}
+  data-decimals={decimals}
+  data-locale={locale}
+  {...rest}
+>{prefix}<span data-cu>{formatted}</span>{suffix}</span>
+
+<script>
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const run = (el: HTMLElement) => {
+      const out = el.querySelector('[data-cu]');
+      if (!out) return;
+      const from = Number(el.dataset.from);
+      const to = Number(el.dataset.to);
+      const dur = Number(el.dataset.duration);
+      const fmt = new Intl.NumberFormat(el.dataset.locale, {
+        minimumFractionDigits: Number(el.dataset.decimals),
+        maximumFractionDigits: Number(el.dataset.decimals),
+      });
+      const t0 = performance.now();
+      (function frame(now: number) {
+        const t = Math.min(1, (now - t0) / dur);
+        const ease = 1 - Math.pow(1 - t, 3); /* easeOutCubic */
+        out.textContent = fmt.format(from + (to - from) * ease);
+        if (t < 1) requestAnimationFrame(frame);
+      })(t0);
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            io.unobserve(en.target);
+            run(en.target as HTMLElement);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    document.querySelectorAll<HTMLElement>('[data-astro-shad-countup]').forEach((el) => io.observe(el));
+  }
+</script>

@@ -1,0 +1,51 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import ComponentPreview from "../../../components/docs/ComponentPreview.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import Snippet from "../../../components/docs/Snippet.astro";
+import BasicDemo from "../../../components/docs/demos/floating-header/Basic.astro";
+import basicSource from "../../../components/docs/demos/floating-header/Basic.astro?raw";
+---
+
+<DocsLayout
+  title="Floating Header"
+  description="Floating site header: detached radius-adjustable pill (translucent card fill + blur) with brand/nav/actions slots. Zero client JS. Sibling of Top Bar -- this docs site's own header is one."
+  registry="floating-header"
+  sourceFile="FloatingHeader.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="bg-muted/20 p-6">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/floating-header" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      {
+        name: "sticky",
+        type: "boolean",
+        default: "true",
+        description: "Whether to stick the header just below the top of the scroll container.",
+      },
+      {
+        name: "radius",
+        type: "'lg' | 'xl' | '2xl' | '3xl' | 'full'",
+        default: "'3xl'",
+        description: "Controls the border radius of the floating pill wrapper.",
+      },
+      {
+        name: "containerClass",
+        type: "string",
+        description: "Classes applied to the inner row.",
+      },
+      {
+        name: "navClass",
+        type: "string",
+        description: "Classes for the nav wrapper. Useful for overriding the default mobile hidden behavior.",
+      },
+    ]}
+  />
+</DocsLayout>

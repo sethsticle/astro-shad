@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "text-type",
+  "title": "Text Type",
+  "description": "react-bits TextType (typewriter) minus react: types, holds, deletes, cycles. First string server-rendered for no-JS/reduced-motion; caret rides currentColor.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/TextType.astro",
+      "content": "---\n/**\n * TextType.astro -- astro-shad typewriter. Converted from react-bits\n * TextType, minus react.\n *\n * Types each string out, holds, deletes, cycles to the next. The full first\n * string sits in aria-label so screen readers get one clean announcement\n * while the animating text stays aria-hidden. Reduced motion / no JS shows\n * the first string statically. The caret rides currentColor, so it matches\n * whatever text color the caller sets via class.\n *\n *   <TextType class=\"text-2xl font-semibold\" text={['One.', 'Two.']} />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  text: string | string[];\n  /** ms per typed character */\n  speed?: number;\n  /** ms hold at full string before deleting */\n  pause?: number;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { text, speed = 55, pause = 1800, class: className, ...rest } = Astro.props;\nconst strings = Array.isArray(text) ? text : [text];\n---\n\n<span\n  class={cn('whitespace-pre-wrap', className)}\n  data-astro-shad-texttype\n  data-strings={JSON.stringify(strings)}\n  data-speed={speed}\n  data-pause={pause}\n  aria-label={strings[0]}\n  {...rest}\n>\n  <span aria-hidden=\"true\" data-tt-text>{strings[0]}</span><span class=\"tt-caret\" aria-hidden=\"true\"></span>\n</span>\n\n<style>\n  .tt-caret {\n    display: inline-block;\n    width: 2px;\n    height: 1em;\n    margin-left: 0.08em;\n    vertical-align: text-bottom;\n    background: currentColor;\n    animation: tt-blink 1s step-end infinite;\n  }\n  @keyframes tt-blink {\n    50% { opacity: 0; }\n  }\n  @media (prefers-reduced-motion: reduce) {\n    .tt-caret { animation: none; }\n  }\n</style>\n\n<script>\n  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;\n  document.querySelectorAll<HTMLElement>('[data-astro-shad-texttype]').forEach((el) => {\n    const strings: string[] = JSON.parse(el.dataset.strings || '[]');\n    const out = el.querySelector('[data-tt-text]');\n    if (reduce || strings.length === 0 || !out) return; /* server text stands */\n    const speed = Number(el.dataset.speed);\n    const pause = Number(el.dataset.pause);\n    let s = 0;\n    let i = 0;\n    let deleting = false;\n\n    (function tick() {\n      const str = strings[s];\n      if (!deleting) {\n        i++;\n        out.textContent = str.slice(0, i);\n        if (i === str.length) {\n          if (strings.length === 1) return;\n          deleting = true;\n          setTimeout(tick, pause);\n        } else {\n          setTimeout(tick, speed);\n        }\n      } else {\n        i--;\n        out.textContent = str.slice(0, i);\n        if (i === 0) {\n          deleting = false;\n          s = (s + 1) % strings.length;\n        }\n        setTimeout(tick, 28);\n      }\n    })();\n  });\n</script>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/TextType.astro"
+    }
+  ],
+  "type": "registry:component"
+}

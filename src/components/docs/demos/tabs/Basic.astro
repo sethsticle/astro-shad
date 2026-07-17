@@ -1,0 +1,23 @@
+---
+import Tabs from '../../../astro-shad/Tabs.astro';
+import Card from '../../../astro-shad/Card.astro';
+---
+
+<Tabs
+  tabs={[
+    { id: 'account', label: 'Account' },
+    { id: 'password', label: 'Password' },
+    { id: 'team', label: 'Team' },
+  ]}
+  class="w-full"
+>
+  <Card slot="account" title="Account">
+    <p class="text-sm text-muted-foreground">Account panel. Arrow keys move between triggers.</p>
+  </Card>
+  <Card slot="password" title="Password">
+    <p class="text-sm text-muted-foreground">Password panel.</p>
+  </Card>
+  <Card slot="team" title="Team">
+    <p class="text-sm text-muted-foreground">Team panel.</p>
+  </Card>
+</Tabs>

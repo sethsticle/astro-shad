@@ -1,0 +1,14 @@
+---
+import FloatingHeader from '../../../astro-shad/FloatingHeader.astro';
+import Button from '../../../astro-shad/Button.astro';
+---
+
+<FloatingHeader sticky={false} radius="full" class="mx-auto max-w-4xl">
+  <a slot="brand" href="#" class="text-sm font-semibold tracking-tight">astro-shad</a>
+  <Fragment slot="nav">
+    <a href="#" class="transition-colors hover:text-foreground">Docs</a>
+    <a href="#" class="transition-colors hover:text-foreground">Components</a>
+    <a href="#" class="transition-colors hover:text-foreground">GitHub</a>
+  </Fragment>
+  <Button slot="actions" variant="outline" size="sm">Sign in</Button>
+</FloatingHeader>
