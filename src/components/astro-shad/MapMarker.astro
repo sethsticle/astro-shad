@@ -1,0 +1,286 @@
+---
+/**
+ * MapMarker.astro -- astro-shad map marker. Converted from mapcn's map.tsx:
+ * FIVE React components (MapMarker + MarkerContent + MarkerPopup +
+ * MarkerTooltip + MarkerLabel) collapsed into one file with slots. React
+ * needed createPortal to inject JSX into MapLibre's DOM; Astro slot content is
+ * already real DOM, so the content div is handed straight to
+ * `new Marker({ element })` and popup/tooltip markup ships in inert
+ * <template> elements the script hands to `Popup.setDOMContent()`.
+ *
+ * Slots:
+ *   - default   -- marker content (falls back to an accent-colored dot)
+ *   - popup     -- toggles on marker click / Enter / Space (token card chrome,
+ *                  optional close button; closes on map click elsewhere)
+ *   - tooltip   -- shows on marker hover (inverse chip chrome)
+ *   - label     -- persistent text pinned above/below the marker
+ *
+ * Must be a child of <Map>. Callback props became CustomEvents dispatched on
+ * the map root element (listen on the <Map> wrapper): `map:marker-click`,
+ * `map:marker-mouseenter`, `map:marker-mouseleave`, and for draggable markers
+ * `map:marker-dragstart` / `map:marker-drag` / `map:marker-dragend` (detail:
+ * { id, marker, lngLat }). Pass `id` to tell markers apart in handlers.
+ *
+ *   <MapMarker longitude={18.42} latitude={-33.91} closeButton>
+ *     <span slot="label">Acme Coffee</span>
+ *     <div slot="popup">
+ *       <p class="text-sm font-semibold">Acme Coffee</p>
+ *       <p class="text-xs text-muted-foreground">123 Long Street</p>
+ *     </div>
+ *   </MapMarker>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  longitude: number;
+  latitude: number;
+  /** Identifies this marker in the CustomEvent payloads. */
+  id?: string;
+  draggable?: boolean;
+  /** MapLibre marker anchor (default: "center"). */
+  anchor?:
+    | 'center'
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';
+  /** Pixel offset [x, y] applied to the marker element. */
+  offset?: [number, number];
+  /** Rotation in degrees. */
+  rotation?: number;
+  rotationAlignment?: 'map' | 'viewport' | 'auto';
+  pitchAlignment?: 'map' | 'viewport' | 'auto';
+  /** Show a close button in the popup (default: false). */
+  closeButton?: boolean;
+  /** Where the label slot renders relative to the marker (default: "top"). */
+  labelPosition?: 'top' | 'bottom';
+  /** Extra classes for the marker content wrapper. */
+  class?: string;
+}
+
+const {
+  longitude,
+  latitude,
+  id,
+  draggable = false,
+  anchor,
+  offset,
+  rotation,
+  rotationAlignment,
+  pitchAlignment,
+  closeButton = false,
+  labelPosition = 'top',
+  class: className,
+} = Astro.props;
+
+const hasPopup = Astro.slots.has('popup');
+const hasTooltip = Astro.slots.has('tooltip');
+const hasLabel = Astro.slots.has('label');
+
+const config = JSON.stringify({
+  longitude,
+  latitude,
+  id,
+  draggable,
+  anchor,
+  offset,
+  rotation,
+  rotationAlignment,
+  pitchAlignment,
+});
+---
+
+<div data-astro-shad-map-marker data-marker-config={config} hidden>
+  <div data-marker-content class={cn('relative cursor-pointer', className)}>
+    {
+      hasLabel && (
+        <div
+          class={cn(
+            'absolute left-1/2 -translate-x-1/2 text-[10px] font-medium whitespace-nowrap text-foreground',
+            labelPosition === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1',
+          )}
+        >
+          <slot name="label" />
+        </div>
+      )
+    }
+    <slot>
+      <!-- default pin: bg-accent (the chromatic highlight token -- primary is
+           near-monochrome in the neutral theme and vanishes against tiles);
+           border-white is literal on purpose, the ring must read against map
+           tiles in both themes, not against a token surface -->
+      <div class="h-4 w-4 rounded-full border-2 border-white bg-accent shadow-lg"></div>
+    </slot>
+  </div>
+
+  {
+    hasPopup && (
+      <template data-marker-popup>
+        <div class="relative max-w-62 rounded-md border bg-popover p-3 text-popover-foreground shadow-md">
+          {closeButton && (
+            <button
+              type="button"
+              data-popup-close
+              aria-label="Close popup"
+              class="absolute top-1 right-1 z-10 inline-flex size-5 cursor-pointer items-center justify-center rounded-sm text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-3.5"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          )}
+          <slot name="popup" />
+        </div>
+      </template>
+    )
+  }
+
+  {
+    hasTooltip && (
+      <template data-marker-tooltip>
+        <div class="pointer-events-none rounded-md bg-foreground px-2 py-1 text-xs text-balance text-background shadow-md">
+          <slot name="tooltip" />
+        </div>
+      </template>
+    )
+  }
+</div>
+
+<script>
+  import MapLibreGL from 'maplibre-gl';
+
+  type MarkerConfig = {
+    longitude: number;
+    latitude: number;
+    id?: string;
+    draggable?: boolean;
+    anchor?: string;
+    offset?: [number, number];
+    rotation?: number;
+    rotationAlignment?: string;
+    pitchAlignment?: string;
+  };
+
+  // Map may init before or after us -- script bundling order is not guaranteed.
+  function whenMapReady(
+    el: HTMLElement,
+    cb: (map: MapLibreGL.Map, mapRoot: HTMLElement) => void,
+  ) {
+    const mapRoot = el.closest<HTMLElement>('[data-astro-shad-map]');
+    if (!mapRoot) return;
+    const existing = (mapRoot as HTMLElement & { __astroShadMap?: MapLibreGL.Map }).__astroShadMap;
+    if (existing) cb(existing, mapRoot);
+    else
+      mapRoot.addEventListener(
+        'map:ready',
+        (e) => cb((e as CustomEvent).detail.map, mapRoot),
+        { once: true },
+      );
+  }
+
+  function initMarker(el: HTMLElement) {
+    whenMapReady(el, (map, mapRoot) => {
+      const cfg: MarkerConfig = JSON.parse(el.dataset.markerConfig || '{}');
+      const content = el.querySelector<HTMLElement>('[data-marker-content]');
+      if (!content) return;
+
+      const marker = new MapLibreGL.Marker({
+        element: content,
+        draggable: !!cfg.draggable,
+        ...(cfg.anchor ? { anchor: cfg.anchor as never } : {}),
+        ...(cfg.offset ? { offset: cfg.offset } : {}),
+        ...(cfg.rotation !== undefined ? { rotation: cfg.rotation } : {}),
+        ...(cfg.rotationAlignment
+          ? { rotationAlignment: cfg.rotationAlignment as never }
+          : {}),
+        ...(cfg.pitchAlignment ? { pitchAlignment: cfg.pitchAlignment as never } : {}),
+      })
+        .setLngLat([cfg.longitude, cfg.latitude])
+        .addTo(map);
+
+      const emit = (name: string, detail: Record<string, unknown> = {}) =>
+        mapRoot.dispatchEvent(
+          new CustomEvent(name, { detail: { id: cfg.id, marker, ...detail } }),
+        );
+
+      content.addEventListener('click', (e) => emit('map:marker-click', { originalEvent: e }));
+      content.addEventListener('mouseenter', (e) =>
+        emit('map:marker-mouseenter', { originalEvent: e }),
+      );
+      content.addEventListener('mouseleave', (e) =>
+        emit('map:marker-mouseleave', { originalEvent: e }),
+      );
+
+      if (cfg.draggable) {
+        const dragDetail = () => {
+          const { lng, lat } = marker.getLngLat();
+          return { lngLat: { lng, lat } };
+        };
+        marker.on('dragstart', () => emit('map:marker-dragstart', dragDetail()));
+        marker.on('drag', () => emit('map:marker-drag', dragDetail()));
+        marker.on('dragend', () => emit('map:marker-dragend', dragDetail()));
+      }
+
+      const popupTpl = el.querySelector<HTMLTemplateElement>('template[data-marker-popup]');
+      const popupEl = popupTpl?.content.firstElementChild as HTMLElement | undefined;
+      if (popupEl) {
+        const popup = new MapLibreGL.Popup({ offset: 16, closeButton: false })
+          .setMaxWidth('none')
+          .setDOMContent(popupEl);
+        // Toggle ourselves instead of marker.setPopup(): deterministic, and
+        // stopPropagation is load-bearing -- without it the click bubbles to
+        // the map and the popup's own closeOnClick removes it immediately
+        // (the trap maplibre's marker source warns about).
+        const togglePopup = () => {
+          if (popup.isOpen()) popup.remove();
+          else popup.setLngLat(marker.getLngLat()).addTo(map);
+        };
+        content.addEventListener('click', (e) => {
+          e.stopPropagation();
+          togglePopup();
+        });
+        content.tabIndex = 0;
+        content.addEventListener('keydown', (e) => {
+          if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            togglePopup();
+          }
+        });
+        popupEl
+          .querySelector('[data-popup-close]')
+          ?.addEventListener('click', () => popup.remove());
+      }
+
+      const tooltipTpl = el.querySelector<HTMLTemplateElement>('template[data-marker-tooltip]');
+      const tooltipEl = tooltipTpl?.content.firstElementChild as HTMLElement | undefined;
+      if (tooltipEl) {
+        const tooltip = new MapLibreGL.Popup({
+          offset: 16,
+          closeButton: false,
+          closeOnClick: true,
+        })
+          .setMaxWidth('none')
+          .setDOMContent(tooltipEl);
+        content.addEventListener('mouseenter', () =>
+          tooltip.setLngLat(marker.getLngLat()).addTo(map),
+        );
+        content.addEventListener('mouseleave', () => tooltip.remove());
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-map-marker]').forEach(initMarker);
+</script>

@@ -1,0 +1,46 @@
+---
+/**
+ * ButtonGroup.astro -- astro-shad button group. Converted from the shadcn
+ * base-ui button-group (cva + useRender), minus react. Zero client JS:
+ * the whole mechanic is child combinator CSS -- children lose their inner
+ * radii and collapse shared borders; only the group's outer corners stay
+ * rounded. Works on any children (Button, <a>, ButtonGroupText,
+ * ButtonGroupSeparator), so the source's data-slot bookkeeping is
+ * replaced with plain *:first/last-child selectors. The source's
+ * select-trigger/input special cases are dropped (no such primitives
+ * here); radius overrides carry `!` because they must beat the radius a
+ * child brings along (same specificity tier otherwise).
+ *
+ * Nesting groups inside a group spaces them with gap-2 (split-button
+ * pattern), keyed off data-slot="button-group" which this file still
+ * emits for shadcn compatibility.
+ *
+ *   <ButtonGroup>
+ *     <Button variant="outline">Copy</Button>
+ *     <Button variant="outline">Paste</Button>
+ *   </ButtonGroup>
+ *   <ButtonGroup orientation="vertical">...</ButtonGroup>
+ */
+import { cn } from "../../lib/utils";
+
+type Orientation = "horizontal" | "vertical";
+
+const BASE = "flex w-fit items-stretch [&>*]:relative [&>*:hover]:z-10 [&>*:focus-visible]:z-10 has-[>[data-slot=button-group]]:gap-2";
+
+const ORIENTATIONS: Record<Orientation, string> = {
+  horizontal: "-space-x-px [&>*]:rounded-none! [&>*:first-child]:rounded-l-md! [&>*:last-child]:rounded-r-md!",
+  vertical: "flex-col -space-y-px [&>*]:rounded-none! [&>*:first-child]:rounded-t-md! [&>*:last-child]:rounded-b-md!",
+};
+
+interface Props {
+  orientation?: Orientation;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { orientation = "horizontal", class: className, ...rest } = Astro.props;
+---
+
+<div role="group" data-slot="button-group" data-orientation={orientation} class={cn(BASE, ORIENTATIONS[orientation], className)} {...rest}>
+  <slot />
+</div>

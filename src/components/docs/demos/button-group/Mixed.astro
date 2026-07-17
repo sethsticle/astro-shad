@@ -1,0 +1,23 @@
+---
+import ButtonGroup from '../../../astro-shad/ButtonGroup.astro';
+import ButtonGroupText from '../../../astro-shad/ButtonGroupText.astro';
+import ButtonGroupSeparator from '../../../astro-shad/ButtonGroupSeparator.astro';
+import Button from '../../../astro-shad/Button.astro';
+---
+
+<div class="flex flex-wrap items-center gap-6">
+  <ButtonGroup>
+    <ButtonGroupText>https://</ButtonGroupText>
+    <Button variant="outline">example.com</Button>
+  </ButtonGroup>
+  <ButtonGroup>
+    <Button variant="ghost">Undo</Button>
+    <ButtonGroupSeparator />
+    <Button variant="ghost">Redo</Button>
+  </ButtonGroup>
+  <ButtonGroup orientation="vertical">
+    <Button variant="outline">Top</Button>
+    <Button variant="outline">Middle</Button>
+    <Button variant="outline">Bottom</Button>
+  </ButtonGroup>
+</div>

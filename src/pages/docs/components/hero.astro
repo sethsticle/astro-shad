@@ -1,0 +1,58 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import Hero01Demo from "../../../components/docs/demos/hero/Hero01.astro";
+import hero01Source from "../../../components/docs/demos/hero/Hero01.astro?raw";
+import Hero02Demo from "../../../components/docs/demos/hero/Hero02.astro";
+import hero02Source from "../../../components/docs/demos/hero/Hero02.astro?raw";
+import Hero03Demo from "../../../components/docs/demos/hero/Hero03.astro";
+import hero03Source from "../../../components/docs/demos/hero/Hero03.astro?raw";
+import Hero04Demo from "../../../components/docs/demos/hero/Hero04.astro";
+import hero04Source from "../../../components/docs/demos/hero/Hero04.astro?raw";
+---
+
+<DocsLayout
+  title="Hero"
+  description="Full-height layout sections that ship populated: one import renders a complete hero. The demo content is the starting point -- customise by editing your installed copy, and swap the Unsplash demo image in the background slot for a local asset."
+  registry="hero-01"
+  sourceFile="sections/Hero-01.astro"
+>
+  <h2>How sections work</h2>
+  <p>
+    Sections are copy-and-own page blocks, not configurable wrappers. Each ships with real content so it renders
+    complete out of the box; the content block is marked with a <code>&lt;!-- content — yours to edit --&gt;</code>
+    comment. To re-skin, comment the block out and replace it. The <code>background</code> slot carries the demo image +
+    scrim as its fallback -- swap the <code>src</code> for a local asset, or fill the slot to replace the whole layer.
+  </p>
+
+  <h2>Variants</h2>
+  <VariantBlock title="Hero 01 · centered" registry="hero-01" source={hero01Source} previewClass="p-0">
+    <Hero01Demo />
+  </VariantBlock>
+
+  <VariantBlock title="Hero 02 · bottom-left" registry="hero-02" source={hero02Source} previewClass="p-0">
+    <Hero02Demo />
+  </VariantBlock>
+
+  <VariantBlock title="Hero 03 · centered + feature strip" registry="hero-03" source={hero03Source} previewClass="p-0">
+    <Hero03Demo />
+  </VariantBlock>
+
+  <VariantBlock title="Hero 04 · split + feature row" registry="hero-04" source={hero04Source} previewClass="p-0">
+    <Hero04Demo />
+  </VariantBlock>
+
+  <h2>Props</h2>
+  <p>
+    Heroes take no content props by design (frontend contract §7: props are layout-only, and these compositions need
+    none). All accept <code>class</code> (merged via <code>cn()</code>) and arbitrary rest attributes.
+  </p>
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Full height is <code>min-h-svh</code>, not <code>h-screen</code> -- stable under mobile URL bars.</li>
+    <li>Hero 03's feature strip is an auto-fit grid: give it 3 or 4 cells and the columns adapt.</li>
+    <li>Hero 04's media panel is the stand-in for a carousel primitive; a design pass follows once that ships.</li>
+    <li>Each hero pulls its primitives (Button, Badge, Card) automatically via registry dependencies.</li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,117 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import VariantBlock from '../../../components/docs/VariantBlock.astro';
+import BasicDemo from '../../../components/docs/demos/map/Basic.astro';
+import basicSource from '../../../components/docs/demos/map/Basic.astro?raw';
+import RouteDemo from '../../../components/docs/demos/map/Route.astro';
+import routeSource from '../../../components/docs/demos/map/Route.astro?raw';
+import GeoJSONDemo from '../../../components/docs/demos/map/GeoJSON.astro';
+import geojsonSource from '../../../components/docs/demos/map/GeoJSON.astro?raw';
+---
+
+<DocsLayout
+  title="Map"
+  description="MapLibre GL map family ported from mapcn (React) to vanilla JS. The core item ships Map, MapMarker, MapControls, and MapPopup; routes and GeoJSON layers are separate items that depend on it. First runtime npm dependency in the registry: the CLI installs maplibre-gl for you."
+  registry="map"
+  sourceFile="Map.astro"
+>
+  <h2>Before you start</h2>
+  <ul class="docs-list">
+    <li><strong>You own the container height.</strong> The map fills its parent (<code>h-full w-full</code>); a parent with no height renders a 0px map -- the #1 "my map is blank" cause. Every demo below wraps the map in an explicit-height div.</li>
+    <li>The basemap follows the <em>token</em> theme (prop &gt; nearest <code>data-theme</code> &gt; documentElement class &gt; dark), live-tracked -- toggle the theme and the tiles swap. Carto positron/dark-matter by default; override via <code>styles</code>, or pass <code>blank</code> for a transparent, tile-less canvas.</li>
+    <li>Callback props became CustomEvents dispatched on the map root element: <code>map:load</code>, <code>map:moveend</code> (viewport detail), <code>map:marker-click</code>/<code>-drag*</code>, <code>map:locate</code>, <code>map:popup-close</code>, <code>map:route-*</code>, <code>map:geojson-*</code>. Give children an <code>id</code> prop to tell them apart in handlers.</li>
+    <li>Layer colors (routes, GeoJSON paint) are canvas values -- they cannot read CSS tokens; pass literal CSS color strings to brand them.</li>
+  </ul>
+
+  <h2>Map, marker &amp; controls</h2>
+  <VariantBlock title="map · marker + popup + controls" registry="map" source={basicSource} previewClass="block p-4">
+    <BasicDemo />
+  </VariantBlock>
+
+  <h3>Map props</h3>
+  <PropsTable
+    rows={[
+      { name: 'center', type: '[number, number]', description: 'Initial [longitude, latitude].' },
+      { name: 'zoom / bearing / pitch', type: 'number', description: 'Initial viewport.' },
+      { name: 'theme', type: "'light' | 'dark'", description: 'Pin the basemap theme; omit to auto-detect and live-track the page theme.' },
+      { name: 'styles', type: '{ light?, dark? }', description: 'Custom style URL or style-spec object per theme; overrides the Carto defaults.' },
+      { name: 'blank', type: 'boolean', default: 'false', description: 'Transparent tile-less basemap for data-viz layers.' },
+      { name: 'projection', type: "'mercator' | 'globe' | 'vertical-perspective'", description: 'Map projection; globe for the 3D globe.' },
+      { name: 'options', type: 'object', description: 'Extra JSON-serialisable MapLibre MapOptions (minZoom, cooperativeGestures, ...).' },
+    ]}
+  />
+
+  <h3>MapMarker props</h3>
+  <PropsTable
+    rows={[
+      { name: 'longitude / latitude', type: 'number', description: 'Marker position (required).' },
+      { name: 'id', type: 'string', description: 'Identifies this marker in event payloads.' },
+      { name: 'draggable', type: 'boolean', default: 'false', description: 'Drag to reposition; fires map:marker-drag* events.' },
+      { name: 'closeButton', type: 'boolean', default: 'false', description: 'Close button in the popup.' },
+      { name: 'labelPosition', type: "'top' | 'bottom'", default: "'top'", description: 'Where the label slot renders.' },
+      { name: 'anchor / offset / rotation', type: 'various', description: 'MapLibre marker positioning passthroughs.' },
+    ]}
+  />
+  <p>
+    Slots: default (marker content -- falls back to an accent dot), <code>popup</code> (toggles on click/Enter/Space),
+    <code>tooltip</code> (on hover), <code>label</code> (persistent text).
+  </p>
+
+  <h3>MapControls props</h3>
+  <PropsTable
+    rows={[
+      { name: 'position', type: 'corner', default: "'bottom-right'", description: 'Which corner of the map.' },
+      { name: 'showZoom', type: 'boolean', default: 'true', description: 'Zoom in/out buttons.' },
+      { name: 'showCompass', type: 'boolean', default: 'false', description: 'Live bearing/pitch needle; click resets north.' },
+      { name: 'showLocate', type: 'boolean', default: 'false', description: 'Geolocate + flyTo; dispatches map:locate.' },
+      { name: 'showFullscreen', type: 'boolean', default: 'false', description: 'Fullscreen toggle on the map container.' },
+    ]}
+  />
+
+  <h2>Routes</h2>
+  <VariantBlock title="map-route · line layers + standalone popup" registry="map-route" source={routeSource} previewClass="block p-4">
+    <RouteDemo />
+  </VariantBlock>
+
+  <h3>MapRoute props</h3>
+  <PropsTable
+    rows={[
+      { name: 'coordinates', type: '[number, number][]', description: '[longitude, latitude] pairs; needs at least 2 (required).' },
+      { name: 'color', type: 'string', default: "'#4285F4'", description: 'Any CSS color string (canvas paint -- tokens do not resolve).' },
+      { name: 'width / opacity', type: 'number', default: '3 / 0.8', description: 'Line paint.' },
+      { name: 'dashArray', type: '[number, number]', description: 'Dash pattern [dash, gap] for dashed lines.' },
+      { name: 'interactive', type: 'boolean', default: 'true', description: 'Pointer cursor + map:route-click/-mouseenter/-mouseleave events.' },
+      { name: 'beforeId', type: 'string', description: 'Insert before this MapLibre layer id (z-order).' },
+    ]}
+  />
+  <p>
+    <code>MapPopup</code> (ships with the core <code>map</code> item) pins a standalone token-styled popup to coordinates.
+    It deliberately defaults <code>closeOnClick</code> to <em>false</em> -- a static annotation that closed on a stray
+    map click could never reopen; opt back in for dismissable ephemera.
+  </p>
+
+  <h2>GeoJSON</h2>
+  <VariantBlock title="map-geojson · zones on a blank basemap, hover feature-state" registry="map-geojson" source={geojsonSource} previewClass="block p-4">
+    <GeoJSONDemo />
+  </VariantBlock>
+
+  <h3>MapGeoJSON props</h3>
+  <PropsTable
+    rows={[
+      { name: 'data', type: 'GeoJSON | string', description: 'Inline GeoJSON or a URL to fetch it from (required).' },
+      { name: 'promoteId', type: 'string', description: 'Feature property promoted to the feature id -- required for hover feature-state.' },
+      { name: 'fillPaint / linePaint', type: 'Paint | false', description: 'Merged over theme-aware monochrome defaults; false omits that layer.' },
+      { name: 'fillHoverPaint', type: 'Paint', description: 'Paint for the hovered feature (case expression on hover feature-state).' },
+      { name: 'interactive', type: 'boolean', default: 'false', description: 'Pointer cursor + map:geojson-click/-hover events (needs the fill layer).' },
+      { name: 'beforeId', type: 'string', description: 'Insert before this MapLibre layer id (z-order).' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Routes and GeoJSON are <em>layer</em> children: a theme swap reloads the style and wipes layers, so they re-add themselves on the map's <code>map:style-load</code> event -- they survive the theme toggle by design.</li>
+    <li>Children find their map via the composition contract (instance on the root as <code>__astroShadMap</code> + a <code>map:ready</code> event), so script order never matters.</li>
+    <li>Advanced use: grab the instance from the root element and call any MapLibre API directly.</li>
+  </ul>
+</DocsLayout>

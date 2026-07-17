@@ -1,0 +1,35 @@
+---
+/**
+ * ButtonGroupText.astro -- static text cell for ButtonGroup (a prefix
+ * label, a unit, an icon). Converted from the shadcn base-ui
+ * ButtonGroupText; the useRender polymorphism becomes an `as` prop
+ * (pass as="label" + for to caption an input in the group).
+ *
+ *   <ButtonGroup>
+ *     <ButtonGroupText>https://</ButtonGroupText>
+ *     <Button variant="outline">example.com</Button>
+ *   </ButtonGroup>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** wrapper tag */
+  as?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { as = 'div', class: className, ...rest } = Astro.props;
+const Tag = as as any;
+---
+
+<Tag
+  data-slot="button-group-text"
+  class={cn(
+    "flex items-center gap-2 rounded-md border border-border bg-muted px-2.5 text-sm font-medium [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+    className
+  )}
+  {...rest}
+>
+  <slot />
+</Tag>

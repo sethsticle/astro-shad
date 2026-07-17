@@ -23,10 +23,20 @@ const { class: className, ...rest } = Astro.props;
 ---
 
 <section class={cn("relative isolate flex min-h-svh flex-col", className)} {...rest}>
-  <div class="absolute inset-0 -z-10 overflow-hidden"><slot name="background" /></div>
+  <div class="absolute inset-0 -z-10 overflow-hidden">
+    <slot name="background">
+      <!-- demo image — swap for your local asset -->
+      <img
+        src="https://unsplash.com/photos/SpVw8IvJJjE/download?w=1920"
+        alt=""
+        class="h-full w-full object-cover"
+      />
+      <div class="absolute inset-0 bg-background/60"></div>
+    </slot>
+  </div>
   <div class="grid flex-1 place-items-center">
     <div class="mx-auto w-full max-w-6xl px-6">
-      <div class="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
+      <div class="mx-auto flex max-w-2xl flex-col items-center gap-6 py-26 text-center">
         <!-- content — yours to edit: comment out and replace -->
         <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">Everything above the fold.</h1>
         <p class="text-muted-foreground">Centered headline up top, proof points pinned to the bottom edge.</p>

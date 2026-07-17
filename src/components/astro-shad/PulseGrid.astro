@@ -1,0 +1,343 @@
+---
+/**
+ * PulseGrid.astro -- astro-shad ambient grid animation. Converted from
+ * react-bits CursorGrid, minus react AND minus the cursor: the pointer
+ * listeners (pointermove energize + click pulse) are stripped and replaced
+ * with an autonomous driver -- a jittered timer fires random "bursts" that
+ * light up a patch of grid cells, which then hold and fade exactly like the
+ * source. `speed` is bursts-per-second; `pulseChance` turns a fraction of
+ * bursts into the source's expanding click-ring. Because nothing tracks the
+ * pointer, the layer is pointer-events-none and drops straight into a
+ * section's `background` slot without stealing clicks.
+ *
+ * Canvas paint cannot read CSS tokens (same rule as the map items), so
+ * `colors` are literal hex strings; the default mirrors the theme's dark
+ * `--accent` (#60a5fa). Pass more than one color and each burst picks one
+ * at random -- cells remember the color of the burst that lit them.
+ *
+ * The rAF loop self-suspends when every cell has faded (the source's
+ * wake/idle pattern), the burst timer only fires while the element is
+ * on-screen (IntersectionObserver), and prefers-reduced-motion renders
+ * only the static lattice (gridOpacity), no animation.
+ *
+ *   <div class="relative h-96">
+ *     <PulseGrid colors={['#60a5fa', '#a78bfa']} speed={1.5} gridOpacity={0.05} />
+ *   </div>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** grid cell size, px */
+  cellSize?: number;
+  /** hex colors; each burst picks one at random. Default mirrors dark --accent. */
+  colors?: string[];
+  /** average bursts per second (intervals are jittered) */
+  speed?: number;
+  /** radius of one burst, px */
+  radius?: number;
+  /** distance-to-brightness curve within a burst */
+  falloff?: 'linear' | 'smooth' | 'sharp';
+  /** ms a cell stays lit before fading */
+  holdTime?: number;
+  /** ms a cell takes to fade out */
+  fadeDuration?: number;
+  /** stroke width of lit cell outlines */
+  lineWidth?: number;
+  /** peak alpha at a burst's center, 0..1 */
+  maxOpacity?: number;
+  /** lit cells also fill at alpha * fillOpacity; 0 = outline only */
+  fillOpacity?: number;
+  /** static background lattice alpha; 0 = none */
+  gridOpacity?: number;
+  /** corner radius of lit cells, px */
+  cellRadius?: number;
+  /** 0..1 chance a burst is an expanding ring instead of a patch */
+  pulseChance?: number;
+  /** ring expansion speed, px/s */
+  pulseSpeed?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  cellSize = 70,
+  colors = ['#60a5fa'],
+  speed = 1.2,
+  radius = 140,
+  falloff = 'smooth',
+  holdTime = 400,
+  fadeDuration = 800,
+  lineWidth = 1.2,
+  maxOpacity = 1,
+  fillOpacity = 0,
+  gridOpacity = 0,
+  cellRadius = 0,
+  pulseChance = 0.15,
+  pulseSpeed = 600,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const config = JSON.stringify({
+  cellSize,
+  colors,
+  speed,
+  radius,
+  falloff,
+  holdTime,
+  fadeDuration,
+  lineWidth,
+  maxOpacity,
+  fillOpacity,
+  gridOpacity,
+  cellRadius,
+  pulseChance,
+  pulseSpeed,
+});
+---
+
+<div
+  class={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}
+  data-astro-shad-pulse-grid={config}
+  aria-hidden="true"
+  {...rest}
+>
+  <canvas class="block h-full w-full"></canvas>
+</div>
+
+<script>
+  type Falloff = 'linear' | 'smooth' | 'sharp';
+
+  const FALLOFF_CURVES: Record<Falloff, (t: number) => number> = {
+    linear: (t) => t,
+    smooth: (t) => t * t * (3 - 2 * t),
+    sharp: (t) => t * t * t,
+  };
+
+  const hexToRgb = (hex: string): [number, number, number] => {
+    const h = hex.replace('#', '');
+    const v = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    const num = parseInt(v, 16);
+    return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-pulse-grid]').forEach((root) => {
+    const canvas = root.querySelector('canvas');
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    const p = JSON.parse(root.dataset.astroShadPulseGrid || '{}');
+    const rgbs: [number, number, number][] = (p.colors as string[]).map(hexToRgb);
+    const ease = FALLOFF_CURVES[p.falloff as Falloff] ?? FALLOFF_CURVES.linear;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    /* Grid state: alpha + last-touched timestamp + color index per cell, row-major. */
+    let cols = 0;
+    let rows = 0;
+    let offX = 0;
+    let offY = 0;
+    let alphas = new Float32Array(0);
+    let touched = new Float64Array(0);
+    let colorIdx = new Uint8Array(0);
+    let w = 0;
+    let h = 0;
+    const pulses: { x: number; y: number; t0: number; ci: number }[] = [];
+    let raf = 0;
+    let running = false;
+    let lastFrame = 0;
+    let visible = true;
+
+    const rebuild = () => {
+      w = root.offsetWidth;
+      h = root.offsetHeight;
+      canvas.width = Math.max(1, Math.round(w * dpr));
+      canvas.height = Math.max(1, Math.round(h * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(w / p.cellSize) + 1;
+      rows = Math.ceil(h / p.cellSize) + 1;
+      /* Center the lattice so edge cells crop evenly on both sides */
+      offX = (w - cols * p.cellSize) / 2;
+      offY = (h - rows * p.cellSize) / 2;
+      alphas = new Float32Array(cols * rows);
+      touched = new Float64Array(cols * rows);
+      colorIdx = new Uint8Array(cols * rows);
+    };
+
+    const cellCenter = (i: number): [number, number] => [
+      offX + (i % cols) * p.cellSize + p.cellSize / 2,
+      offY + Math.floor(i / cols) * p.cellSize + p.cellSize / 2,
+    ];
+
+    /* Light up every cell whose center falls inside the burst radius, with
+       the falloff curve mapping distance to brightness. */
+    const energize = (x: number, y: number, ci: number, boost: number) => {
+      const r = Math.max(p.radius, 1);
+      const now = performance.now();
+      const minCol = Math.max(0, Math.floor((x - r - offX) / p.cellSize));
+      const maxCol = Math.min(cols - 1, Math.floor((x + r - offX) / p.cellSize));
+      const minRow = Math.max(0, Math.floor((y - r - offY) / p.cellSize));
+      const maxRow = Math.min(rows - 1, Math.floor((y + r - offY) / p.cellSize));
+      for (let cRow = minRow; cRow <= maxRow; cRow++) {
+        for (let cCol = minCol; cCol <= maxCol; cCol++) {
+          const i = cRow * cols + cCol;
+          const [cx, cy] = cellCenter(i);
+          const dist = Math.hypot(cx - x, cy - y);
+          if (dist > r) continue;
+          const level = ease(1 - dist / r) * p.maxOpacity * boost;
+          if (level > alphas[i]) {
+            alphas[i] = level;
+            touched[i] = now;
+            colorIdx[i] = ci;
+          } else if (level > 0) {
+            touched[i] = now;
+          }
+        }
+      }
+    };
+
+    const draw = (now: number) => {
+      const dt = Math.min(now - lastFrame, 50);
+      lastFrame = now;
+      ctx.clearRect(0, 0, w, h);
+
+      /* Optional faint static lattice (first color) */
+      if (p.gridOpacity > 0) {
+        const [gr, gg, gb] = rgbs[0];
+        ctx.strokeStyle = `rgba(${gr}, ${gg}, ${gb}, ${p.gridOpacity})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let cCol = 0; cCol <= cols; cCol++) {
+          const x = Math.round(offX + cCol * p.cellSize) + 0.5;
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+        }
+        for (let cRow = 0; cRow <= rows; cRow++) {
+          const y = Math.round(offY + cRow * p.cellSize) + 0.5;
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+        }
+        ctx.stroke();
+      }
+
+      /* Expanding rings hand their energy to cells as they pass */
+      for (let pi = pulses.length - 1; pi >= 0; pi--) {
+        const pulse = pulses[pi];
+        const age = (now - pulse.t0) / 1000;
+        const ringR = age * p.pulseSpeed;
+        if (ringR > Math.hypot(w, h)) {
+          pulses.splice(pi, 1);
+          continue;
+        }
+        const band = p.cellSize;
+        const minCol = Math.max(0, Math.floor((pulse.x - ringR - band - offX) / p.cellSize));
+        const maxCol = Math.min(cols - 1, Math.floor((pulse.x + ringR + band - offX) / p.cellSize));
+        const minRow = Math.max(0, Math.floor((pulse.y - ringR - band - offY) / p.cellSize));
+        const maxRow = Math.min(rows - 1, Math.floor((pulse.y + ringR + band - offY) / p.cellSize));
+        for (let cRow = minRow; cRow <= maxRow; cRow++) {
+          for (let cCol = minCol; cCol <= maxCol; cCol++) {
+            const i = cRow * cols + cCol;
+            const [cx, cy] = cellCenter(i);
+            const dist = Math.hypot(cx - pulse.x, cy - pulse.y);
+            if (Math.abs(dist - ringR) < band / 2 && p.maxOpacity > alphas[i]) {
+              alphas[i] = p.maxOpacity;
+              touched[i] = now;
+              colorIdx[i] = pulse.ci;
+            }
+          }
+        }
+      }
+
+      let anyVisible = pulses.length > 0;
+      const fadeStep = dt / Math.max(p.fadeDuration, 16);
+      const half = p.cellSize / 2;
+
+      for (let i = 0; i < alphas.length; i++) {
+        let a = alphas[i];
+        if (a <= 0) continue;
+        if (now - touched[i] > p.holdTime) {
+          a = Math.max(0, a - fadeStep);
+          alphas[i] = a;
+          if (a <= 0) continue;
+        }
+        anyVisible = true;
+
+        const [cr, cg, cb] = rgbs[colorIdx[i]] ?? rgbs[0];
+        const [cx, cy] = cellCenter(i);
+        const gradient = ctx.createRadialGradient(cx, cy, half * 0.1, cx, cy, p.cellSize);
+        gradient.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${a})`);
+        gradient.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+
+        const x = cx - half + 0.5;
+        const y = cy - half + 0.5;
+        const s = p.cellSize - 1;
+
+        ctx.beginPath();
+        if (p.cellRadius > 0) {
+          ctx.roundRect(x, y, s, s, p.cellRadius);
+        } else {
+          ctx.rect(x, y, s, s);
+        }
+        if (p.fillOpacity > 0) {
+          ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${a * p.fillOpacity})`;
+          ctx.fill();
+        }
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = p.lineWidth;
+        ctx.stroke();
+      }
+
+      if (anyVisible) {
+        raf = requestAnimationFrame(draw);
+      } else {
+        running = false;
+        if (p.gridOpacity <= 0) ctx.clearRect(0, 0, w, h);
+      }
+    };
+
+    const wake = () => {
+      if (running) return;
+      running = true;
+      lastFrame = performance.now();
+      raf = requestAnimationFrame(draw);
+    };
+
+    /* The autonomous driver replacing the source's pointer listeners:
+       a jittered timer averaging `speed` bursts/s; each burst lands at a
+       random point in a random color, occasionally as an expanding ring. */
+    const fire = () => {
+      if (visible && w > 0 && h > 0) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const ci = (Math.random() * rgbs.length) | 0;
+        if (Math.random() < p.pulseChance) {
+          pulses.push({ x, y, t0: performance.now(), ci });
+        } else {
+          energize(x, y, ci, 0.55 + Math.random() * 0.45);
+        }
+        wake();
+      }
+      schedule();
+    };
+    const schedule = () => {
+      const base = 1000 / Math.max(p.speed, 0.05);
+      setTimeout(fire, base * (0.4 + Math.random() * 1.2));
+    };
+
+    new ResizeObserver(() => {
+      rebuild();
+      wake();
+    }).observe(root);
+    rebuild();
+    wake(); /* paints the lattice even before the first burst */
+
+    if (reduced) return; /* static lattice only -- no bursts, no fades */
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) wake();
+    }).observe(root);
+
+    schedule();
+  });
+</script>

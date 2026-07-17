@@ -1,0 +1,178 @@
+---
+/**
+ * PixelTransition.astro -- astro-shad pixel-reveal card. Converted from
+ * react-bits PixelTransition, minus react and minus gsap.
+ *
+ * Two stacked content layers (`first` / `second` named slots); on hover
+ * (pointer devices), tap (touch), or focus, a grid of pixels flashes over
+ * the card in random order while the layers swap underneath, then clears
+ * in a second random order. The gsap random stagger is rebuilt as two
+ * zero-length CSS animations per pixel (px-show / px-hide, steps(1)) whose
+ * delays come from per-pixel random custom properties (--px-in / --px-out)
+ * baked at build time; the layer swap itself is a visibility transition
+ * delayed by the same --px-dur, replacing gsap.delayedCall. The script
+ * only flips one data attribute and restarts the flash (class toggle +
+ * reflow) -- retriggering mid-animation restarts everything, matching the
+ * source's killTweensOf.
+ *
+ * `pixelColor` is a live CSS color (default currentColor -- these are DOM
+ * divs, not canvas, so tokens like var(--accent) work here). Divergences
+ * from the source: the card chrome is token-styled (bg-card/border-border,
+ * no fixed 300px width -- size via class), and reduced motion swaps the
+ * layers instantly with no pixel flash. The second layer is inert while
+ * shown (source behaviour): the reveal is decorative, the card itself
+ * stays the interactive surface. No-JS fallback = first content, static.
+ *
+ *   <PixelTransition class="w-72" gridSize={8} pixelColor="var(--accent)">
+ *     <img slot="first" src="..." alt="..." class="h-full w-full object-cover" />
+ *     <div slot="second" class="grid h-full w-full place-items-center bg-card">
+ *       <p class="text-3xl font-black">Meow!</p>
+ *     </div>
+ *   </PixelTransition>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** pixels per row/column (gridSize² total) */
+  gridSize?: number;
+  /** any CSS color for the flash pixels; DOM divs, so tokens work */
+  pixelColor?: string;
+  /** seconds for each half of the flash (cover, then clear) */
+  animationStepDuration?: number;
+  /** reveal once and stay -- no swap-back on leave/blur */
+  once?: boolean;
+  /** CSS aspect-ratio for the card (ignored if you size it via class) */
+  aspectRatio?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  gridSize = 7,
+  pixelColor = 'currentColor',
+  animationStepDuration = 0.3,
+  once = false,
+  aspectRatio = '1 / 1',
+  class: className,
+  ...rest
+} = Astro.props;
+
+/* The gsap random stagger, precomputed: each pixel gets a random slot in
+   the cover pass (--px-in) and an independent one in the clear pass
+   (--px-out), both as 0..1 fractions of --px-dur. */
+const size = 100 / gridSize;
+const pixels = Array.from({ length: gridSize * gridSize }, (_, i) => {
+  const row = Math.floor(i / gridSize);
+  const col = i % gridSize;
+  return (
+    `left:${(col * size).toFixed(4)}%;top:${(row * size).toFixed(4)}%;` +
+    `width:${size.toFixed(4)}%;height:${size.toFixed(4)}%;` +
+    `background-color:${pixelColor};` +
+    `--px-in:${Math.random().toFixed(3)};--px-out:${Math.random().toFixed(3)}`
+  );
+});
+---
+
+<div
+  class={cn('relative overflow-hidden rounded-xl border border-border bg-card', className)}
+  data-astro-shad-pixel-transition
+  data-once={once ? '' : undefined}
+  style={`--px-dur:${animationStepDuration}s;aspect-ratio:${aspectRatio}`}
+  tabindex="0"
+  {...rest}
+>
+  <div class="absolute inset-0" data-px-first>
+    <slot name="first" />
+  </div>
+  <div class="absolute inset-0 z-[1]" data-px-second aria-hidden="true">
+    <slot name="second" />
+  </div>
+  <div class="pointer-events-none absolute inset-0 z-10" data-px-pixels aria-hidden="true">
+    {pixels.map((style) => <div class="absolute opacity-0" style={style}></div>)}
+  </div>
+</div>
+
+<style is:global>
+  /* Layer swap: visibility flips after the cover half of the flash, both
+     directions -- the CSS stand-in for gsap.delayedCall. The shown second
+     layer is inert (source behaviour): the card stays the hover/click
+     surface, the reveal is decorative. */
+  [data-astro-shad-pixel-transition] [data-px-second] {
+    visibility: hidden;
+    transition: visibility 0s var(--px-dur);
+  }
+  [data-astro-shad-pixel-transition][data-px-active] [data-px-second] {
+    visibility: visible;
+    pointer-events: none;
+  }
+
+  /* Pixel flash: two zero-length steps(1) animations per pixel -- show at
+     a random point in the first --px-dur, hide at a random point in the
+     second. Both fill forwards; the later animation wins once it starts.
+     .px-play is removed + re-added (with a reflow) to restart. */
+  [data-astro-shad-pixel-transition].px-play [data-px-pixels] > div {
+    animation:
+      px-show 1ms steps(1, end) calc(var(--px-in) * var(--px-dur)) forwards,
+      px-hide 1ms steps(1, end) calc(var(--px-dur) + var(--px-out) * var(--px-dur)) forwards;
+  }
+  @keyframes px-show {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes px-hide {
+    from,
+    to {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-astro-shad-pixel-transition].px-play [data-px-pixels] > div {
+      animation: none;
+    }
+    [data-astro-shad-pixel-transition] [data-px-second] {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-pixel-transition]').forEach((root) => {
+    const first = root.querySelector<HTMLElement>('[data-px-first]');
+    const second = root.querySelector<HTMLElement>('[data-px-second]');
+    const once = root.hasAttribute('data-once');
+    const isTouch =
+      'ontouchstart' in window || navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
+
+    const isActive = () => root.hasAttribute('data-px-active');
+
+    const set = (on: boolean) => {
+      if (on === isActive()) return;
+      root.toggleAttribute('data-px-active', on);
+      first?.setAttribute('aria-hidden', String(on));
+      second?.setAttribute('aria-hidden', String(!on));
+      /* restart the flash: drop the class, force a reflow, re-add */
+      root.classList.remove('px-play');
+      void root.offsetWidth;
+      root.classList.add('px-play');
+    };
+
+    if (isTouch) {
+      root.addEventListener('click', () => {
+        if (!isActive()) set(true);
+        else if (!once) set(false);
+      });
+    } else {
+      root.addEventListener('mouseenter', () => set(true));
+      root.addEventListener('mouseleave', () => {
+        if (!once) set(false);
+      });
+      root.addEventListener('focus', () => set(true));
+      root.addEventListener('blur', () => {
+        if (!once) set(false);
+      });
+    }
+  });
+</script>

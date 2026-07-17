@@ -1,0 +1,41 @@
+---
+/**
+ * ButtonGroupSeparator.astro -- 1px divider between ButtonGroup children.
+ * The shadcn base-ui version wraps their Separator primitive; there is no
+ * separator in this registry (yet), so this inlines the same thing: a
+ * bg-input line that self-stretches to the group's height. Orientation is
+ * the LINE's own axis -- `vertical` (default) divides a horizontal group,
+ * `horizontal` divides a vertical one.
+ *
+ *   <ButtonGroup>
+ *     <Button variant="ghost">Undo</Button>
+ *     <ButtonGroupSeparator />
+ *     <Button variant="ghost">Redo</Button>
+ *   </ButtonGroup>
+ */
+import { cn } from '../../lib/utils';
+
+type Orientation = 'horizontal' | 'vertical';
+
+const ORIENTATIONS: Record<Orientation, string> = {
+  vertical: 'mx-px w-px',
+  horizontal: 'my-px h-px w-auto',
+};
+
+interface Props {
+  orientation?: Orientation;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { orientation = 'vertical', class: className, ...rest } = Astro.props;
+---
+
+<div
+  role="separator"
+  aria-orientation={orientation}
+  data-slot="button-group-separator"
+  class={cn('relative self-stretch bg-input', ORIENTATIONS[orientation], className)}
+  {...rest}
+>
+</div>

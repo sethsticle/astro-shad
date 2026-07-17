@@ -1,0 +1,136 @@
+---
+/**
+ * Hero-04.astro -- layout section: split hero -- headline left, media
+ * panel right, icon-feature card row beneath. Simplified from a
+ * shadcn-studio restaurant hero (embla triple-synced carousel): the
+ * media panel stands in for its main carousel and the feature row for
+ * its thumbnail/comments strips, until the carousel primitive exists.
+ * Ships populated (frontend-contract.md §7): <Hero04 /> renders a
+ * complete block; make it yours by editing this copy you own.
+ *
+ * `background` slot: absolute layer behind everything, empty by default.
+ */
+import { cn } from "../../../lib/utils";
+import Button from "../Button.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("relative isolate flex min-h-svh flex-col justify-center", className)} {...rest}>
+  <div class="absolute inset-0 -z-10 overflow-hidden"><slot name="background" /></div>
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-16">
+    <div class="grid items-center gap-10 lg:grid-cols-5 lg:gap-6">
+      <div class="flex flex-col gap-5 max-lg:items-center max-lg:text-center lg:col-span-2">
+        <!-- content — yours to edit: comment out and replace -->
+        <h1 class="text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-5xl">Savor the taste of perfection.</h1>
+        <p class="max-w-xl text-lg text-muted-foreground">
+          From sizzling appetisers to signature desserts, every dish is crafted to delight the senses.
+        </p>
+        <div class="flex items-center gap-4">
+          <Button size="lg" class="group rounded-full">
+            Order now
+            <svg
+              slot="icon-right"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              class="transition-transform duration-200 group-hover:translate-x-0.5"
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Button>
+          <Button size="lg" variant="secondary" class="rounded-full">Book a table</Button>
+        </div>
+      </div>
+      <div class="lg:col-span-3">
+        <!-- media — swap this surface for your <img>, or the carousel once it ships -->
+        <div class="grid aspect-square w-full place-items-center overflow-hidden rounded-lg border border-border bg-muted">
+          <!-- <span class="text-xs text-muted-foreground">media</span> -->
+          <img src="https://unsplash.com/photos/SpVw8IvJJjE/download?w=1920" alt="" class="h-full w-full object-cover" />
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-4">
+      <!-- feature row — icon + text cards, yours to edit -->
+      <div class="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          class="mt-0.5 shrink-0 text-primary"
+        >
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold">Fresh daily</p>
+          <p class="text-sm text-muted-foreground">Sourced every morning, plated the same day.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          class="mt-0.5 shrink-0 text-primary"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold">Open late</p>
+          <p class="text-sm text-muted-foreground">Kitchen runs until midnight, seven days.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          class="mt-0.5 shrink-0 text-primary"
+        >
+          <path
+            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+          ></path>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold">Trusted local</p>
+          <p class="text-sm text-muted-foreground">Fifteen years on the same corner.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,160 @@
+---
+/**
+ * FeatureSection-02.astro -- layout section: header row (badge /
+ * heading / subtext, CTA right) above a half/half grid -- testimonial
+ * card over an image panel on the left, 2x2 muted icon cards on the
+ * right. Converted from a shadcn-space features section.
+ *
+ * The motion/react entrance animations (fade-down header, slide-in
+ * panels, whileInView once) become CSS transitions keyed off one
+ * data-inview attribute flipped by an IntersectionObserver -- the
+ * SplitText pattern (contract §4). No keyframes, no library; reduced
+ * motion shows everything immediately.
+ *
+ * Ships populated (frontend-contract.md §7): <FeatureSection02 />
+ * renders a complete block; make it yours by editing this copy you own.
+ * The panel image is an Unsplash demo -- swap for a local asset.
+ */
+import { cn } from "../../../lib/utils";
+import Badge from "../Badge.astro";
+import Button from "../Button.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+
+/* Demo content -- swap for your own. Icon = inline lucide path(s). */
+const FEATURES = [
+  {
+    content: "Purposeful brands built from research, not templates -- every decision traceable to intent.",
+    icon: '<circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"></polygon>',
+  },
+  {
+    content: "A design system on day one: tokens, type scale, and components that grow with the brand.",
+    icon: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path>',
+  },
+  {
+    content: "Launch in weeks, not quarters -- fluid process, fixed standards, no surprise scope.",
+    icon: '<circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path>',
+  },
+  {
+    content: "Performance as a brand value: static-first builds that feel instant everywhere.",
+    icon: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>',
+  },
+];
+---
+
+<section class={cn("py-16 md:py-24", className)} data-astro-shad-feature-section-02 {...rest}>
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 md:gap-12">
+    <div class="fs2-anim fs2-down flex flex-col items-center justify-between gap-4 text-center md:flex-row md:items-end md:text-left">
+      <!-- content — yours to edit: comment out and replace -->
+      <div class="flex max-w-xl flex-col items-center gap-4 md:items-start">
+        <Badge variant="outline" class="px-3 py-1 text-sm font-normal">Features</Badge>
+        <h2 class="text-3xl font-semibold tracking-tight md:text-4xl">Leading with innovation</h2>
+        <p class="text-lg text-muted-foreground">
+          We're west coast change-makers in a complex world, crafting purposeful and powerful brands with fluidity.
+        </p>
+      </div>
+      <Button size="lg" class="rounded-full" href="#">Browse all sections</Button>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-2">
+      <div class="fs2-anim fs2-left relative overflow-hidden rounded-2xl p-6 sm:p-14">
+        <!-- panel image — swap for your local asset -->
+        <img
+          src="https://unsplash.com/photos/e6W48UPKijo/download?w=1600"
+          alt=""
+          class="absolute inset-0 -z-10 h-full w-full object-cover"
+        />
+        <div class="flex h-full flex-col justify-between gap-10 rounded-lg bg-card p-6 sm:p-8">
+          <div class="flex flex-col gap-6">
+            <div class="grid size-12 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">JD</div>
+            <h3 class="text-xl font-medium sm:text-2xl">
+              &ldquo;Before astro-shad, we stitched UIs together from random snippets. Now we ship polished pages in
+              hours.&rdquo;
+            </h3>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <p class="text-sm font-medium text-primary">Johnathan Doe</p>
+            <span class="text-xs text-muted-foreground uppercase">Head of finance @ example co</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6">
+        <!-- icon cards — yours to edit: adjust FEATURES in the frontmatter -->
+        {
+          FEATURES.map((f, i) => (
+            <div class="fs2-anim fs2-right flex h-full flex-col justify-between gap-12 rounded-lg bg-muted p-8" style={`--fs2-d: ${i * 100}ms`}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                class="text-muted-foreground"
+                set:html={f.icon}
+              />
+              <p class="text-base text-foreground">{f.content}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* motion/react whileInView rebuilt as transitions off one attribute
+     (SplitText pattern). Ease matches the source's [0.21,0.47,0.32,0.98]. */
+  .fs2-anim {
+    opacity: 0;
+    transition:
+      opacity 800ms cubic-bezier(0.21, 0.47, 0.32, 0.98),
+      translate 800ms cubic-bezier(0.21, 0.47, 0.32, 0.98);
+    transition-delay: var(--fs2-d, 0ms);
+  }
+  .fs2-down {
+    translate: 0 -20px;
+  }
+  .fs2-left {
+    translate: -60px 0;
+  }
+  .fs2-right {
+    translate: 60px 0;
+  }
+  [data-inview] .fs2-anim {
+    opacity: 1;
+    translate: 0 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fs2-anim {
+      transition: none;
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+</style>
+
+<script>
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.setAttribute("data-inview", "");
+          io.unobserve(en.target);
+        }
+      });
+    },
+    { threshold: 0.2 },
+  );
+  document.querySelectorAll("[data-astro-shad-feature-section-02]").forEach((el) => io.observe(el));
+</script>

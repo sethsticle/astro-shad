@@ -1,0 +1,164 @@
+---
+/**
+ * MapRoute.astro -- astro-shad map route line. Converted from mapcn's
+ * map.tsx MapRoute: a GeoJSON line source + line layer drawn from a
+ * coordinates array -- "the route to my shop". The React version was already
+ * nearly pure MapLibre calls; here they run once per instance from the
+ * component script.
+ *
+ * Must be a child of <Map>. Renders no DOM of its own -- just a hidden config
+ * element the script reads. This is the registry's first LAYER child: layers
+ * die with the style on every theme swap, so the layer re-adds itself on the
+ * map root's `map:style-load` event (fired by Map.astro after each style
+ * load, initial one included).
+ *
+ * Interaction (when `interactive`, default true) dispatches CustomEvents on
+ * the map root: `map:route-click`, `map:route-mouseenter`,
+ * `map:route-mouseleave` (detail: { id }); the cursor becomes a pointer over
+ * the line. Colors are MapLibre canvas paint values, not CSS classes -- they
+ * can't read tokens, so the default is mapcn's literal #4285F4; pass any CSS
+ * color string to match your brand.
+ *
+ *   <MapRoute coordinates={[[18.4241, -33.9249], [18.4188, -33.9066]]} />
+ *   <MapRoute coordinates={walkway} color="#22c55e" dashArray={[2, 2]} />
+ */
+
+interface Props {
+  /** [longitude, latitude] pairs defining the line; needs at least 2. */
+  coordinates: [number, number][];
+  /** Identifies this route in CustomEvent payloads and layer ids. */
+  id?: string;
+  /** Line color as a CSS color value (default: "#4285F4"). */
+  color?: string;
+  /** Line width in pixels (default: 3). */
+  width?: number;
+  /** Line opacity 0-1 (default: 0.8). */
+  opacity?: number;
+  /** Dash pattern [dash length, gap length] for dashed lines. */
+  dashArray?: [number, number];
+  /** Pointer cursor + route events on hover/click (default: true). */
+  interactive?: boolean;
+  /** MapLibre layer id to insert this layer before (z-order control). */
+  beforeId?: string;
+}
+
+const {
+  coordinates,
+  id,
+  color = '#4285F4',
+  width = 3,
+  opacity = 0.8,
+  dashArray,
+  interactive = true,
+  beforeId,
+} = Astro.props;
+
+const config = JSON.stringify({
+  coordinates,
+  id,
+  color,
+  width,
+  opacity,
+  dashArray,
+  interactive,
+  beforeId,
+});
+---
+
+<div data-astro-shad-map-route data-route-config={config} hidden></div>
+
+<script>
+  import type MapLibreGL from 'maplibre-gl';
+
+  type RouteConfig = {
+    coordinates: [number, number][];
+    id?: string;
+    color: string;
+    width: number;
+    opacity: number;
+    dashArray?: [number, number];
+    interactive: boolean;
+    beforeId?: string;
+  };
+
+  // Map may init before or after us -- script bundling order is not guaranteed.
+  function whenMapReady(
+    el: HTMLElement,
+    cb: (map: MapLibreGL.Map, mapRoot: HTMLElement) => void,
+  ) {
+    const mapRoot = el.closest<HTMLElement>('[data-astro-shad-map]');
+    if (!mapRoot) return;
+    const existing = (mapRoot as HTMLElement & { __astroShadMap?: MapLibreGL.Map }).__astroShadMap;
+    if (existing) cb(existing, mapRoot);
+    else
+      mapRoot.addEventListener(
+        'map:ready',
+        (e) => cb((e as CustomEvent).detail.map, mapRoot),
+        { once: true },
+      );
+  }
+
+  let uid = 0;
+
+  function initRoute(el: HTMLElement) {
+    whenMapReady(el, (map, mapRoot) => {
+      const cfg: RouteConfig = JSON.parse(el.dataset.routeConfig || '{}');
+      if (!cfg.coordinates || cfg.coordinates.length < 2) return;
+
+      const routeId = cfg.id ?? `r${++uid}`;
+      const sourceId = `route-source-${routeId}`;
+      const layerId = `route-layer-${routeId}`;
+
+      const addRoute = () => {
+        if (map.getSource(sourceId)) return;
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'LineString', coordinates: cfg.coordinates },
+          },
+        });
+        map.addLayer(
+          {
+            id: layerId,
+            type: 'line',
+            source: sourceId,
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: {
+              'line-color': cfg.color,
+              'line-width': cfg.width,
+              'line-opacity': cfg.opacity,
+              ...(cfg.dashArray ? { 'line-dasharray': cfg.dashArray } : {}),
+            },
+          },
+          cfg.beforeId,
+        );
+      };
+
+      if (cfg.interactive) {
+        // Layer-scoped listeners are safe to register before the layer
+        // exists and survive its removal, so one registration covers every
+        // re-add after a theme swap.
+        const emit = (name: string, detail: Record<string, unknown> = {}) =>
+          mapRoot.dispatchEvent(new CustomEvent(name, { detail: { id: cfg.id, ...detail } }));
+        map.on('click', layerId, (e) => emit('map:route-click', { originalEvent: e }));
+        map.on('mouseenter', layerId, () => {
+          map.getCanvas().style.cursor = 'pointer';
+          emit('map:route-mouseenter');
+        });
+        map.on('mouseleave', layerId, () => {
+          map.getCanvas().style.cursor = '';
+          emit('map:route-mouseleave');
+        });
+      }
+
+      // Initial add + re-add after every style swap (theme change wipes
+      // sources/layers; Map.astro re-fires map:style-load each time).
+      if (map.isStyleLoaded()) addRoute();
+      mapRoot.addEventListener('map:style-load', addRoute);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-map-route]').forEach(initRoute);
+</script>

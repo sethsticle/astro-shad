@@ -1,0 +1,58 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/button-group/Basic.astro';
+import basicSource from '../../../components/docs/demos/button-group/Basic.astro?raw';
+import MixedDemo from '../../../components/docs/demos/button-group/Mixed.astro';
+import mixedSource from '../../../components/docs/demos/button-group/Mixed.astro?raw';
+---
+
+<DocsLayout
+  title="Button Group"
+  description="shadcn base-ui button group converted to pure child-combinator CSS: children lose their inner radii and collapse shared borders, horizontal or vertical. Three files -- ButtonGroup, ButtonGroupText, ButtonGroupSeparator. Zero client JS."
+  registry="button-group"
+  sourceFile="ButtonGroup.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/button-group" />
+
+  <h2>Text, separator, vertical</h2>
+  <ComponentPreview code={mixedSource} class="block p-8">
+    <MixedDemo />
+  </ComponentPreview>
+
+  <h2>ButtonGroup props</h2>
+  <PropsTable
+    rows={[
+      { name: 'orientation', type: "'horizontal' | 'vertical'", default: "'horizontal'", description: 'Layout axis; controls which outer corners keep their radius.' },
+    ]}
+  />
+
+  <h2>ButtonGroupText props</h2>
+  <PropsTable
+    rows={[
+      { name: 'as', type: 'string', default: "'div'", description: 'Wrapper tag -- pass as="label" (plus for) to caption an input in the group.' },
+    ]}
+  />
+
+  <h2>ButtonGroupSeparator props</h2>
+  <PropsTable
+    rows={[
+      { name: 'orientation', type: "'horizontal' | 'vertical'", default: "'vertical'", description: "The LINE's own axis: vertical divides a horizontal group, horizontal a vertical one." },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The mechanic is <code>*:first/last-child</code> selectors, so any children work -- Button, plain <code>&lt;a&gt;</code>, ButtonGroupText, ButtonGroupSeparator.</li>
+    <li>Nesting groups inside a group spaces them with <code>gap-2</code> (the split-button pattern), keyed off <code>data-slot="button-group"</code>.</li>
+    <li>The separator is a self-stretching <code>bg-input</code> line inlined here -- the registry has no standalone separator primitive.</li>
+  </ul>
+</DocsLayout>

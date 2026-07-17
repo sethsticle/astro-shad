@@ -1,0 +1,10 @@
+---
+import HighlightedText from '../../../astro-shad/HighlightedText.astro';
+---
+
+<div class="flex flex-col gap-3 text-lg font-medium">
+  <p><HighlightedText from="bottom">from bottom (default)</HighlightedText></p>
+  <p><HighlightedText from="left" delay={200}>from left</HighlightedText></p>
+  <p><HighlightedText from="top" delay={400}>from top</HighlightedText></p>
+  <p><HighlightedText from="right" delay={600}>from right</HighlightedText></p>
+</div>

@@ -1,0 +1,46 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/highlighted-text/Basic.astro';
+import basicSource from '../../../components/docs/demos/highlighted-text/Basic.astro?raw';
+import EdgesDemo from '../../../components/docs/demos/highlighted-text/Edges.astro';
+import edgesSource from '../../../components/docs/demos/highlighted-text/Edges.astro?raw';
+---
+
+<DocsLayout
+  title="Highlighted Text"
+  description="motion/react HighlightedText minus react and motion: a foreground mark slides in behind the text from any edge, and mix-blend-difference inverts the text as it passes -- theme-proof with zero extra colors."
+  registry="highlighted-text"
+  sourceFile="HighlightedText.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/highlighted-text" />
+
+  <h2>Edges &amp; delay</h2>
+  <ComponentPreview code={edgesSource} class="block p-8">
+    <EdgesDemo />
+  </ComponentPreview>
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'from', type: "'left' | 'right' | 'top' | 'bottom'", default: "'bottom'", description: 'Edge the mark slides in from.' },
+      { name: 'delay', type: 'number', default: '0', description: 'ms before the swipe starts.' },
+      { name: 'inView', type: 'boolean', default: 'false', description: 'Defer the swipe until scrolled into view instead of playing on load.' },
+      { name: 'once', type: 'boolean', default: 'true', description: 'inView only: false replays the swipe every time it re-enters the viewport.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The text is literal <code>text-white</code> on purpose: <code>mix-blend-difference</code> needs pure white to invert cleanly against both the <code>bg-foreground</code> mark and the page, in both themes.</li>
+    <li>No-JS renders the text unhighlighted; reduced motion shows the highlight statically.</li>
+  </ul>
+</DocsLayout>

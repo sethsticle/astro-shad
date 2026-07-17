@@ -1,0 +1,267 @@
+---
+/**
+ * Map.astro -- astro-shad map container. Converted from mapcn's map.tsx
+ * (React + MapLibre GL): the React layer was lifecycle glue around MapLibre's
+ * own imperative API, so the port keeps the MapLibre calls and replaces the
+ * wiring -- context/portals/controlled-viewport deleted, one component
+ * <script> initialises every map on the page.
+ *
+ * Composition contract (how children attach):
+ *   - The map instance is stored on the root element as `__astroShadMap` and
+ *     announced with a `map:ready` CustomEvent (detail.map). Child components
+ *     (MapMarker, MapControls, future layer items) find their map via
+ *     `closest('[data-astro-shad-map]')` and either read the property or wait
+ *     for the event -- both orders are safe, script bundling order is not
+ *     guaranteed.
+ *   - `map:load` fires once map + initial style are loaded; `map:style-load`
+ *     fires after EVERY style swap (theme change reloads the style with
+ *     diff:false, wiping sources/layers) -- layer components must re-add
+ *     themselves on it. `map:moveend` carries the viewport
+ *     ({ center, zoom, bearing, pitch }).
+ *
+ * Theming: the basemap follows the TOKEN theme, not the OS -- resolved as
+ * prop > closest `[data-theme]` ancestor (works inside scoped previews like
+ * /dev) > documentElement class, falling back to dark (the token contract's
+ * default; light opts in via data-theme, so an absent attribute means dark).
+ * Watched with one subtree MutationObserver unless the `theme` prop pins it.
+ * Basemaps default to Carto positron (light) / dark-matter (dark); `styles`
+ * overrides them, `blank` swaps in a transparent tile-less style for
+ * data-viz layers.
+ *
+ * The consumer owns the container height -- `h-full w-full` against a parent
+ * with no height renders a 0px map (the #1 "my map is blank" cause).
+ *
+ *   <div class="h-96">
+ *     <Map center={[18.4188, -33.9066]} zoom={14}>
+ *       <MapMarker longitude={18.4188} latitude={-33.9066}>...</MapMarker>
+ *       <MapControls showLocate />
+ *     </Map>
+ *   </div>
+ */
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { cn } from '../../lib/utils';
+
+type MapStyleOption = string | Record<string, unknown>;
+
+interface Props {
+  /** Pin the basemap theme; omit to auto-detect and live-track the page theme. */
+  theme?: 'light' | 'dark';
+  /** Custom style URL or style-spec object per theme; overrides the Carto defaults. */
+  styles?: { light?: MapStyleOption; dark?: MapStyleOption };
+  /** Transparent tile-less basemap -- a blank canvas for data-viz layers. Ignored when `styles` is passed. */
+  blank?: boolean;
+  /** Map projection; `globe` for the 3D globe. Applied after each style load. */
+  projection?: 'mercator' | 'globe' | 'vertical-perspective';
+  /** Initial center as [longitude, latitude]. */
+  center?: [number, number];
+  zoom?: number;
+  bearing?: number;
+  pitch?: number;
+  /** Keep the loading overlay up even after the map loads. */
+  loading?: boolean;
+  /** Extra JSON-serialisable MapLibre MapOptions (minZoom, maxZoom, cooperativeGestures, ...). */
+  options?: Record<string, unknown>;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  theme,
+  styles,
+  blank = false,
+  projection,
+  center,
+  zoom,
+  bearing,
+  pitch,
+  loading = false,
+  options,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const config = JSON.stringify({
+  theme,
+  styles,
+  blank,
+  projection,
+  center,
+  zoom,
+  bearing,
+  pitch,
+  options,
+});
+---
+
+<div
+  class={cn('relative h-full w-full overflow-hidden', className)}
+  data-astro-shad-map
+  data-map-config={config}
+  data-loading={loading ? '' : undefined}
+  {...rest}
+>
+  <div
+    data-map-loader
+    class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-xs"
+  >
+    <div class="flex gap-1">
+      <span class="size-1.5 animate-pulse rounded-full bg-muted-foreground/60"></span>
+      <span class="size-1.5 animate-pulse rounded-full bg-muted-foreground/60 [animation-delay:150ms]"></span>
+      <span class="size-1.5 animate-pulse rounded-full bg-muted-foreground/60 [animation-delay:300ms]"></span>
+    </div>
+  </div>
+  <slot />
+</div>
+
+<style is:global>
+  /* Neutralise MapLibre's built-in white popup chrome -- popup content is a
+     token-styled card supplied by MapMarker/MapPopup, so the wrapper must be
+     invisible. The pointer tip is hidden because popups offset 16px from the
+     anchor; a white tip against bg-popover would mismatch in dark theme. */
+  [data-astro-shad-map] .maplibregl-popup-content {
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  [data-astro-shad-map] .maplibregl-popup-tip {
+    display: none;
+  }
+</style>
+
+<script>
+  import MapLibreGL from 'maplibre-gl';
+
+  type Theme = 'light' | 'dark';
+  type MapConfig = {
+    theme?: Theme;
+    styles?: { light?: string | object; dark?: string | object };
+    blank?: boolean;
+    projection?: string;
+    center?: [number, number];
+    zoom?: number;
+    bearing?: number;
+    pitch?: number;
+    options?: Record<string, unknown>;
+  };
+
+  const DEFAULT_STYLES: Record<Theme, string> = {
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  };
+
+  // Tile-less transparent style: the themed container shows through; layer
+  // components draw on top (choropleths, arcs). Used alone it renders nothing.
+  const BLANK_STYLE = {
+    version: 8,
+    sources: {},
+    layers: [
+      {
+        id: 'background',
+        type: 'background',
+        paint: { 'background-color': 'rgba(0, 0, 0, 0)' },
+      },
+    ],
+  };
+
+  function resolveTheme(root: HTMLElement): Theme {
+    // Nearest scoped theme wins (e.g. a preview wrapper carrying data-theme),
+    // then the documentElement class convention. NO system-preference
+    // fallback: tokens render dark by default and light opts in via
+    // data-theme, so an absent attribute MEANS dark -- following the OS here
+    // would put a light basemap under dark token chrome.
+    const scoped = root.closest<HTMLElement>('[data-theme]')?.dataset.theme;
+    if (scoped === 'dark' || scoped === 'light') return scoped;
+    const el = document.documentElement;
+    if (el.classList.contains('dark')) return 'dark';
+    if (el.classList.contains('light')) return 'light';
+    return 'dark';
+  }
+
+  function getViewport(map: MapLibreGL.Map) {
+    const c = map.getCenter();
+    return {
+      center: [c.lng, c.lat] as [number, number],
+      zoom: map.getZoom(),
+      bearing: map.getBearing(),
+      pitch: map.getPitch(),
+    };
+  }
+
+  function initMap(root: HTMLElement) {
+    const config: MapConfig = JSON.parse(root.dataset.mapConfig || '{}');
+
+    const styleFor = (t: Theme) => {
+      const custom = config.styles?.[t];
+      if (custom) return custom;
+      if (config.blank) return BLANK_STYLE;
+      return DEFAULT_STYLES[t];
+    };
+
+    let theme: Theme = config.theme ?? resolveTheme(root);
+    // Stamped for layer children (MapGeoJSON's monochrome defaults are
+    // theme-aware): read mapRoot.dataset.mapTheme at (re-)add time. Not
+    // `data-theme` -- that would feed back into resolveTheme's closest().
+    root.dataset.mapTheme = theme;
+
+    const map = new MapLibreGL.Map({
+      container: root,
+      style: styleFor(theme) as string,
+      renderWorldCopies: false,
+      attributionControl: { compact: true },
+      ...(config.center ? { center: config.center } : {}),
+      ...(config.zoom !== undefined ? { zoom: config.zoom } : {}),
+      ...(config.bearing !== undefined ? { bearing: config.bearing } : {}),
+      ...(config.pitch !== undefined ? { pitch: config.pitch } : {}),
+      ...config.options,
+    });
+
+    (root as HTMLElement & { __astroShadMap?: MapLibreGL.Map }).__astroShadMap = map;
+    const emit = (name: string, detail: Record<string, unknown> = {}) =>
+      root.dispatchEvent(new CustomEvent(name, { detail: { map, ...detail } }));
+
+    emit('map:ready');
+
+    map.on('load', () => {
+      if (!root.hasAttribute('data-loading')) {
+        root.querySelector('[data-map-loader]')?.setAttribute('hidden', '');
+      }
+      emit('map:load');
+    });
+
+    // Fires on the initial style AND after every theme swap. Projection lives
+    // in the style, so it must be re-applied here; layer components (routes,
+    // geojson, arcs) re-add their sources/layers on this event.
+    map.on('style.load', () => {
+      if (config.projection) {
+        map.setProjection({ type: config.projection } as never);
+      }
+      emit('map:style-load');
+    });
+
+    map.on('moveend', () => emit('map:moveend', { viewport: getViewport(map) }));
+
+    if (!config.theme) {
+      const applyTheme = (next: Theme) => {
+        if (next === theme) return;
+        theme = next;
+        root.dataset.mapTheme = theme;
+        // Full reload (no diff) so style.load fires deterministically -- a
+        // successful diff would never fire it and children would never re-add.
+        map.setStyle(styleFor(theme) as string, { diff: false });
+      };
+
+      // Subtree observer because the scoped [data-theme] attribute may not
+      // exist at init (dark = attribute REMOVED under the token contract) --
+      // closest() at setup time would miss the element that later gains it.
+      const observer = new MutationObserver(() => applyTheme(resolveTheme(root)));
+      observer.observe(document.documentElement, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['class', 'data-theme'],
+      });
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-map]').forEach(initMap);
+</script>

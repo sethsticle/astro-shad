@@ -1,0 +1,33 @@
+---
+import Map from '../../../astro-shad/Map.astro';
+import MapGeoJSON from '../../../astro-shad/MapGeoJSON.astro';
+
+/* illustrative zones -- hover highlights via feature-state (needs promoteId) */
+const zones = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { id: 1, name: 'Harbour' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[18.41, -33.92], [18.435, -33.925], [18.44, -33.905], [18.42, -33.898], [18.41, -33.92]]],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { id: 2, name: 'Gardens' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[18.405, -33.94], [18.435, -33.945], [18.435, -33.926], [18.408, -33.922], [18.405, -33.94]]],
+      },
+    },
+  ],
+};
+---
+
+<div class="h-80 w-full overflow-hidden rounded-lg border border-border bg-muted/20">
+  <Map blank center={[18.422, -33.922]} zoom={12.3}>
+    <MapGeoJSON data={zones} promoteId="id" interactive fillHoverPaint={{ 'fill-color': '#60a5fa' }} />
+  </Map>
+</div>

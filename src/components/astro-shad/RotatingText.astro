@@ -1,7 +1,7 @@
 ---
 /**
  * RotatingText.astro -- astro-shad rotating word. Converted from react-bits
- * RotatingText, minus react. ZERO client JS.
+ * RotatingText, minus react.
  *
  * All words stack in one inline-grid cell; each runs the same keyframe
  * loop offset by its slot delay, so exactly one word is visible at a time
@@ -10,7 +10,15 @@
  * per-instance in frontmatter and injected with a uid-scoped name -- the
  * Astro-native answer to "CSS keyframes cannot read a variable".
  *
- * Wrapper width fits the longest word automatically (grid sizing).
+ * WIDTH FIT: the wrapper's width animates to the current word instead of
+ * holding the longest word's width (no dead space beside short words).
+ * A second per-instance keyframe track animates `width` through per-word
+ * custom properties (--rt-w0..n) on the same clock as the word loop; a
+ * tiny script measures each word after document.fonts.ready, sets the
+ * variables, and enables the track (.rt-fit). Because custom properties
+ * in keyframes resolve live, the width animation is phase-locked to the
+ * word animations for free -- they all started together at style time.
+ * No-JS / reduced-motion falls back to the old fit-the-longest behaviour.
  *
  *   We teach <RotatingText class="text-primary" words={['coding', 'robotics']} />
  */
@@ -30,15 +38,32 @@ const uid = crypto.randomUUID().slice(0, 6);
 const n = words.length;
 const total = n * interval;
 /* enter/exit take 0.4s, expressed as % of the whole loop */
-const e = ((0.4 / total) * 100).toFixed(3);
-const p = (100 / n).toFixed(3);
-const pe = (100 / n + (0.4 / total) * 100).toFixed(3);
+const eNum = (0.4 / total) * 100;
+const pNum = 100 / n;
+const e = eNum.toFixed(3);
+const p = pNum.toFixed(3);
+const pe = (pNum + eNum).toFixed(3);
+
+/* Width track: during word k's slot the wrapper holds width --rt-wk; the
+   change runs inside the same 0.4s enter/exit overlap. 0%/100% carry the
+   last word's width so the loop is seamless. */
+const widthFrames = words
+  .map((_, k) => {
+    const enterAt = (k * pNum + eNum).toFixed(3);
+    const holdTo = k === n - 1 ? '100' : ((k + 1) * pNum).toFixed(3);
+    return `  ${enterAt}% { width: var(--rt-w${k}, auto); }\n  ${holdTo}% { width: var(--rt-w${k}, auto); }`;
+  })
+  .join('\n');
 
 const css = `
 .rt-${uid} > span {
   grid-area: 1 / 1;
+  justify-self: start;
   opacity: 0;
   animation: rt-${uid} ${total}s infinite;
+}
+.rt-${uid}.rt-fit {
+  animation: rtw-${uid} ${total}s infinite;
 }
 @keyframes rt-${uid} {
   0%      { opacity: 0; transform: translateY(65%); }
@@ -47,14 +72,20 @@ const css = `
   ${pe}%  { opacity: 0; transform: translateY(-65%); }
   100%    { opacity: 0; transform: translateY(-65%); }
 }
+@keyframes rtw-${uid} {
+  0% { width: var(--rt-w${n - 1}, auto); }
+${widthFrames}
+}
 @media (prefers-reduced-motion: reduce) {
   .rt-${uid} > span { animation: none; }
   .rt-${uid} > span:first-child { opacity: 1; transform: none; }
+  .rt-${uid}.rt-fit { animation: none; }
 }`;
 ---
 
 <span
   class={cn(`rt-${uid} inline-grid overflow-hidden align-bottom whitespace-nowrap`, className)}
+  data-astro-shad-rotating-text
   aria-label={words.join(', ')}
   {...rest}
 >
@@ -64,3 +95,16 @@ const css = `
 </span>
 
 <Fragment set:html={`<style>${css}</style>`} />
+
+<script>
+  /* Measure once, after webfonts settle; widths land as custom properties
+     the (already running) width keyframes resolve live. */
+  document.fonts.ready.then(() => {
+    document.querySelectorAll<HTMLElement>('[data-astro-shad-rotating-text]').forEach((el) => {
+      [...el.children].forEach((span, i) => {
+        el.style.setProperty(`--rt-w${i}`, `${span.getBoundingClientRect().width}px`);
+      });
+      el.classList.add('rt-fit');
+    });
+  });
+</script>

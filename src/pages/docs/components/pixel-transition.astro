@@ -1,0 +1,45 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/pixel-transition/Basic.astro';
+import basicSource from '../../../components/docs/demos/pixel-transition/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Pixel Transition"
+  description="react-bits PixelTransition minus react and gsap: two stacked content layers swap under a random-order pixel flash on hover (pointer devices), tap (touch), or focus. The gsap stagger became per-pixel random delays baked at build time; the layer swap is a delayed visibility transition."
+  registry="pixel-transition"
+  sourceFile="PixelTransition.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="block p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/pixel-transition" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'gridSize', type: 'number', default: '7', description: 'Pixels per row/column (gridSize² total).' },
+      { name: 'pixelColor', type: 'string', default: "'currentColor'", description: 'Any CSS color for the flash pixels -- these are DOM divs, so tokens like var(--accent) work.' },
+      { name: 'animationStepDuration', type: 'number', default: '0.3', description: 'Seconds for each half of the flash (cover, then clear).' },
+      { name: 'once', type: 'boolean', default: 'false', description: 'Reveal once and stay -- no swap-back on leave/blur.' },
+      { name: 'aspectRatio', type: 'string', default: "'1 / 1'", description: 'CSS aspect-ratio for the card; ignored if you size it via class.' },
+    ]}
+  />
+  <p>
+    Slots: <code>first</code> (resting content) and <code>second</code> (revealed content); size the card via
+    <code>class</code> -- no width is baked in.
+  </p>
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Pointer devices trigger on hover and focus (the card is tabbable); touch devices toggle on tap -- same detection as the react source.</li>
+    <li>The revealed layer is deliberately inert (<code>pointer-events: none</code>, source behaviour): the reveal is decorative and the card stays the interactive surface. Don't put links or buttons in the <code>second</code> slot.</li>
+    <li>Reduced motion swaps the layers instantly with no flash; no-JS shows the first layer statically.</li>
+  </ul>
+</DocsLayout>

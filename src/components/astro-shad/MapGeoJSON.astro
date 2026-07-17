@@ -1,0 +1,252 @@
+---
+/**
+ * MapGeoJSON.astro -- astro-shad GeoJSON layer. Converted from mapcn's
+ * map.tsx MapGeoJSON: renders arbitrary GeoJSON as a fill layer + outline
+ * layer -- choropleths, districts, delivery zones. Pairs well with
+ * `<Map blank>` (transparent basemap, draw only your data). TypeScript
+ * generics on the feature properties flattened to plain JSON; mergeHoverPaint
+ * (hover values become `case` expressions keyed on feature-state) ported
+ * verbatim.
+ *
+ * Must be a child of <Map>. Renders only a hidden config div. Layer child:
+ * source + layers re-add on the map root's `map:style-load` after every
+ * theme-driven basemap swap, and the monochrome paint DEFAULTS are
+ * theme-aware (re-resolved from the map root's data-map-theme stamp on each
+ * add). They are deliberately literal hex, not tokens -- MapLibre canvas
+ * paint can't read CSS variables; override via fillPaint/linePaint.
+ *
+ * Interaction (opt-in via `interactive`; needs the fill layer) dispatches
+ * CustomEvents on the map root: `map:geojson-click` and `map:geojson-hover`
+ * (detail: { id, feature, longitude, latitude, originalEvent }; hover fires
+ * with feature: null when the cursor leaves). Hover feature-state
+ * (`fillHoverPaint`) requires `promoteId` naming a unique feature property.
+ *
+ *   <MapGeoJSON
+ *     data={districts}
+ *     promoteId="id"
+ *     interactive
+ *     fillHoverPaint={{ 'fill-color': '#60a5fa' }}
+ *   />
+ */
+
+type Paint = Record<string, unknown>;
+
+interface Props {
+  /** GeoJSON (FeatureCollection / Feature / Geometry) or a URL to fetch it from. */
+  data: Record<string, unknown> | string;
+  /** Identifies this layer in CustomEvent payloads and layer ids. */
+  id?: string;
+  /** Feature property promoted to the feature id -- required for hover feature-state. */
+  promoteId?: string;
+  /** Fill layer paint merged over the theme default; `false` omits the fill layer. */
+  fillPaint?: Paint | false;
+  /** Outline layer paint merged over the hairline default; `false` omits the line layer. */
+  linePaint?: Paint | false;
+  /** Paint applied to the hovered feature (case expression on hover feature-state). */
+  fillHoverPaint?: Paint;
+  /** Pointer cursor + geojson CustomEvents (default: false). */
+  interactive?: boolean;
+  /** MapLibre layer id to insert these layers before (z-order control). */
+  beforeId?: string;
+}
+
+const {
+  data,
+  id,
+  promoteId,
+  fillPaint,
+  linePaint,
+  fillHoverPaint,
+  interactive = false,
+  beforeId,
+} = Astro.props;
+
+const config = JSON.stringify({
+  data,
+  id,
+  promoteId,
+  fillPaint,
+  linePaint,
+  fillHoverPaint,
+  interactive,
+  beforeId,
+});
+---
+
+<div data-astro-shad-map-geojson data-geojson-config={config} hidden></div>
+
+<script>
+  import type MapLibreGL from 'maplibre-gl';
+
+  type Paint = Record<string, unknown>;
+  type GeoJSONConfig = {
+    data: Record<string, unknown> | string;
+    id?: string;
+    promoteId?: string;
+    fillPaint?: Paint | false;
+    linePaint?: Paint | false;
+    fillHoverPaint?: Paint;
+    interactive: boolean;
+    beforeId?: string;
+  };
+
+  // Monochrome defaults per theme (hex of the grayscale chart tones), tuned
+  // for a typical light/dark surface. Literal on purpose -- canvas paint
+  // can't read tokens.
+  const DEFAULT_COLORS = {
+    light: { fill: '#d4d4d4', line: '#ffffff' },
+    dark: { fill: '#404040', line: '#171717' },
+  };
+
+  // Merge hover values into base paint as `case` expressions keyed on the
+  // hover feature-state, so only the hovered feature changes appearance.
+  function mergeHoverPaint(paint: Paint, hoverPaint?: Paint): Paint {
+    if (!hoverPaint) return paint;
+    const merged: Paint = { ...paint };
+    for (const [key, hoverValue] of Object.entries(hoverPaint)) {
+      if (hoverValue === undefined) continue;
+      const baseValue = merged[key];
+      merged[key] =
+        baseValue === undefined
+          ? hoverValue
+          : ['case', ['boolean', ['feature-state', 'hover'], false], hoverValue, baseValue];
+    }
+    return merged;
+  }
+
+  // Map may init before or after us -- script bundling order is not guaranteed.
+  function whenMapReady(
+    el: HTMLElement,
+    cb: (map: MapLibreGL.Map, mapRoot: HTMLElement) => void,
+  ) {
+    const mapRoot = el.closest<HTMLElement>('[data-astro-shad-map]');
+    if (!mapRoot) return;
+    const existing = (mapRoot as HTMLElement & { __astroShadMap?: MapLibreGL.Map }).__astroShadMap;
+    if (existing) cb(existing, mapRoot);
+    else
+      mapRoot.addEventListener(
+        'map:ready',
+        (e) => cb((e as CustomEvent).detail.map, mapRoot),
+        { once: true },
+      );
+  }
+
+  let uid = 0;
+
+  function initGeoJSON(el: HTMLElement) {
+    whenMapReady(el, (map, mapRoot) => {
+      const cfg: GeoJSONConfig = JSON.parse(el.dataset.geojsonConfig || '{}');
+      if (!cfg.data) return;
+
+      const layerUid = cfg.id ?? `g${++uid}`;
+      const sourceId = `geojson-source-${layerUid}`;
+      const fillLayerId = `geojson-fill-${layerUid}`;
+      const lineLayerId = `geojson-line-${layerUid}`;
+      const showFill = cfg.fillPaint !== false;
+      const showLine = cfg.linePaint !== false;
+
+      const addLayers = () => {
+        if (map.getSource(sourceId)) return;
+        // Theme defaults re-resolved on every add: the same swap that wiped
+        // the layers may have flipped the theme.
+        const theme = mapRoot.dataset.mapTheme === 'light' ? 'light' : 'dark';
+        const defaults = DEFAULT_COLORS[theme];
+
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: cfg.data as never,
+          ...(cfg.promoteId ? { promoteId: cfg.promoteId } : {}),
+        });
+
+        if (showFill) {
+          map.addLayer(
+            {
+              id: fillLayerId,
+              type: 'fill',
+              source: sourceId,
+              paint: mergeHoverPaint(
+                { 'fill-color': defaults.fill, ...(cfg.fillPaint || {}) },
+                cfg.fillHoverPaint,
+              ) as never,
+            },
+            cfg.beforeId,
+          );
+        }
+        if (showLine) {
+          map.addLayer(
+            {
+              id: lineLayerId,
+              type: 'line',
+              source: sourceId,
+              paint: {
+                'line-color': defaults.line,
+                'line-width': 0.5,
+                ...(cfg.linePaint || {}),
+              } as never,
+            },
+            cfg.beforeId,
+          );
+        }
+      };
+
+      // Interaction binds to the fill layer (a hairline outline is no hover
+      // target). Layer-scoped listeners registered once -- safe before the
+      // layer exists, survive re-adds.
+      if (cfg.interactive && showFill) {
+        let hoveredId: string | number | null = null;
+
+        const setHover = (next: string | number | null) => {
+          if (next === hoveredId) return;
+          const sourceExists = !!map.getSource(sourceId);
+          if (hoveredId != null && sourceExists) {
+            map.setFeatureState({ source: sourceId, id: hoveredId }, { hover: false });
+          }
+          hoveredId = next;
+          if (next != null && sourceExists) {
+            map.setFeatureState({ source: sourceId, id: next }, { hover: true });
+          }
+        };
+
+        const emit = (name: string, detail: Record<string, unknown>) =>
+          mapRoot.dispatchEvent(new CustomEvent(name, { detail: { id: cfg.id, ...detail } }));
+
+        map.on('mousemove', fillLayerId, (e) => {
+          const feature = e.features?.[0];
+          if (!feature) return;
+          map.getCanvas().style.cursor = 'pointer';
+          if (feature.id === hoveredId) return;
+          setHover(feature.id ?? null);
+          emit('map:geojson-hover', {
+            feature,
+            longitude: e.lngLat.lng,
+            latitude: e.lngLat.lat,
+            originalEvent: e,
+          });
+        });
+
+        map.on('mouseleave', fillLayerId, () => {
+          setHover(null);
+          map.getCanvas().style.cursor = '';
+          emit('map:geojson-hover', { feature: null });
+        });
+
+        map.on('click', fillLayerId, (e) => {
+          const feature = e.features?.[0];
+          if (!feature) return;
+          emit('map:geojson-click', {
+            feature,
+            longitude: e.lngLat.lng,
+            latitude: e.lngLat.lat,
+            originalEvent: e,
+          });
+        });
+      }
+
+      // Initial add + re-add after every style swap.
+      if (map.isStyleLoaded()) addLayers();
+      mapRoot.addEventListener('map:style-load', addLayers);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-map-geojson]').forEach(initGeoJSON);
+</script>

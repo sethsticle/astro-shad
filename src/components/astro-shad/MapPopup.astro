@@ -1,0 +1,145 @@
+---
+/**
+ * MapPopup.astro -- astro-shad standalone map popup. Converted from mapcn's
+ * map.tsx MapPopup: a popup pinned to coordinates, independent of any marker
+ * -- annotations, callouts, "free parking here". The React createPortal
+ * machinery is gone: the slot content is real DOM handed to
+ * `Popup.setDOMContent()`, which lifts it out of the hidden wrapper when the
+ * popup opens.
+ *
+ * Must be a child of <Map>. Opens on load and stays open; deliberate
+ * divergence from MapLibre's closeOnClick default (true): a static popup that
+ * closes on the first stray map click could never reopen, so it defaults to
+ * false here -- opt back in with `closeOnClick` if the popup is dismissable
+ * ephemera. Closing (via the close button or closeOnClick) dispatches
+ * `map:popup-close` (detail: { id }) on the map root.
+ *
+ *   <MapPopup longitude={18.421} latitude={-33.92} closeButton>
+ *     <p class="text-sm font-semibold">Free parking</p>
+ *     <p class="text-xs text-muted-foreground">After 18:00 weekdays</p>
+ *   </MapPopup>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  longitude: number;
+  latitude: number;
+  /** Identifies this popup in the `map:popup-close` event payload. */
+  id?: string;
+  /** Show a close button (default: false). */
+  closeButton?: boolean;
+  /** Close when the map is clicked (default: false -- see header note). */
+  closeOnClick?: boolean;
+  /** Pixel offset from the anchor (default: 16). */
+  offset?: number;
+  /** CSS max-width for the popup (default: none; the card caps at max-w-62). */
+  maxWidth?: string;
+  /** Extra classes for the popup card. */
+  class?: string;
+}
+
+const {
+  longitude,
+  latitude,
+  id,
+  closeButton = false,
+  closeOnClick = false,
+  offset,
+  maxWidth,
+  class: className,
+} = Astro.props;
+
+const config = JSON.stringify({ longitude, latitude, id, closeOnClick, offset, maxWidth });
+---
+
+<div data-astro-shad-map-popup data-popup-config={config} hidden>
+  <div
+    data-popup-content
+    class={cn(
+      'relative max-w-62 rounded-md border bg-popover p-3 text-popover-foreground shadow-md',
+      className,
+    )}
+  >
+    {
+      closeButton && (
+        <button
+          type="button"
+          data-popup-close
+          aria-label="Close popup"
+          class="absolute top-1 right-1 z-10 inline-flex size-5 cursor-pointer items-center justify-center rounded-sm text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="size-3.5"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      )
+    }
+    <slot />
+  </div>
+</div>
+
+<script>
+  import MapLibreGL from 'maplibre-gl';
+
+  type PopupConfig = {
+    longitude: number;
+    latitude: number;
+    id?: string;
+    closeOnClick?: boolean;
+    offset?: number;
+    maxWidth?: string;
+  };
+
+  // Map may init before or after us -- script bundling order is not guaranteed.
+  function whenMapReady(
+    el: HTMLElement,
+    cb: (map: MapLibreGL.Map, mapRoot: HTMLElement) => void,
+  ) {
+    const mapRoot = el.closest<HTMLElement>('[data-astro-shad-map]');
+    if (!mapRoot) return;
+    const existing = (mapRoot as HTMLElement & { __astroShadMap?: MapLibreGL.Map }).__astroShadMap;
+    if (existing) cb(existing, mapRoot);
+    else
+      mapRoot.addEventListener(
+        'map:ready',
+        (e) => cb((e as CustomEvent).detail.map, mapRoot),
+        { once: true },
+      );
+  }
+
+  function initPopup(el: HTMLElement) {
+    whenMapReady(el, (map, mapRoot) => {
+      const cfg: PopupConfig = JSON.parse(el.dataset.popupConfig || '{}');
+      const content = el.querySelector<HTMLElement>('[data-popup-content]');
+      if (!content) return;
+
+      const popup = new MapLibreGL.Popup({
+        offset: cfg.offset ?? 16,
+        closeButton: false,
+        closeOnClick: !!cfg.closeOnClick,
+      })
+        .setMaxWidth(cfg.maxWidth ?? 'none')
+        .setLngLat([cfg.longitude, cfg.latitude])
+        .setDOMContent(content)
+        .addTo(map);
+
+      popup.on('close', () =>
+        mapRoot.dispatchEvent(new CustomEvent('map:popup-close', { detail: { id: cfg.id } })),
+      );
+      content
+        .querySelector('[data-popup-close]')
+        ?.addEventListener('click', () => popup.remove());
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-map-popup]').forEach(initPopup);
+</script>

@@ -1,0 +1,36 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import BasicDemo from "../../../components/docs/demos/feature-grid/Basic.astro";
+import basicSource from "../../../components/docs/demos/feature-grid/Basic.astro?raw";
+---
+
+<DocsLayout
+  title="Feature Grid"
+  description="Layout section: centered heading block above a 3/4-column card grid. Ships populated with demo Cards -- swap them for your own cells by editing your installed copy."
+  registry="feature-grid-01"
+  sourceFile="sections/FeatureGrid-01.astro"
+>
+  <h2>Preview</h2>
+  <VariantBlock registry="feature-grid-01" source={basicSource} previewClass="p-0">
+    <BasicDemo />
+  </VariantBlock>
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      {
+        name: "columns",
+        type: "3 | 4",
+        default: "3",
+        description: "lg+ column count for the card grid; below lg it steps down to 2, then 1. Match the number of cards to the count.",
+      },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>For icon-tile cards with fuller copy, see <a href="/docs/components/feature-section" class="text-primary underline-offset-4 hover:underline">Feature Section</a>.</li>
+  </ul>
+</DocsLayout>

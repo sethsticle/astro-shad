@@ -1,0 +1,28 @@
+---
+import PixelTransition from '../../../astro-shad/PixelTransition.astro';
+---
+
+<div class="flex flex-wrap gap-6">
+  <PixelTransition class="w-64">
+    <img
+      slot="first"
+      src="https://unsplash.com/photos/oMgtkpr3Cpg/download?w=800"
+      alt="aerial forest"
+      class="h-full w-full object-cover"
+    />
+    <div slot="second" class="grid h-full w-full place-items-center bg-card">
+      <p class="text-2xl font-black">Hello!</p>
+    </div>
+  </PixelTransition>
+  <PixelTransition class="w-64" gridSize={12} pixelColor="var(--accent)" animationStepDuration={0.5} once>
+    <div slot="first" class="grid h-full w-full place-items-center bg-muted">
+      <p class="text-sm text-muted-foreground">hover · reveals once</p>
+    </div>
+    <img
+      slot="second"
+      src="https://unsplash.com/photos/SpVw8IvJJjE/download?w=800"
+      alt="volcanic peaks"
+      class="h-full w-full object-cover"
+    />
+  </PixelTransition>
+</div>

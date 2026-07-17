@@ -1,0 +1,26 @@
+---
+import Map from '../../../astro-shad/Map.astro';
+import MapMarker from '../../../astro-shad/MapMarker.astro';
+import MapPopup from '../../../astro-shad/MapPopup.astro';
+import MapRoute from '../../../astro-shad/MapRoute.astro';
+---
+
+<div class="h-80 w-full overflow-hidden rounded-lg border border-border">
+  <Map center={[18.4222, -33.916]} zoom={13}>
+    <MapMarker longitude={18.4241} latitude={-33.9249}>
+      <span slot="label">Start</span>
+    </MapMarker>
+    <MapMarker longitude={18.4188} latitude={-33.9066}>
+      <span slot="label">Finish</span>
+    </MapMarker>
+    <MapRoute coordinates={[[18.4241, -33.9249], [18.4232, -33.9179], [18.4188, -33.9066]]} />
+    <MapRoute
+      coordinates={[[18.4241, -33.9249], [18.4302, -33.918], [18.4188, -33.9066]]}
+      color="#22c55e"
+      dashArray={[2, 2]}
+    />
+    <MapPopup longitude={18.4302} latitude={-33.918}>
+      <p class="text-xs">Scenic walking detour</p>
+    </MapPopup>
+  </Map>
+</div>

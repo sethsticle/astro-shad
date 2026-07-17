@@ -1,0 +1,43 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import BasicDemo from "../../../components/docs/demos/split/Basic.astro";
+import basicSource from "../../../components/docs/demos/split/Basic.astro?raw";
+import ReverseDemo from "../../../components/docs/demos/split/Reverse.astro";
+import reverseSource from "../../../components/docs/demos/split/Reverse.astro?raw";
+---
+
+<DocsLayout
+  title="Split"
+  description="Normal-height half/half layout section: media beside content. Ships populated -- the media half is a token-styled placeholder surface you swap for your own img or video; the content column is copy you own."
+  registry="split-01"
+  sourceFile="sections/Split-01.astro"
+>
+  <h2>Variants</h2>
+  <VariantBlock title="Split 01 · media left" registry="split-01" source={basicSource} previewClass="p-0">
+    <BasicDemo />
+  </VariantBlock>
+
+  <VariantBlock title="Split 01 · reverse" registry="split-01" source={reverseSource} previewClass="p-0">
+    <ReverseDemo />
+  </VariantBlock>
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      {
+        name: "reverse",
+        type: "boolean",
+        default: "false",
+        description: "Media on the right at md+ instead of the left. Source order is unchanged, so mobile always stacks media-first.",
+      },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>Alternate <code>reverse</code> on consecutive splits down a page for rhythm.</li>
+    <li>The media placeholder keeps a 4:3 ratio; keep <code>object-cover</code> on whatever replaces it.</li>
+  </ul>
+</DocsLayout>

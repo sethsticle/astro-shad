@@ -1,0 +1,111 @@
+---
+/**
+ * HighlightedText.astro -- astro-shad highlighter-swipe text. Converted
+ * from a motion/react HighlightedText, minus react and motion.
+ *
+ * A solid mark layer slides in from one edge (`from`) behind the text;
+ * the text sits above it with mix-blend-difference so it inverts as the
+ * mark passes -- no second text color needed, works in both themes.
+ * The motion spring (damping 30 / stiffness 300) is approximated by an
+ * ease-out cubic-bezier over 500ms.
+ *
+ * By default the swipe plays on load; `inView` defers it to an
+ * IntersectionObserver (the SplitText data-inview pattern). `once={false}`
+ * replays it every time it re-enters the viewport (inView mode only).
+ * No-JS: text renders unhighlighted. Reduced motion: highlighted, static.
+ *
+ *   <h2>Ship <HighlightedText inView>ten times</HighlightedText> faster.</h2>
+ *   <HighlightedText from="left" delay={200}>vanilla</HighlightedText>
+ */
+import { cn } from '../../lib/utils';
+
+type From = 'left' | 'right' | 'top' | 'bottom';
+
+interface Props {
+  from?: From;
+  /** ms before the swipe starts */
+  delay?: number;
+  /** animate when scrolled into view instead of on load */
+  inView?: boolean;
+  /** inView only: false replays the swipe on every re-entry */
+  once?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  from = 'bottom',
+  delay = 0,
+  inView = false,
+  once = true,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<span
+  class={cn('ht relative inline-flex overflow-hidden align-baseline', className)}
+  data-astro-shad-highlight
+  data-from={from}
+  data-io={inView ? '' : undefined}
+  data-once={once ? '' : undefined}
+  style={delay ? `--ht-delay: ${delay}ms` : undefined}
+  {...rest}
+>
+  <span class="ht-mark absolute inset-0 -left-[0.15em] -right-[0.18em] z-0 bg-foreground" aria-hidden="true"></span>
+  <!-- literal white on purpose: mix-blend-difference needs pure white to
+       invert cleanly against both the mark and the page in both themes -->
+  <span class="relative z-10 pl-[0.15em] pr-[0.18em] text-white mix-blend-difference"><slot /></span>
+</span>
+
+<style>
+  .ht-mark {
+    transition: translate 500ms cubic-bezier(0.22, 1, 0.36, 1) var(--ht-delay, 0ms);
+  }
+  [data-from='bottom'] .ht-mark {
+    translate: 0 100%;
+  }
+  [data-from='top'] .ht-mark {
+    translate: 0 -100%;
+  }
+  [data-from='left'] .ht-mark {
+    translate: -100% 0;
+  }
+  [data-from='right'] .ht-mark {
+    translate: 100% 0;
+  }
+  [data-inview] .ht-mark {
+    translate: 0 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ht-mark {
+      transition: none;
+      translate: 0 0 !important;
+    }
+  }
+</style>
+
+<script>
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.setAttribute('data-inview', '');
+          if (en.target.hasAttribute('data-once')) io.unobserve(en.target);
+        } else if (!en.target.hasAttribute('data-once')) {
+          en.target.removeAttribute('data-inview');
+        }
+      });
+    },
+    { threshold: 0.6 }
+  );
+
+  document.querySelectorAll('[data-astro-shad-highlight]').forEach((el) => {
+    if (el.hasAttribute('data-io')) {
+      io.observe(el);
+    } else {
+      /* double rAF: attribute lands after first paint so the transition runs */
+      requestAnimationFrame(() => requestAnimationFrame(() => el.setAttribute('data-inview', '')));
+    }
+  });
+</script>

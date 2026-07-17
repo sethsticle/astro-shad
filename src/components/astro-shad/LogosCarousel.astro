@@ -1,0 +1,158 @@
+---
+/**
+ * LogosCarousel.astro -- astro-shad rotating logo groups. Converted from a
+ * react LogosCarousel (state machine + styled-jsx keyframes), minus react.
+ * An alternative to LogoLoop's marquee: groups of logos swap in place,
+ * exiting upward with a blur while the next group rises in beneath them.
+ *
+ * Markup contract: each DIRECT CHILD of the component is one logo group
+ * (a plain element holding that group's logos). The component stacks the
+ * groups in a single grid cell and lays each group out as a centered flex
+ * row; per-logo stagger delays are set from DOM position at load.
+ *
+ * Behaviour is the contract's rung-3 pattern: one small vanilla JS script
+ * flips a data-state attribute per group on an interval; static CSS
+ * keyframes (enter from below / exit upward, fill-mode both) do the rest.
+ * No-JS and reduced-motion render the first group statically.
+ *
+ *   <LogosCarousel interval={2500} class="max-w-2xl">
+ *     <div><img ... /><img ... /><img ... /></div>
+ *     <div><img ... /><img ... /><img ... /></div>
+ *   </LogosCarousel>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  /** ms each group holds before rotating */
+  interval?: number;
+  /** s between logos inside a group (enter and exit) */
+  stagger?: number;
+  /** ms per enter/exit animation */
+  duration?: number;
+  /** ms before the first rotation */
+  initialDelay?: number;
+  /** gap between logos in a group */
+  gap?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  interval = 2500,
+  stagger = 0.14,
+  duration = 600,
+  initialDelay = 500,
+  gap = '2.5rem',
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<div
+  class={cn('grid w-full place-items-center', className)}
+  style={`--lc-duration: ${duration}ms; --lc-gap: ${gap}`}
+  data-astro-shad-logos-carousel
+  data-interval={interval}
+  data-stagger={stagger}
+  data-initial-delay={initialDelay}
+  {...rest}
+>
+  <slot />
+</div>
+
+<style is:global>
+  [data-astro-shad-logos-carousel] > * {
+    grid-area: 1 / 1;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: var(--lc-gap);
+    pointer-events: none;
+  }
+  /* No-JS / pre-JS: first group visible, rest hidden. Once a group carries
+     a data-state the animations own opacity (fill-mode both). */
+  [data-astro-shad-logos-carousel] > * > * {
+    opacity: 0;
+  }
+  [data-astro-shad-logos-carousel] > *:first-child > * {
+    opacity: 1;
+  }
+  [data-astro-shad-logos-carousel] > [data-state='enter'] {
+    pointer-events: auto;
+  }
+  [data-astro-shad-logos-carousel] > [data-state='enter'] > * {
+    animation: lc-enter var(--lc-duration) ease both;
+    animation-delay: var(--lc-d, 0s);
+  }
+  [data-astro-shad-logos-carousel] > [data-state='exit'] > * {
+    animation: lc-exit var(--lc-duration) ease both;
+    animation-delay: var(--lc-d, 0s);
+  }
+  @keyframes lc-enter {
+    from {
+      transform: translateY(40px);
+      filter: blur(4px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      filter: blur(0px);
+      opacity: 1;
+    }
+  }
+  @keyframes lc-exit {
+    from {
+      transform: translateY(0);
+      filter: blur(0px);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-40px);
+      filter: blur(4px);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-astro-shad-logos-carousel] > * > * {
+      animation: none !important;
+    }
+    [data-astro-shad-logos-carousel] > *:first-child > * {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-logos-carousel]').forEach((root) => {
+    const groups = [...root.children] as HTMLElement[];
+    if (groups.length === 0) return;
+
+    const interval = Number(root.dataset.interval) || 2500;
+    const stagger = Number(root.dataset.stagger) || 0.14;
+    const initialDelay = Number(root.dataset.initialDelay) || 500;
+
+    groups.forEach((group) => {
+      [...group.children].forEach((logo, i) => {
+        (logo as HTMLElement).style.setProperty('--lc-d', `${i * stagger}s`);
+      });
+    });
+
+    if (groups.length < 2 || reduced) return;
+
+    /* Each tick: the visible group exits upward while the next enters from
+       below (same overlap as the react source). */
+    let index = 0;
+    const tick = () => {
+      groups[index].dataset.state = 'exit';
+      index = (index + 1) % groups.length;
+      groups[index].dataset.state = 'enter';
+    };
+    setTimeout(() => {
+      tick();
+      setInterval(tick, interval);
+    }, initialDelay);
+  });
+</script>

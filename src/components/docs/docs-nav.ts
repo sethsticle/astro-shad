@@ -32,6 +32,7 @@ export const NAV: DocsNavGroup[] = [
       { title: "Accordion", href: "/docs/components/accordion" },
       { title: "Badge", href: "/docs/components/badge" },
       { title: "Button", href: "/docs/components/button" },
+      { title: "Button Group", href: "/docs/components/button-group" },
       { title: "Card", href: "/docs/components/card" },
       { title: "Pagination", href: "/docs/components/pagination" },
       { title: "Tabs", href: "/docs/components/tabs" },
@@ -51,6 +52,8 @@ export const NAV: DocsNavGroup[] = [
       { title: "Folder", href: "/docs/components/folder" },
       { title: "Bubble Menu", href: "/docs/components/bubble-menu" },
       { title: "Magic Bento", href: "/docs/components/magic-bento" },
+      { title: "Pulse Grid", href: "/docs/components/pulse-grid" },
+      { title: "Pixel Transition", href: "/docs/components/pixel-transition" },
     ],
   },
   {
@@ -62,6 +65,8 @@ export const NAV: DocsNavGroup[] = [
       { title: "Count Up", href: "/docs/components/count-up" },
       { title: "Curved Loop", href: "/docs/components/curved-loop", status: "experimental" },
       { title: "Logo Loop", href: "/docs/components/logo-loop" },
+      { title: "Logos Carousel", href: "/docs/components/logos-carousel" },
+      { title: "Highlighted Text", href: "/docs/components/highlighted-text" },
     ],
   },
   {
@@ -69,6 +74,17 @@ export const NAV: DocsNavGroup[] = [
     items: [
       { title: "Top Bar", href: "/docs/components/top-bar" },
       { title: "Floating Header", href: "/docs/components/floating-header" },
+      { title: "Map", href: "/docs/components/map" },
+    ],
+  },
+  {
+    label: "Layouts",
+    items: [
+      { title: "Hero", href: "/docs/components/hero" },
+      { title: "Split", href: "/docs/components/split" },
+      { title: "Feature Grid", href: "/docs/components/feature-grid" },
+      { title: "Feature Section", href: "/docs/components/feature-section" },
+      { title: "CTA", href: "/docs/components/cta" },
     ],
   },
 ];

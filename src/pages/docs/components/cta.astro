@@ -1,0 +1,37 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import BasicDemo from "../../../components/docs/demos/cta/Basic.astro";
+import basicSource from "../../../components/docs/demos/cta/Basic.astro?raw";
+import Cta02Demo from "../../../components/docs/demos/cta/Cta02.astro";
+import cta02Source from "../../../components/docs/demos/cta/Cta02.astro?raw";
+---
+
+<DocsLayout
+  title="CTA"
+  description="Layout sections: narrow centered call-to-action bands on a card surface. CTA 01 ships an Unsplash demo image + scrim in the in-band background slot; CTA 02 ships the pulse-grid canvas animation there instead."
+  registry="cta-01"
+  sourceFile="sections/Cta-01.astro"
+>
+  <h2>Variants</h2>
+  <VariantBlock title="CTA 01 · image band" registry="cta-01" source={basicSource} previewClass="p-0">
+    <BasicDemo />
+  </VariantBlock>
+
+  <VariantBlock title="CTA 02 · animated band" registry="cta-02" source={cta02Source} previewClass="p-0">
+    <Cta02Demo />
+  </VariantBlock>
+
+  <h2>Props</h2>
+  <p>
+    No content props by design -- edit your installed copy. Accepts <code>class</code> (merged via <code>cn()</code>)
+    and arbitrary rest attributes.
+  </p>
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The <code>background</code> slot sits inside the band, so images/gradients/animations stay clipped to the rounded surface.</li>
+    <li>CTA 01: swap the demo image for a local asset, or drop the image entirely for a flat <code>bg-card</code> band.</li>
+    <li>CTA 02: tune the <a href="/docs/components/pulse-grid">Pulse Grid</a> props in your installed copy, or fill the slot to replace the whole layer. Installing <code>cta-02</code> pulls <code>pulse-grid</code> automatically.</li>
+  </ul>
+</DocsLayout>

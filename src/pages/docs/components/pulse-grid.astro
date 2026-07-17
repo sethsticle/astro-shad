@@ -1,0 +1,57 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/pulse-grid/Basic.astro';
+import basicSource from '../../../components/docs/demos/pulse-grid/Basic.astro?raw';
+import MultiDemo from '../../../components/docs/demos/pulse-grid/MultiColor.astro';
+import multiSource from '../../../components/docs/demos/pulse-grid/MultiColor.astro?raw';
+---
+
+<DocsLayout
+  title="Pulse Grid"
+  description="react-bits CursorGrid minus react and minus the cursor: an ambient canvas grid where speed-driven random bursts light up cells that hold and fade, occasionally as expanding rings. Pointer-events-none absolute layer built for a section's background slot."
+  registry="pulse-grid"
+  sourceFile="PulseGrid.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="block p-4">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/pulse-grid" />
+
+  <h2>Multi-color</h2>
+  <ComponentPreview code={multiSource} class="block p-4">
+    <MultiDemo />
+  </ComponentPreview>
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'colors', type: 'string[]', default: "['#60a5fa']", description: 'Hex colors; each burst picks one at random and cells remember it. Canvas paint -- tokens do not resolve, pass literal hex.' },
+      { name: 'speed', type: 'number', default: '1.2', description: 'Average bursts per second (intervals are jittered).' },
+      { name: 'cellSize', type: 'number', default: '70', description: 'Grid cell size in px.' },
+      { name: 'radius', type: 'number', default: '140', description: 'Radius of one burst in px.' },
+      { name: 'falloff', type: "'linear' | 'smooth' | 'sharp'", default: "'smooth'", description: 'Distance-to-brightness curve within a burst.' },
+      { name: 'holdTime', type: 'number', default: '400', description: 'ms a cell stays lit before fading.' },
+      { name: 'fadeDuration', type: 'number', default: '800', description: 'ms a cell takes to fade out.' },
+      { name: 'pulseChance', type: 'number', default: '0.15', description: '0..1 chance a burst is an expanding ring instead of a patch; 1 = rings only, 0 = never.' },
+      { name: 'pulseSpeed', type: 'number', default: '600', description: 'Ring expansion speed in px/s.' },
+      { name: 'maxOpacity', type: 'number', default: '1', description: "Peak alpha at a burst's center." },
+      { name: 'fillOpacity', type: 'number', default: '0', description: 'Lit cells also fill at alpha × this; 0 = outline only.' },
+      { name: 'gridOpacity', type: 'number', default: '0', description: 'Static background lattice alpha; 0 = none.' },
+      { name: 'cellRadius', type: 'number', default: '0', description: 'Corner radius of lit cells in px.' },
+      { name: 'lineWidth', type: 'number', default: '1.2', description: 'Stroke width of lit cell outlines.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The layer is <code>pointer-events-none absolute inset-0</code>: give it a positioned ancestor <strong>with height</strong>, or drop it straight into a section's <code>background</code> slot -- <a href="/docs/components/cta#cta-02">CTA 02</a> ships it that way.</li>
+    <li>Props are read once at init; there is no live reactivity (that was react's job in the source).</li>
+    <li>Cheap by design: the rAF loop self-suspends when every cell has faded, bursts stop while the element is off-screen, and reduced motion renders only the static lattice.</li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,42 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import Fs01Demo from "../../../components/docs/demos/feature-section/Fs01.astro";
+import fs01Source from "../../../components/docs/demos/feature-section/Fs01.astro?raw";
+import Fs02Demo from "../../../components/docs/demos/feature-section/Fs02.astro";
+import fs02Source from "../../../components/docs/demos/feature-section/Fs02.astro?raw";
+---
+
+<DocsLayout
+  title="Feature Section"
+  description="Fuller-copy feature layout sections converted from React sources. Both ship populated; demo content (including the icon SVGs) lives in a frontmatter FEATURES array in your installed copy -- edit the array, not the markup."
+  registry="feature-section-01"
+  sourceFile="sections/FeatureSection-01.astro"
+>
+  <h2>Variants</h2>
+  <VariantBlock title="Feature Section 01 · header + icon card grid" registry="feature-section-01" source={fs01Source} previewClass="p-0">
+    <Fs01Demo />
+  </VariantBlock>
+
+  <VariantBlock title="Feature Section 02 · testimonial panel + icon cards" registry="feature-section-02" source={fs02Source} previewClass="p-0">
+    <Fs02Demo />
+  </VariantBlock>
+
+  <h2>Editing the content</h2>
+  <p>
+    Each card is a row in the <code>FEATURES</code> array at the top of the installed file: a title/content string plus
+    the icon as an inline lucide SVG path string (rendered via <code>set:html</code>). Add, remove, or reorder rows
+    freely -- the grid adapts.
+  </p>
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>
+      Feature Section 02's entrance animations are pure CSS transitions keyed off a <code>data-inview</code> attribute
+      flipped once by an IntersectionObserver -- the source's motion/react behaviour with no library and no keyframes.
+      Reduced-motion users see everything immediately.
+    </li>
+    <li>Feature Section 02's image panel ships an Unsplash demo image -- swap the <code>src</code> for a local asset.</li>
+    <li>Feature Section 01 is zero client JS.</li>
+  </ul>
+</DocsLayout>

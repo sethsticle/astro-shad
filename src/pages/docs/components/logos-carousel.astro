@@ -1,0 +1,42 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/logos-carousel/Basic.astro';
+import basicSource from '../../../components/docs/demos/logos-carousel/Basic.astro?raw';
+---
+
+<DocsLayout
+  title="Logos Carousel"
+  description="Rotating alternative to Logo Loop's marquee: groups of logos swap in place, exiting upward with a blur while the next group rises in. A small interval script flips one data-state per group; static CSS keyframes animate."
+  registry="logos-carousel"
+  sourceFile="LogosCarousel.astro"
+>
+  <h2>Preview</h2>
+  <ComponentPreview code={basicSource} class="block p-8">
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/logos-carousel" />
+
+  <h2>Props</h2>
+  <PropsTable
+    rows={[
+      { name: 'interval', type: 'number', default: '2500', description: 'ms each group holds before rotating.' },
+      { name: 'stagger', type: 'number', default: '0.14', description: 'Seconds between logos inside a group (enter and exit).' },
+      { name: 'duration', type: 'number', default: '600', description: 'ms per enter/exit animation.' },
+      { name: 'initialDelay', type: 'number', default: '500', description: 'ms before the first rotation.' },
+      { name: 'gap', type: 'string', default: "'2.5rem'", description: 'Gap between logos in a group (any CSS length).' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>The markup <em>is</em> the grouping: each direct child of the component is one logo group. There is no per-group count prop -- split your logos into group elements yourself.</li>
+    <li>No max-width is baked in; constrain via <code>class</code>.</li>
+    <li>No-JS, reduced motion, and a single group all render the first group statically.</li>
+    <li>Prefer a continuous marquee? Use <a href="/docs/components/logo-loop">Logo Loop</a> -- same job, different motion.</li>
+  </ul>
+</DocsLayout>

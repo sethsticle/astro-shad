@@ -1,0 +1,45 @@
+---
+/**
+ * Cta-02.astro -- layout section: narrow centered call-to-action band on
+ * a card surface with the pulse-grid canvas animation as the background
+ * layer. Ships populated (frontend-contract.md §7): <Cta02 /> renders a
+ * complete block; make it yours by editing this copy you own.
+ *
+ * `background` slot: absolute layer INSIDE the band. Ships with a
+ * <PulseGrid> demo (two accent-ish colors, faint lattice) as the slot
+ * fallback -- tune its props in place, or fill the slot to replace the
+ * whole layer (an image + scrim like cta-01, an effects item, anything).
+ */
+import { cn } from "../../../lib/utils";
+import Button from "../Button.astro";
+import PulseGrid from "../PulseGrid.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("py-16 md:py-24", className)} {...rest}>
+  <div class="mx-auto w-full max-w-6xl px-6">
+    <div class="relative isolate overflow-hidden rounded-xl border border-border bg-card px-6 py-12 md:py-16">
+      <div class="absolute inset-0 -z-10 overflow-hidden">
+        <slot name="background">
+          <!-- demo animation — tune the props, or fill the slot to replace the layer -->
+          <PulseGrid colors={["#60a5fa", "#a78bfa"]} cellSize={56} speed={1.8} gridOpacity={0.05} fillOpacity={0.1} maxOpacity={0.9} />
+        </slot>
+      </div>
+      <div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
+        <!-- content — yours to edit: comment out and replace -->
+        <h2 class="text-3xl font-semibold tracking-tight md:text-4xl">Ship it with a pulse.</h2>
+        <p class="text-muted-foreground">The band stays alive without demanding attention — the grid glows on its own clock.</p>
+        <div class="flex gap-3">
+          <Button size="lg">Start building</Button>
+          <Button size="lg" variant="ghost">See the registry</Button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

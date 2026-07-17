@@ -58,6 +58,12 @@ import icons03Source from "../../../components/docs/demos/accordion/Icons.astro?
     rows={[
       { name: "title", type: "string", description: "Trigger label." },
       { name: "open", type: "boolean", default: "false", description: "Render this item expanded on load." },
+      {
+        name: "highlight",
+        type: "boolean",
+        default: "false",
+        description: "Accent the open item: primary border on the frame, accent color on the trigger text and icons. Available on the items of all three variants.",
+      },
     ]}
   />
 </DocsLayout>

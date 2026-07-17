@@ -269,7 +269,7 @@
       "name": "rotating-text",
       "type": "registry:component",
       "title": "Rotating Text",
-      "description": "react-bits RotatingText minus react. ZERO client JS: per-instance keyframes generated in frontmatter, all words stacked in one inline-grid cell.",
+      "description": "react-bits RotatingText minus react: per-instance keyframes generated in frontmatter, all words stacked in one inline-grid cell. Wrapper width animates to the current word (words measured after fonts.ready feed a var-driven width keyframe track); without JS it falls back to fitting the longest word.",
       "registryDependencies": ["@astro-shad/utils"],
       "files": [
         {
@@ -364,10 +364,62 @@
       ]
     },
     {
+      "name": "logos-carousel",
+      "type": "registry:component",
+      "title": "Logos Carousel",
+      "description": "Rotating alternative to logo-loop's marquee: groups of logos swap in place, exiting upward with a blur while the next group rises in. Each direct child is one group; minimal vanilla JS interval flips one data-state per group, static CSS keyframes animate.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/LogosCarousel.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/LogosCarousel.astro"
+        }
+      ]
+    },
+    {
+      "name": "highlighted-text",
+      "type": "registry:component",
+      "title": "Highlighted Text",
+      "description": "motion/react HighlightedText minus react and motion: a foreground mark slides in behind the text (from any edge) and mix-blend-difference inverts the text as it passes -- theme-proof with zero extra colors. Plays on load or on scroll into view (inView/once).",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/HighlightedText.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/HighlightedText.astro"
+        }
+      ]
+    },
+    {
+      "name": "button-group",
+      "type": "registry:component",
+      "title": "Button Group",
+      "description": "shadcn base-ui button group converted to pure child-combinator CSS: children lose inner radii and collapse shared borders, horizontal or vertical. ButtonGroup + ButtonGroupText + ButtonGroupSeparator (separator inlined -- no separator primitive needed). Zero client JS.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/ButtonGroup.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/ButtonGroup.astro"
+        },
+        {
+          "path": "src/components/astro-shad/ButtonGroupText.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/ButtonGroupText.astro"
+        },
+        {
+          "path": "src/components/astro-shad/ButtonGroupSeparator.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/ButtonGroupSeparator.astro"
+        }
+      ]
+    },
+    {
       "name": "hero-01",
       "type": "registry:component",
       "title": "Hero 01 — centered",
-      "description": "Layout section, ships populated: full-height hero (min-h-svh), centered content stack + background slot. <Hero01 /> renders a complete block; customise by editing the installed copy (copy-and-own).",
+      "description": "Layout section, ships populated: full-height hero (min-h-svh), centered content stack over an Unsplash demo image + scrim in the background slot (swap for a local asset). Customise by editing the installed copy (copy-and-own).",
       "registryDependencies": ["@astro-shad/utils", "@astro-shad/badge", "@astro-shad/button"],
       "files": [
         {
@@ -381,7 +433,7 @@
       "name": "hero-02",
       "type": "registry:component",
       "title": "Hero 02 — bottom-left",
-      "description": "Layout section, ships populated: full-height hero with content anchored bottom-left (editorial composition) + background slot for the full-bleed image. Customise by editing the installed copy.",
+      "description": "Layout section, ships populated: full-height hero with content anchored bottom-left (editorial composition) over an Unsplash demo image + bottom gradient scrim in the background slot (swap for a local asset).",
       "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
       "files": [
         {
@@ -395,13 +447,27 @@
       "name": "hero-03",
       "type": "registry:component",
       "title": "Hero 03 — centered + feature strip",
-      "description": "Layout section, ships populated: full-height centered hero with an auto-fit 3-4 column card strip anchored at the bottom edge + background slot. Customise by editing the installed copy.",
+      "description": "Layout section, ships populated: full-height centered hero with an auto-fit 3-4 column card strip anchored at the bottom edge, over an Unsplash demo image + scrim in the background slot (swap for a local asset).",
       "registryDependencies": ["@astro-shad/utils", "@astro-shad/button", "@astro-shad/card"],
       "files": [
         {
           "path": "src/components/astro-shad/sections/Hero-03.astro",
           "type": "registry:component",
           "target": "src/components/astro-shad/sections/Hero-03.astro"
+        }
+      ]
+    },
+    {
+      "name": "hero-04",
+      "type": "registry:component",
+      "title": "Hero 04 — split + feature row",
+      "description": "Layout section, ships populated: split hero — headline/actions left, media panel right, icon-feature card row beneath. Simplified from a shadcn-studio restaurant hero; the media panel stands in for its carousel until the carousel primitive ships.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Hero-04.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Hero-04.astro"
         }
       ]
     },
@@ -434,10 +500,38 @@
       ]
     },
     {
+      "name": "feature-section-01",
+      "type": "registry:component",
+      "title": "Feature Section 01 — header + icon card grid",
+      "description": "Layout section, ships populated: left-aligned header block (heading / subtext / outline CTA) above a 2/3-column grid of six icon feature cards. Icon tiles are token-tinted divs with inline lucide SVGs; zero client JS. Customise by editing the FEATURES array and copy in the installed file.",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/FeatureSection-01.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/FeatureSection-01.astro"
+        }
+      ]
+    },
+    {
+      "name": "feature-section-02",
+      "type": "registry:component",
+      "title": "Feature Section 02 — testimonial panel + icon cards",
+      "description": "Layout section, ships populated: badge/heading/CTA header row above a half/half grid — testimonial card over an Unsplash image panel left, 2x2 muted icon cards right. motion/react entrance animations rebuilt as CSS transitions off one data-inview attribute (IntersectionObserver, reduced-motion safe).",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/badge", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/FeatureSection-02.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/FeatureSection-02.astro"
+        }
+      ]
+    },
+    {
       "name": "cta-01",
       "type": "registry:component",
       "title": "CTA 01 — centered band",
-      "description": "Layout section, ships populated: narrow centered call-to-action band on a card surface with an in-band background slot. Customise by editing the installed copy.",
+      "description": "Layout section, ships populated: narrow centered call-to-action band on a card surface, Unsplash demo image + scrim in the in-band background slot (alternate image URL commented beside it; swap for a local asset).",
       "registryDependencies": ["@astro-shad/utils", "@astro-shad/button"],
       "files": [
         {

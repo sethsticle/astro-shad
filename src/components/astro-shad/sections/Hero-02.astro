@@ -6,10 +6,12 @@
  * it yours by editing this copy you own.
  *
  * `background` slot: absolute layer behind the content -- this
- * composition usually carries a full-bleed image there.
+ * composition carries its full-bleed image there. Ships with an Unsplash
+ * demo image + bottom gradient scrim as the slot fallback; swap the img
+ * src for a local asset, or fill the slot:
  *
  *   <Hero02>
- *     <img slot="background" src="..." class="h-full w-full object-cover" />
+ *     <img slot="background" src="/hero.webp" class="h-full w-full object-cover" />
  *   </Hero02>
  */
 import { cn } from "../../../lib/utils";
@@ -24,7 +26,17 @@ const { class: className, ...rest } = Astro.props;
 ---
 
 <section class={cn("relative isolate flex min-h-svh items-end", className)} {...rest}>
-  <div class="absolute inset-0 -z-10 overflow-hidden"><slot name="background" /></div>
+  <div class="absolute inset-0 -z-10 overflow-hidden">
+    <slot name="background">
+      <!-- demo image — swap for your local asset -->
+      <img
+        src="https://unsplash.com/photos/oMgtkpr3Cpg/download?w=1920"
+        alt=""
+        class="h-full w-full object-cover"
+      />
+      <div class="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent"></div>
+    </slot>
+  </div>
   <div class="mx-auto w-full max-w-6xl px-6 pb-16 md:pb-24">
     <div class="flex max-w-xl flex-col gap-6">
       <!-- content — yours to edit: comment out and replace -->

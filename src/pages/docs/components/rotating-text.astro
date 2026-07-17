@@ -9,7 +9,7 @@ import basicSource from '../../../components/docs/demos/rotating-text/Basic.astr
 
 <DocsLayout
   title="Rotating Text"
-  description="react-bits RotatingText minus react. ZERO client JS: all words stack in one inline-grid cell running the same per-instance keyframe loop, offset by slot delays -- the keyframes are generated in frontmatter."
+  description="react-bits RotatingText minus react. All words stack in one inline-grid cell running the same per-instance keyframe loop, offset by slot delays -- the keyframes are generated in frontmatter. A tiny script measures the words so the wrapper width animates to fit the current one."
   registry="rotating-text"
   sourceFile="RotatingText.astro"
 >
@@ -24,7 +24,7 @@ import basicSource from '../../../components/docs/demos/rotating-text/Basic.astr
   <h2>Props</h2>
   <PropsTable
     rows={[
-      { name: 'words', type: 'string[]', description: 'Words to rotate through. Wrapper width fits the longest word automatically (grid sizing).' },
+      { name: 'words', type: 'string[]', description: 'Words to rotate through. The wrapper width animates to fit the current word (measured after fonts load) -- no dead space beside short words.' },
       { name: 'interval', type: 'number', default: '2.4', description: 'Seconds each word holds.' },
     ]}
   />
@@ -32,5 +32,6 @@ import basicSource from '../../../components/docs/demos/rotating-text/Basic.astr
   <h2>Notes</h2>
   <ul class="docs-list">
     <li>Reduced motion shows the first word statically; the full list sits in aria-label.</li>
+    <li>The width fit needs a tiny script (words are measured after <code>document.fonts.ready</code>); no-JS and reduced motion fall back to fitting the longest word.</li>
   </ul>
 </DocsLayout>

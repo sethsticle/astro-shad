@@ -1,0 +1,30 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "button-group",
+  "title": "Button Group",
+  "description": "shadcn base-ui button group converted to pure child-combinator CSS: children lose inner radii and collapse shared borders, horizontal or vertical. ButtonGroup + ButtonGroupText + ButtonGroupSeparator (separator inlined -- no separator primitive needed). Zero client JS.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/ButtonGroup.astro",
+      "content": "---\n/**\n * ButtonGroup.astro -- astro-shad button group. Converted from the shadcn\n * base-ui button-group (cva + useRender), minus react. Zero client JS:\n * the whole mechanic is child combinator CSS -- children lose their inner\n * radii and collapse shared borders; only the group's outer corners stay\n * rounded. Works on any children (Button, <a>, ButtonGroupText,\n * ButtonGroupSeparator), so the source's data-slot bookkeeping is\n * replaced with plain *:first/last-child selectors. The source's\n * select-trigger/input special cases are dropped (no such primitives\n * here); radius overrides carry `!` because they must beat the radius a\n * child brings along (same specificity tier otherwise).\n *\n * Nesting groups inside a group spaces them with gap-2 (split-button\n * pattern), keyed off data-slot=\"button-group\" which this file still\n * emits for shadcn compatibility.\n *\n *   <ButtonGroup>\n *     <Button variant=\"outline\">Copy</Button>\n *     <Button variant=\"outline\">Paste</Button>\n *   </ButtonGroup>\n *   <ButtonGroup orientation=\"vertical\">...</ButtonGroup>\n */\nimport { cn } from '../../lib/utils';\n\ntype Orientation = 'horizontal' | 'vertical';\n\nconst BASE =\n  'flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-2';\n\nconst ORIENTATIONS: Record<Orientation, string> = {\n  horizontal:\n    '[&>*]:rounded-none! [&>*:first-child]:rounded-l-md! [&>*:last-child]:rounded-r-md! [&>*:not(:first-child)]:border-l-0',\n  vertical:\n    'flex-col [&>*]:rounded-none! [&>*:first-child]:rounded-t-md! [&>*:last-child]:rounded-b-md! [&>*:not(:first-child)]:border-t-0',\n};\n\ninterface Props {\n  orientation?: Orientation;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { orientation = 'horizontal', class: className, ...rest } = Astro.props;\n---\n\n<div\n  role=\"group\"\n  data-slot=\"button-group\"\n  data-orientation={orientation}\n  class={cn(BASE, ORIENTATIONS[orientation], className)}\n  {...rest}\n>\n  <slot />\n</div>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/ButtonGroup.astro"
+    },
+    {
+      "path": "src/components/astro-shad/ButtonGroupText.astro",
+      "content": "---\n/**\n * ButtonGroupText.astro -- static text cell for ButtonGroup (a prefix\n * label, a unit, an icon). Converted from the shadcn base-ui\n * ButtonGroupText; the useRender polymorphism becomes an `as` prop\n * (pass as=\"label\" + for to caption an input in the group).\n *\n *   <ButtonGroup>\n *     <ButtonGroupText>https://</ButtonGroupText>\n *     <Button variant=\"outline\">example.com</Button>\n *   </ButtonGroup>\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  /** wrapper tag */\n  as?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { as = 'div', class: className, ...rest } = Astro.props;\nconst Tag = as as any;\n---\n\n<Tag\n  data-slot=\"button-group-text\"\n  class={cn(\n    \"flex items-center gap-2 rounded-md border border-border bg-muted px-2.5 text-sm font-medium [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4\",\n    className\n  )}\n  {...rest}\n>\n  <slot />\n</Tag>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/ButtonGroupText.astro"
+    },
+    {
+      "path": "src/components/astro-shad/ButtonGroupSeparator.astro",
+      "content": "---\n/**\n * ButtonGroupSeparator.astro -- 1px divider between ButtonGroup children.\n * The shadcn base-ui version wraps their Separator primitive; there is no\n * separator in this registry (yet), so this inlines the same thing: a\n * bg-input line that self-stretches to the group's height. Orientation is\n * the LINE's own axis -- `vertical` (default) divides a horizontal group,\n * `horizontal` divides a vertical one.\n *\n *   <ButtonGroup>\n *     <Button variant=\"ghost\">Undo</Button>\n *     <ButtonGroupSeparator />\n *     <Button variant=\"ghost\">Redo</Button>\n *   </ButtonGroup>\n */\nimport { cn } from '../../lib/utils';\n\ntype Orientation = 'horizontal' | 'vertical';\n\nconst ORIENTATIONS: Record<Orientation, string> = {\n  vertical: 'mx-px w-px',\n  horizontal: 'my-px h-px w-auto',\n};\n\ninterface Props {\n  orientation?: Orientation;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { orientation = 'vertical', class: className, ...rest } = Astro.props;\n---\n\n<div\n  role=\"separator\"\n  aria-orientation={orientation}\n  data-slot=\"button-group-separator\"\n  class={cn('relative self-stretch bg-input', ORIENTATIONS[orientation], className)}\n  {...rest}\n>\n</div>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/ButtonGroupSeparator.astro"
+    }
+  ],
+  "type": "registry:component"
+}

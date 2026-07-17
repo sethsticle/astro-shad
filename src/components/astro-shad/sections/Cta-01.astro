@@ -4,8 +4,10 @@
  * a card surface. Ships populated (frontend-contract.md §7): <Cta01 />
  * renders a complete block; make it yours by editing this copy you own.
  *
- * `background` slot: absolute layer INSIDE the band -- gradients, glows,
- * patterns (effects items drop in here).
+ * `background` slot: absolute layer INSIDE the band. Ships with an
+ * Unsplash demo image + token scrim as the slot fallback (an alternate
+ * image URL is left commented beside it) -- swap for a local asset, or
+ * fill the slot with a gradient/glow from the effects items.
  */
 import { cn } from "../../../lib/utils";
 import Button from "../Button.astro";
@@ -21,7 +23,14 @@ const { class: className, ...rest } = Astro.props;
 <section class={cn("py-16 md:py-24", className)} {...rest}>
   <div class="mx-auto w-full max-w-6xl px-6">
     <div class="relative isolate overflow-hidden rounded-xl border border-border bg-card px-6 py-12 md:py-16">
-      <div class="absolute inset-0 -z-10"><slot name="background" /></div>
+      <div class="absolute inset-0 -z-10 overflow-hidden">
+        <slot name="background">
+          <!-- demo image — swap for your local asset -->
+          <!-- alternate: https://unsplash.com/photos/e6W48UPKijo/download?w=1600 (brown eggs, kitchen counter) -->
+          <img src="https://unsplash.com/photos/2bfHAKhGn4g/download?w=1920" alt="" class="h-full w-full object-cover" />
+          <div class="absolute inset-0 bg-background/70"></div>
+        </slot>
+      </div>
       <div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
         <!-- content — yours to edit: comment out and replace -->
         <h2 class="text-3xl font-semibold tracking-tight md:text-4xl">Ready when you are.</h2>

@@ -51,14 +51,87 @@ import SplitText from "../components/astro-shad/SplitText.astro";
 import CountUp from "../components/astro-shad/CountUp.astro";
 import CurvedLoop from "../components/astro-shad/CurvedLoop.astro";
 import LogoLoop from "../components/astro-shad/LogoLoop.astro";
+import LogosCarousel from "../components/astro-shad/LogosCarousel.astro";
+import HighlightedText from "../components/astro-shad/HighlightedText.astro";
+import ButtonGroup from "../components/astro-shad/ButtonGroup.astro";
+import ButtonGroupText from "../components/astro-shad/ButtonGroupText.astro";
+import ButtonGroupSeparator from "../components/astro-shad/ButtonGroupSeparator.astro";
 import TopBar from "../components/astro-shad/TopBar.astro";
 import FloatingHeader from "../components/astro-shad/FloatingHeader.astro";
+import Map from "../components/astro-shad/Map.astro";
+import MapMarker from "../components/astro-shad/MapMarker.astro";
+import MapControls from "../components/astro-shad/MapControls.astro";
+import MapPopup from "../components/astro-shad/MapPopup.astro";
+import MapRoute from "../components/astro-shad/MapRoute.astro";
+import MapGeoJSON from "../components/astro-shad/MapGeoJSON.astro";
+import PulseGrid from "../components/astro-shad/PulseGrid.astro";
+import PixelTransition from "../components/astro-shad/PixelTransition.astro";
+
+/* Demo districts for the MapGeoJSON board: rough hand-drawn zones around
+   Cape Town -- shapes are illustrative, not accurate boundaries. */
+const DEMO_DISTRICTS = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      properties: { id: 1, name: "City Bowl" },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [18.408, -33.935],
+            [18.432, -33.935],
+            [18.432, -33.915],
+            [18.408, -33.915],
+            [18.408, -33.935],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: { id: 2, name: "Waterfront" },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [18.402, -33.913],
+            [18.428, -33.913],
+            [18.428, -33.897],
+            [18.402, -33.897],
+            [18.402, -33.913],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: { id: 3, name: "Gardens" },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [18.404, -33.952],
+            [18.426, -33.952],
+            [18.426, -33.937],
+            [18.404, -33.937],
+            [18.404, -33.952],
+          ],
+        ],
+      },
+    },
+  ],
+};
 import Hero01 from "../components/astro-shad/sections/Hero-01.astro";
 import Hero02 from "../components/astro-shad/sections/Hero-02.astro";
 import Hero03 from "../components/astro-shad/sections/Hero-03.astro";
+import Hero04 from "../components/astro-shad/sections/Hero-04.astro";
 import Split01 from "../components/astro-shad/sections/Split-01.astro";
 import FeatureGrid01 from "../components/astro-shad/sections/FeatureGrid-01.astro";
+import FeatureSection01 from "../components/astro-shad/sections/FeatureSection-01.astro";
+import FeatureSection02 from "../components/astro-shad/sections/FeatureSection-02.astro";
 import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
+import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
 ---
 
 <html lang="en">
@@ -261,6 +334,41 @@ import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
                   <Badge variant="outline">Outline</Badge>
                   <Badge variant="accent">Accent</Badge>
                   <Badge variant="outline" href="#">As link</Badge>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">ButtonGroup -- horizontal, separator, text cell, vertical, nested split</p>
+                <div class="flex flex-wrap items-start gap-6">
+                  <ButtonGroup>
+                    <Button variant="outline" size="sm">Copy</Button>
+                    <Button variant="outline" size="sm">Paste</Button>
+                    <Button variant="outline" size="sm">Cut</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    <Button variant="secondary" size="sm">Undo</Button>
+                    <ButtonGroupSeparator />
+                    <Button variant="secondary" size="sm">Redo</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    <ButtonGroupText>https://</ButtonGroupText>
+                    <Button variant="outline" size="sm">example.com</Button>
+                  </ButtonGroup>
+                  <ButtonGroup orientation="vertical">
+                    <Button variant="outline" size="sm">Top</Button>
+                    <Button variant="outline" size="sm">Middle</Button>
+                    <Button variant="outline" size="sm">Bottom</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    <ButtonGroup>
+                      <Button size="sm">Save</Button>
+                    </ButtonGroup>
+                    <ButtonGroup>
+                      <Button variant="outline" size="sm" aria-label="More options">
+                        <Icon slot="icon-left" name="lucide:chevron-down" size={14} />
+                      </Button>
+                    </ButtonGroup>
+                  </ButtonGroup>
                 </div>
               </div>
             </DevBoard>
@@ -521,6 +629,9 @@ import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
                 <p class="text-2xl font-semibold">
                   We ship <RotatingText class="text-primary" words={["components", "primitives", "tokens", "zero JS"]} /> for Astro.
                 </p>
+                <p class="text-2xl font-semibold">
+                  Width fit: <RotatingText class="text-primary" words={["a", "gigantic-difference", "ok"]} /> in length.
+                </p>
                 <SplitText as="p" class="text-2xl font-semibold" text="Staggered reveal, split at build time." />
                 <SplitText by="char" stagger={20} class="text-2xl font-semibold" text="pixel by pixel" />
                 <p class="text-4xl font-semibold">
@@ -528,6 +639,16 @@ import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
                   <span class="text-base font-normal text-muted-foreground">installs</span>
                   <CountUp to={92.5} decimals={1} suffix="%" class="ml-6" />
                   <span class="text-base font-normal text-muted-foreground">satisfaction</span>
+                </p>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">HighlightedText -- on load (bottom, left + delay) and inView</p>
+                <p class="text-2xl font-semibold">
+                  Ship <HighlightedText>ten times</HighlightedText> faster with
+                  <HighlightedText from="left" delay={400}>vanilla</HighlightedText> components.
+                </p>
+                <p class="mt-4 text-2xl font-semibold">
+                  This one waits for <HighlightedText inView from="right">the viewport</HighlightedText>.
                 </p>
               </div>
             </DevBoard>
@@ -552,14 +673,47 @@ import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
             </DevBoard>
 
             <DevBoard index={11} title="Logo Loop" note="LogoLoop.astro · duplicated-track CSS marquee, zero JS">
-              <LogoLoop speed={22} class="text-muted-foreground">
-                <span class="text-lg font-semibold">Astro</span>
-                <span class="text-lg font-semibold">Tailwind</span>
-                <span class="text-lg font-semibold">shadcn</span>
-                <span class="text-lg font-semibold">Vanilla JS</span>
-                <span class="text-lg font-semibold">Zero React</span>
-                <span class="text-lg font-semibold">Tokens</span>
-              </LogoLoop>
+              <div class="dev-group">
+                <LogoLoop speed={22} class="text-muted-foreground">
+                  <span class="text-lg font-semibold">Astro</span>
+                  <span class="text-lg font-semibold">Tailwind</span>
+                  <span class="text-lg font-semibold">shadcn</span>
+                  <span class="text-lg font-semibold">Vanilla JS</span>
+                  <span class="text-lg font-semibold">Zero React</span>
+                  <span class="text-lg font-semibold">Tokens</span>
+                </LogoLoop>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">LogosCarousel -- each direct child is one group; exits up, next rises in</p>
+                <LogosCarousel class="mx-auto max-w-4xl text-muted-foreground">
+                  <div>
+                    <span class="text-lg font-semibold">Astro</span>
+                    <span class="text-lg font-semibold">Tailwind</span>
+                    <span class="text-lg font-semibold">shadcn</span>
+                    <span class="text-lg font-semibold">Column Four</span>
+                    <!-- This creates the 4th column -->
+                  </div>
+                  <div>
+                    <span class="text-lg font-semibold">Astro</span>
+                    <span class="text-lg font-semibold">Tailwind</span>
+                    <span class="text-lg font-semibold">shadcn</span>
+                    <span class="text-lg font-semibold">Column Four</span>
+                  </div>
+                  <div>
+                    <span class="text-lg font-semibold">Vanilla JS</span>
+                    <span class="text-lg font-semibold">Zero React</span>
+                    <span class="text-lg font-semibold">Tokens</span>
+                    <span class="text-lg font-semibold">Column Four</span>
+                  </div>
+                  <div>
+                    <span class="text-lg font-semibold">Copy</span>
+                    <span class="text-lg font-semibold">Own</span>
+                    <span class="text-lg font-semibold">Ship</span>
+                    <span class="text-lg font-semibold">Column Four</span>
+                  </div>
+                </LogosCarousel>
+              </div>
             </DevBoard>
 
             <DevBoard
@@ -627,6 +781,10 @@ import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
                 <div class="overflow-hidden rounded-lg border border-border"><Hero03 /></div>
               </div>
               <div class="dev-group">
+                <p class="dev-group-title">hero-04 -- split + feature row (carousel stand-in)</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Hero04 /></div>
+              </div>
+              <div class="dev-group">
                 <p class="dev-group-title">split-01 -- media left (default)</p>
                 <div class="overflow-hidden rounded-lg border border-border"><Split01 /></div>
               </div>
@@ -643,8 +801,245 @@ import Cta01 from "../components/astro-shad/sections/Cta-01.astro";
                 <div class="overflow-hidden rounded-lg border border-border"><FeatureGrid01 columns={4} /></div>
               </div>
               <div class="dev-group">
+                <p class="dev-group-title">feature-section-01 -- header + six icon cards, zero JS</p>
+                <div class="overflow-hidden rounded-lg border border-border"><FeatureSection01 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">feature-section-02 -- testimonial panel + icon cards, scroll-in transitions</p>
+                <div class="overflow-hidden rounded-lg border border-border"><FeatureSection02 /></div>
+              </div>
+              <div class="dev-group">
                 <p class="dev-group-title">cta-01 -- narrow centered band on card surface</p>
                 <div class="overflow-hidden rounded-lg border border-border"><Cta01 /></div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">cta-02 -- animated band, pulse-grid in the background slot</p>
+                <div class="overflow-hidden rounded-lg border border-border"><Cta02 /></div>
+              </div>
+            </DevBoard>
+
+            <DevBoard
+              index={14}
+              title="Map"
+              note="Map.astro · MapMarker.astro · MapControls.astro · MapLibre GL — first runtime npm dep · basemap tracks the theme toggle"
+            >
+              <div class="dev-group">
+                <p class="dev-group-title">business location -- marker + label + popup (click the pin) + all controls</p>
+                <div class="h-[26rem] overflow-hidden rounded-lg border border-border">
+                  <Map center={[18.4188, -33.9248]} zoom={14}>
+                    <MapMarker longitude={18.4188} latitude={-33.9248} closeButton>
+                      <span slot="label">Acme Coffee</span>
+                      <div slot="popup">
+                        <p class="text-sm font-semibold">Acme Coffee</p>
+                        <p class="text-xs text-muted-foreground">123 Long Street, Cape Town</p>
+                        <p class="mt-1 text-xs text-muted-foreground">Mon–Fri 07:00–16:00</p>
+                      </div>
+                    </MapMarker>
+                    <MapControls showCompass showLocate showFullscreen />
+                  </Map>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">custom marker content + hover tooltip · draggable marker (bottom pin)</p>
+                <div class="h-80 overflow-hidden rounded-lg border border-border">
+                  <Map center={[18.42, -33.93]} zoom={12}>
+                    <MapMarker longitude={18.4} latitude={-33.92}>
+                      <div class="rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold shadow-md">Custom pin</div>
+                      <span slot="tooltip">Slotted content is the marker</span>
+                    </MapMarker>
+                    <MapMarker longitude={18.45} latitude={-33.95} draggable id="drag-me">
+                      <span slot="label">drag me</span>
+                    </MapMarker>
+                    <MapControls position="top-right" />
+                  </Map>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">projection="globe" -- 3D globe on the same basemap</p>
+                <div class="h-80 overflow-hidden rounded-lg border border-border">
+                  <Map center={[10, 20]} zoom={1.4} projection="globe">
+                    <MapControls />
+                  </Map>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">
+                  map-route (solid + dashed; hover for pointer, must survive a theme swap) · standalone MapPopup annotation
+                </p>
+                <div class="h-96 overflow-hidden rounded-lg border border-border">
+                  <Map center={[18.4205, -33.9155]} zoom={13.5}>
+                    <MapRoute
+                      id="to-the-shop"
+                      coordinates={[
+                        [18.4241, -33.9249],
+                        [18.4232, -33.9203],
+                        [18.4223, -33.9158],
+                        [18.4197, -33.9114],
+                        [18.4188, -33.9066],
+                      ]}
+                    />
+                    <MapRoute
+                      id="scenic-walk"
+                      coordinates={[
+                        [18.4241, -33.9249],
+                        [18.4157, -33.9226],
+                        [18.4127, -33.9165],
+                        [18.4152, -33.9103],
+                        [18.4188, -33.9066],
+                      ]}
+                      color="#22c55e"
+                      width={2}
+                      dashArray={[2, 2]}
+                    />
+                    <MapMarker longitude={18.4241} latitude={-33.9249}>
+                      <span slot="label">Start</span>
+                    </MapMarker>
+                    <MapMarker longitude={18.4188} latitude={-33.9066}>
+                      <span slot="label">Acme Coffee</span>
+                    </MapMarker>
+                    <MapPopup longitude={18.4127} latitude={-33.9165} closeButton>
+                      <p class="text-sm font-semibold">Scenic detour</p>
+                      <p class="text-xs text-muted-foreground">Dashed walking route, ~10 min longer</p>
+                    </MapPopup>
+                    <MapControls position="top-right" />
+                  </Map>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">
+                  map-geojson on blank basemap -- districts w/ hover feature-state (accent highlight, pointer cursor) · theme-aware
+                  monochrome defaults, survives theme swap
+                </p>
+                <div class="h-96 overflow-hidden rounded-lg border border-border bg-muted/20">
+                  <Map blank center={[18.417, -33.925]} zoom={12}>
+                    <MapGeoJSON
+                      id="districts"
+                      data={DEMO_DISTRICTS}
+                      promoteId="id"
+                      interactive
+                      fillHoverPaint={{ "fill-color": "#60a5fa", "fill-opacity": 0.9 }}
+                    />
+                    <MapMarker longitude={18.4188} latitude={-33.9066}>
+                      <span slot="label">Acme Coffee</span>
+                    </MapMarker>
+                    <MapControls />
+                  </Map>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">map-geojson over the street basemap -- delivery zone, custom translucent fill</p>
+                <div class="h-80 overflow-hidden rounded-lg border border-border">
+                  <Map center={[18.417, -33.92]} zoom={12.3}>
+                    <MapGeoJSON
+                      id="delivery-zone"
+                      data={{
+                        type: "Feature",
+                        properties: { id: 1 },
+                        geometry: {
+                          type: "Polygon",
+                          coordinates: [
+                            [
+                              [18.403, -33.934],
+                              [18.428, -33.939],
+                              [18.437, -33.917],
+                              [18.425, -33.898],
+                              [18.406, -33.905],
+                              [18.403, -33.934],
+                            ],
+                          ],
+                        },
+                      }}
+                      fillPaint={{ "fill-color": "#60a5fa", "fill-opacity": 0.15 }}
+                      linePaint={{ "line-color": "#60a5fa", "line-width": 1.5 }}
+                    />
+                    <MapMarker longitude={18.4188} latitude={-33.9066}>
+                      <span slot="label">Acme Coffee</span>
+                    </MapMarker>
+                  </Map>
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard
+              index={15}
+              title="Pulse Grid"
+              note="PulseGrid.astro · react-bits CursorGrid minus the cursor · speed-driven random bursts · idles when nothing is lit"
+            >
+              <div class="dev-group">
+                <p class="dev-group-title">defaults -- single color, occasional ring pulse, no lattice</p>
+                <div class="relative h-64 overflow-hidden rounded-lg border border-border bg-card">
+                  <PulseGrid />
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">multi-color + fill + faint lattice + rounded cells</p>
+                <div class="relative h-64 overflow-hidden rounded-lg border border-border bg-card">
+                  <PulseGrid
+                    colors={["#60a5fa", "#a78bfa", "#f472b6"]}
+                    cellSize={48}
+                    speed={2.5}
+                    gridOpacity={0.06}
+                    fillOpacity={0.12}
+                    cellRadius={6}
+                  />
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">rings only -- pulseChance=1, slow spread, long fade</p>
+                <div class="relative h-64 overflow-hidden rounded-lg border border-border bg-card">
+                  <PulseGrid speed={0.5} pulseChance={1} pulseSpeed={300} holdTime={100} fadeDuration={1200} />
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">dense + fast + sharp -- stress case</p>
+                <div class="relative h-64 overflow-hidden rounded-lg border border-border bg-card">
+                  <PulseGrid cellSize={32} speed={5} radius={90} falloff="sharp" fadeDuration={500} pulseChance={0} />
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard
+              index={16}
+              title="Pixel Transition"
+              note="PixelTransition.astro · gsap random stagger → baked per-pixel delay vars · hover on pointer, tap on touch, focus works too"
+            >
+              <div class="dev-group">
+                <p class="dev-group-title">defaults -- image to text reveal, gridSize=7, currentColor pixels</p>
+                <div class="flex flex-wrap gap-6">
+                  <PixelTransition class="w-72">
+                    <img
+                      slot="first"
+                      src="https://unsplash.com/photos/oMgtkpr3Cpg/download?w=800"
+                      alt="aerial forest"
+                      class="h-full w-full object-cover"
+                    />
+                    <div slot="second" class="grid h-full w-full place-items-center bg-card">
+                      <p class="text-3xl font-black">Hello!</p>
+                    </div>
+                  </PixelTransition>
+                  <PixelTransition class="w-72" gridSize={12} pixelColor="var(--accent)" animationStepDuration={0.5}>
+                    <div slot="first" class="grid h-full w-full place-items-center bg-muted">
+                      <p class="text-sm text-muted-foreground">gridSize=12 · accent pixels · 0.5s</p>
+                    </div>
+                    <img
+                      slot="second"
+                      src="https://unsplash.com/photos/SpVw8IvJJjE/download?w=800"
+                      alt="volcanic peaks"
+                      class="h-full w-full object-cover"
+                    />
+                  </PixelTransition>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">once -- reveals and stays · wide aspect ratio</p>
+                <PixelTransition class="max-w-xl" once aspectRatio="21 / 9" gridSize={10}>
+                  <div slot="first" class="grid h-full w-full place-items-center bg-muted">
+                    <p class="text-sm text-muted-foreground">hover me once</p>
+                  </div>
+                  <div slot="second" class="grid h-full w-full place-items-center bg-card">
+                    <p class="text-lg font-semibold">…and I stay revealed.</p>
+                  </div>
+                </PixelTransition>
               </div>
             </DevBoard>
           </div>

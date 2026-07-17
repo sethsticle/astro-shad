@@ -28,6 +28,121 @@ Live items: `theme`, `utils`, `button`, `badge`, `card`, `tabs`, `accordion` (ac
 
 ## Sessions
 
+### 2026-07-17 (v) — /docs-session: queue cleared (10 items)
+
+**Done:**
+- New docs pages: `logos-carousel` (cross-links logo-loop, markup-is-the-grouping note), `highlighted-text` (Basic + Edges/delay demos, blend-literal note), `button-group` (Basic + Mixed demos, three per-file PropsTables), `map` (FAMILY PAGE covering map + map-route + map-geojson as VariantBlocks: "Before you start" section carries the four load-bearing facts — consumer owns container height, token-theme basemap tracking, CustomEvents list, canvas-paint-can't-read-tokens; three demos incl. blank-basemap GeoJSON hover zones), `pulse-grid` (Basic + MultiColor, full props table, background-slot + init-time-only-props notes), `pixel-transition` (dual-card demo, inert-second-layer warning).
+- `cta.astro` reworked to a two-variant family page (CTA 01 image band / CTA 02 animated band, titled VariantBlocks + pulse-grid cross-link). `rotating-text.astro` refreshed for the width-fit change (stale "fits the longest word" + "ZERO client JS" claims corrected, fonts.ready note added).
+- Nav: Button Group → Primitives; Pulse Grid + Pixel Transition → Visual; Logos Carousel + Highlighted Text → Text FX; Map → Components. 13 demo files under demos/{logos-carousel,highlighted-text,button-group,map,pulse-grid,pixel-transition,cta}.
+- Queue: all 10 pending rows flipped to `documented 2026-07-17`. **Queue is empty.**
+
+**Contract review findings (cold-read of all 12 files):** everything clean — tokens/ladder/imports/header comments/explicit targets all conform; the sanctioned literals (highlighted-text white, map pin ring, canvas paint hex) are each commented in source. No violations fixed or outstanding.
+
+**Next:** user eyeballs /docs (new pages, both themes; map page is the heavyweight — three live maps per visit) → registry:build → commit + push. Queue empty; next session can build freely.
+
+### 2026-07-17 (u) — /build-session continued: pixel-transition (PixelTransition port, gsap deleted)
+
+**Done:**
+- `PixelTransition.astro` (item `pixel-transition`, from user-supplied react-bits PixelTransition): two stacked layers (`first`/`second` named slots) swap under a random-order pixel flash on hover/tap/focus. gsap fully deleted via the contract §4 baked-stagger pattern: per-pixel random `--px-in`/`--px-out` fractions set at build time drive two zero-length `steps(1)` animations (show fills forwards; hide starts one `--px-dur` later and wins by later-in-list precedence); `gsap.delayedCall` became a `--px-dur`-delayed visibility transition on the second layer; retrigger mid-animation = `.px-play` drop + reflow + re-add (≙ killTweensOf). `pixelColor` takes live CSS colors incl. tokens (DOM divs, not canvas — the opposite of pulse-grid's hex rule). Chrome de-branded to tokens, no fixed width; `aspectRatio` = CSS aspect-ratio; reduced-motion = instant swap; second layer inert while shown (source behaviour, documented).
+- Registry validates (42 items). Dev board 16: image→text default, gridSize=12 accent-pixel 0.5s reverse card, `once` + 21/9 wide. Queue row appended — **queue at 10 pending, docs-session threshold REACHED: docs session before further building.**
+
+**Next:** user eyeballs board 16 (flash randomness, swap timing at 0.3s vs 0.5s, once staying revealed, focus/tab trigger, touch tap if handy) → registry:build → commit + push. Then /docs-session.
+
+### 2026-07-17 (t) — /build-session: pulse-grid (CursorGrid port, cursor stripped) + cta-02
+
+**Done:**
+- `PulseGrid.astro` (item `pulse-grid`, from user-supplied react-bits CursorGrid): canvas grid engine ported near-verbatim (falloff curves, holdTime→fadeDuration cell lifecycle, radial-gradient cell strokes, dpr clamp, wake/idle rAF that self-suspends when nothing is lit), but the pointer listeners are GONE per the user's call — replaced by an autonomous driver: jittered setTimeout averaging `speed` bursts/s at random points, `pulseChance` fraction becoming the source's expanding click-ring. New vs source: `colors` array (per-cell Uint8 color index remembers which burst lit each cell; lattice uses colors[0]), IntersectionObserver gates the timer off-screen, reduced-motion = static lattice only. Root is `pointer-events-none absolute inset-0` — purpose-built for `background` slots; colors are literal hex (canvas can't read tokens, map precedent), default mirrors dark `--accent` #60a5fa. Props travel as one JSON data-attribute; config is init-time only.
+- `Cta-02.astro` (item `cta-02`, deps: utils, button, pulse-grid): cta-01's band structure with PulseGrid as the background-slot fallback — first section whose fallback is an animation item, not an image (the §7.8 effects-drop-in model made real). No scrim; needs a light-theme eyeball.
+- Registry validates (41 items). Dev board 15 "Pulse Grid" (defaults / multi-color+fill+lattice+rounded / rings-only / dense-fast stress); cta-02 added to board 13. Two queue rows appended — **queue at 9 pending, docs session due next.**
+
+**Decided:** ambient-animation items are their own registry items that sections consume via registryDependencies (one add pulls both); autonomous timers (not pointer events) drive background effects so the layer can stay pointer-events-none.
+
+**Next:** user eyeballs board 15 (all four variants animate, idle CPU drops when cells fade out, stress case stays smooth) + board 13 cta-02 (text legibility over the animation in BOTH themes) → registry:build → commit + push. Then /docs-session — 9 pending rows.
+
+### 2026-07-17 (s) — /build-session: map phase 3 — map-geojson
+
+**Done:**
+- `MapGeoJSON.astro` (item `map-geojson`, deps: @astro-shad/map): GeoJSON (inline object or URL) → fill + outline layers on the map-route re-add pattern. `fillPaint`/`linePaint` merge over theme-aware monochrome defaults (or `false` omits the layer); `mergeHoverPaint` ported verbatim — `fillHoverPaint` values become `case` expressions on hover feature-state, requires `promoteId`; `interactive` = pointer cursor + `map:geojson-click`/`map:geojson-hover` CustomEvents with feature payloads (hover fires feature:null on leave, only on feature change). Generics flattened to JSON props.
+- **Map.astro change:** stamps the resolved theme on its root as `data-map-theme` (initial + every applyTheme) so layer children re-resolve theme-aware paint defaults at re-add time — deliberately NOT `data-theme`, which would feed back into resolveTheme's closest(). The observer filter (class/data-theme) doesn't see the stamp, no loop.
+- Registry validates (39 items). Board 14 gains two groups: districts choropleth on `<Map blank>` (hover accent highlight via promoteId feature-state) and a translucent delivery-zone polygon over the street basemap. Queue row appended — queue at 7 pending, docs session approaching.
+
+**Decided:** layer children read theme from the root stamp rather than resolving it themselves — one resolver (Map's), one source of truth. GeoJSON monochrome defaults stay literal hex per the paint-can't-read-tokens rule.
+
+**Next:** user eyeballs board 14 groups 5-6 (hover highlight + cursor on districts, blank basemap showing the themed container, zone overlay, both survive theme toggle) → registry:build → commit + push. Phase 4 (map-arc + map-cluster) completes the port; queue will then be at 8-9 pending → /docs-session due.
+
+### 2026-07-17 (r) — /build-session: map phase 2 — map-route + MapPopup
+
+**Done:**
+- `MapRoute.astro` (item `map-route`, deps: @astro-shad/map): GeoJSON line source+layer from a coordinates prop; color/width/opacity/dashArray/beforeId; interactive hover cursor + `map:route-click/-mouseenter/-mouseleave` CustomEvents. **First layer child — proves the phase-1 re-add hook:** source+layer re-add on the map root's `map:style-load` (theme swap wipes style layers); layer-scoped `map.on(event, layerId, …)` listeners registered once (safe before the layer exists, survive re-adds). This is the wiring template for phase-3/4 layer items.
+- `MapPopup.astro` joined the `map` item (4 files now — shares the popup card chrome): standalone popup at lng/lat, slot content, optional close button, `map:popup-close` w/ `id`. Deliberate divergence: `closeOnClick` defaults FALSE (MapLibre default true) — a static popup that closes on a stray map click can never reopen; prop opts back in.
+- Registry validates (38 items). Dev board 14 gains a fourth group: solid route + dashed green walking route between two labeled accent pins + MapPopup annotation + top-right controls. Queue: `map` row notes extended (MapPopup), `map-route` row appended — queue at 6 pending.
+- Plan doc statuses updated (phases 1-2 built with field notes; phase 3 map-geojson next).
+
+**Decided:** MapPopup lives in the core `map` item, not with map-route (chrome affinity beats phase affinity). Route paint defaults stay literal hex (#4285F4) — MapLibre canvas paint can't read CSS tokens; consumers pass a color string.
+
+**Next:** user eyeballs board 14 group 4 (routes render, pointer on hover, popup annotation, routes SURVIVE the theme toggle — the re-add path's first real test) → registry:build → commit + push. Phase 3 (map-geojson: fill/outline + hover feature-state + mergeHoverPaint port) next build session.
+
+### 2026-07-17 (q) — /build-session: map (mapcn port phase 1) + phased port plan
+
+**Done:**
+- Feasibility pass on mapcn's `map.tsx` (2,225 lines, React + MapLibre GL): confirmed the React layer is thin lifecycle glue over MapLibre's imperative vanilla API — portals/context/prop-reconciliation all deletable. Full 5-phase port mapped in **`docs/plans/phased-maps-plan-port.md`** (architecture decisions locked: inert-DOM-children + one wiring script, events-out-not-callbacks-in, instance exposed via `__astroShadMap` + `map:ready`, maplibre-gl as the registry's first vanilla runtime npm dep).
+- **Phase 1 built — item `map`, three files:** `Map.astro` (MapLibre init, Carto light/dark basemaps, theme resolved prop > closest `[data-theme]` > doc > system and live-tracked via MutationObserver; theme swap = setStyle diff:false → `map:style-load` re-add hook for future layer children; `blank` tile-less style; globe projection; loader overlay; `map:load`/`map:moveend` events; is:global CSS neutralising MapLibre's white popup chrome), `MapMarker.astro` (mapcn's 5 marker components collapsed into slots: default content w/ primary-dot fallback, popup via inert `<template>` → `setDOMContent` — createPortal's job for free, tooltip, label; drag/click/hover as `map:marker-*` CustomEvents with an `id` prop), `MapControls.astro` (zoom / live compass needle / geolocate w/ 10s timeout + spinner / fullscreen; lucide icons inlined; hover:bg-accent → hover:bg-muted per the accent decision, dark: variant dropped per contract).
+- Registry item with `dependencies: ["maplibre-gl"]` (first use of npm `dependencies` in this registry) + utils dep; validate passes (37 items). Dev board 14: business-location demo (marker+label+popup+all controls, Cape Town), custom-content/tooltip/draggable markers, globe projection. Queue row appended (`built`) — queue at 5 pending.
+
+**Decided:** map children self-wire (own scripts, closest() + property-or-event) rather than Map knowing child types — keeps phase 2-4 additions zero-touch on Map.astro. Popup/tooltip chrome ships without animate-in classes (tw-animate-css not in repo). Carto basemap terms fine at free tier w/ attribution kept.
+
+**Fix round (same session, after user's live test):** (1) theme toggle didn't swap the basemap — /dev DELETES data-theme in dark mode, so `closest('[data-theme]')` at init found nothing and the observer never watched the scope; also the system-preference fallback could put a light basemap under dark tokens. Fixed: resolveTheme re-runs per change via ONE subtree MutationObserver on documentElement (attributeFilter data-theme/class), and the fallback is now DARK (token default) — mapcn's matchMedia branch deleted, basemap follows tokens not OS. (2) marker popup didn't open — replaced reliance on MapLibre's marker.setPopup map-click plumbing with our own toggle on the content element: click w/ `stopPropagation()` (load-bearing — without it the same click bubbles to the map and popup closeOnClick removes it instantly, the exact trap maplibre's marker source comments on) + tabindex 0 + Enter/Space. (3) default pin dot bg-primary → bg-accent — primary is near-monochrome in the neutral theme and vanished against tiles. Confirmed working from user test: compass rotation, marker drag, globe.
+
+**Next:** user re-eyeballs board 14 (theme swap on toggle, popup open/close incl. close button + click-away, accent pins) → registry:build → commit + push. Phase 2 (map-route + MapPopup) next build session; spike-consumer delivery test of the npm-dep path noted in the plan as phase 5.
+
+### 2026-07-17 (p) — /build-session: logos-carousel, highlighted-text, button-group; rotating-text width fix
+
+**Done:**
+- `logos-carousel` (from a user-supplied react component): rotating alternative to logo-loop — logo groups swap in place, exit upward with blur, next rises in. Markup contract: each direct child = one group (react `count` chunking dropped). Rung-3 vanilla JS: interval flips one `data-state` per group; static enter/exit keyframes in `is:global` CSS; per-logo `--lc-d` stagger from DOM index. First group = no-JS/reduced-motion fallback.
+- `highlighted-text` (from motion/react): highlighter mark slides in behind the text from any edge; `mix-blend-difference` + literal `text-white` (commented, contract-sanctioned) inverts text over the `bg-foreground` mark — theme-proof, no second color. Spring ≈ `cubic-bezier(0.22,1,0.36,1)` 500ms off `data-inview`; on-load (double rAF) or `inView` IO mode, `once={false}` replays.
+- `button-group` (from shadcn base-ui, 3 files): ButtonGroup + ButtonGroupText (`as` prop replaces useRender) + ButtonGroupSeparator (Separator primitive INLINED as a bg-input line — none exists in the registry). cva → maps; data-slot child selectors → `*:first/last-child` so any children work; radius overrides use `!` to beat the child's own rounded-md (specificity tie otherwise). Zero JS.
+- **rotating-text width fix** (user-reported: wrapper snapped to the longest word, short words got dead space): a second per-instance keyframe track animates `width` through `--rt-w0..n` vars on the same clock as the word loop; script measures words after `document.fonts.ready`, sets vars, adds `.rt-fit`. Custom properties in keyframes resolve live, so the width track is phase-locked to the already-running word animations for free. Words `justify-self: start` (grid stretch broke measurement). No-JS/reduced-motion = old behaviour. No longer zero-JS; registry description updated.
+- Registry 36 items; dev board 14 (all three new components) + width-fit example on board 9. Queue: 4 rows appended (`built`).
+
+**Decided:** grouping-by-markup beats a `count` prop for slot-based Astro (chunking opaque slot HTML would need parsing); the var-in-keyframes trick is the sanctioned way to sync measured values into a running zero-JS CSS animation.
+
+**Next:** user eyeballs boards 9 + 14 both themes (logos rotation timing, highlight blend in light mode, button-group radii/border collapse incl. vertical + nested) → registry:build → commit + push. Queue at 4 pending.
+
+### 2026-07-17 (o) — first /docs-session: queue cleared (10 items), Layouts nav group established
+
+**Done:**
+- Docs for all nine section items as five family pages (accordion-page precedent, VariantBlock per item, `previewClass="p-0"` so sections render full-bleed): `hero.astro` (hero-01..04 + "How sections work" copy-and-own explainer), `split.astro` (basic + reverse, `reverse` PropsTable), `feature-grid.astro` (`columns` PropsTable, cross-link to feature-section), `feature-section.astro` (01+02, FEATURES-array editing section, transitions note), `cta.astro`. Ten minimal demo files under `demos/{hero,split,feature-grid,feature-section,cta}/` (sections ship populated, so demos are bare `<Hero01 />` calls).
+- "Layouts" nav group added to docs-nav.ts (Hero / Split / Feature Grid / Feature Section / CTA).
+- Accordion docs refresh: `highlight` row added to the AccordionItem PropsTable (demos already used it).
+- Queue: all 10 pending rows flipped to `documented 2026-07-17`. Queue is empty.
+
+**Contract review findings (cold-read):**
+- FIXED — hero-04's media panel: img filled a `rounded-lg` wrapper without `overflow-hidden`, square corners overflowed the radius.
+- REPORTED, not touched — FeatureGrid-01 demo content: the 4th card duplicates card 3 verbatim ("Copy-and-own" ×2) and orphan-wraps 3+1 at default `columns={3}`; also hero-04's media panel reuses hero-03's background image (SpVw8IvJJjE) — both user-added, user's call.
+- Everything else clean against the contract (tokens, ladder, imports, targets, header comments).
+
+**Next:** user eyeballs /docs (Layouts group, both themes) → registry:build (accordion demos changed earlier in the day; sections unchanged by docs) → commit + push. Then the carousel primitive build, then the hero-04 design pass.
+
+### 2026-07-17 (n) — feature-section-01/02: fuller-copy feature sections; motion/react conversion pattern settled
+
+**Done:**
+- `feature-section-01` (from shadcn-studio): header block + six icon feature cards. Demo content as a frontmatter FEATURES array (inline lucide path strings rendered via `set:html`); Avatar icon tile → token-tinted div; per-card color props → one neutral `hover:border-primary/40`. Zero JS. Deps: utils, button.
+- `feature-section-02` (from shadcn-space, motion/react): badge/heading/CTA header row + testimonial card over an image panel (Unsplash eggs, swap-for-local comment) + 2x2 muted icon cards. Entrance animations converted per the SplitText pattern: CSS transitions keyed off `data-inview` flipped once by an IntersectionObserver, source cubic-bezier preserved, 100ms card stagger via `--fs2-d`, prefers-reduced-motion guard. Initials circle stands in for the missing avatar primitive. Deps: utils, badge, button.
+- Registry items + dev board 13 groups; validate passes (33 items). Queue rows appended — **queue at 10 pending, docs session threshold reached.**
+
+**Decided (answered user's motion question, now precedent):** entrance-on-view effects need no keyframes — transitions + one data attribute. Duplicate scripts are a non-issue (Astro hoists/dedupes component scripts). If keyframes are ever genuinely needed, they ship via the registry item's `css` block — never by asking consumers to edit globals.css (§6).
+
+**Next:** /docs-session (10 pending). User: eyeball board 13, registry:build, commit + push. Carousel primitive still queued as the next build target (then hero-04 design pass).
+
+### 2026-07-17 (m) — hero demo images + hero-04 (split + feature row)
+
+**Done:**
+- Unsplash demo images shipped as `background` slot *fallbacks* (both customisation paths stay open: edit the img src, or fill the slot): hero-01 dark abstract curves (2bfHAKhGn4g) + `bg-background/60` scrim; hero-02 aerial forest (oMgtkpr3Cpg) + bottom gradient scrim (`bg-linear-to-t from-background`); hero-03 volcanic peaks (SpVw8IvJJjE) + scrim; cta-01 telescope/sea (vx_rXh_KTjQ) + `bg-background/70` scrim, with the eggs image (e6W48UPKijo) left as a commented alternate. URLs use the `/photos/<id>/download?w=…` endpoint (redirects to the CDN image; page URLs don't work in img src).
+- New `hero-04` — split hero simplified from a shadcn-studio restaurant hero: headline/actions left (rounded-full buttons, inline arrow in Button's icon-right slot), media placeholder right standing in for the source's embla triple-synced carousel, icon-feature card row beneath (plain divs + inline lucide svgs). Deps: utils, button. Registry item + dev board 13 group + queue row. Validate passes (31 items).
+- Contract §7.2 updated: background slot may ship a demo image + scrim as fallback; noted the download-URL convention.
+
+**Next (user-stated plan):** rebuild the carousel as a primitive (embla-style, vanilla — scroll-snap is the likely rung), then a design-focused pass on the section skeletons for more advanced hero variants. Queue at 8 pending — /docs-session due before much more building.
+
 ### 2026-07-17 (l) — sections model reworked: ships-populated replaces slot-fallback wireframes
 
 **Done:** user reviewed batch 1 and called the slot-fallback wireframe mechanic over-abstracted (structure/rhythm verdict: keep exactly). Reworked all six sections to the shadcn-blocks model the user prototyped in Hero-01: each file ships WITH real demo content (astro-shad primitives + neutral copy), so `<Hero01 />` renders a complete block; customisation is copy-and-own editing, with the content block delimited by a `<!-- content — yours to edit -->` comment. Content slots deleted (`media`/`footer`/`items`/default gone); `background` remains the one named slot (effects pass). Sections now import primitives relatively from `../` and declare them: hero-01 → badge+button, hero-02 → button, hero-03 → button+card, split-01 → button, feature-grid-01 → card, cta-01 → button (+utils on all). Registry descriptions updated; validate passes (30 items). Contract §7 rewritten (populated model, `background`-only slot, new §7.5 primitive-deps rule; the same-day `items` vocabulary entry removed with the vocabulary). Dev board 13 simplified to bare `<Section />` calls (user had already collapsed it; stale wireframe copy fixed). Queue notes for the six rows rewritten to the new model.

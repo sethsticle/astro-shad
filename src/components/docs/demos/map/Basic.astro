@@ -1,0 +1,19 @@
+---
+import Map from '../../../astro-shad/Map.astro';
+import MapMarker from '../../../astro-shad/MapMarker.astro';
+import MapControls from '../../../astro-shad/MapControls.astro';
+---
+
+<!-- you own the height: an unsized parent renders a 0px map -->
+<div class="h-80 w-full overflow-hidden rounded-lg border border-border">
+  <Map center={[18.4188, -33.9248]} zoom={13}>
+    <MapMarker longitude={18.4188} latitude={-33.9248} closeButton>
+      <span slot="label">Acme Coffee</span>
+      <div slot="popup">
+        <p class="text-sm font-semibold">Acme Coffee</p>
+        <p class="text-xs text-muted-foreground">123 Long Street · open till late</p>
+      </div>
+    </MapMarker>
+    <MapControls showCompass showFullscreen />
+  </Map>
+</div>
