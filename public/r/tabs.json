@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tabs",
+  "title": "Tabs",
+  "description": "shadcn tabs with Radix replaced by minimal vanilla JS. Tabs declared as a prop, panels as named slots. Click + arrow-key activation, ARIA wired.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/Tabs.astro",
+      "content": "---\n/**\n * Tabs.astro -- astro-shad tabs. Converted from shadcn ui/tabs.tsx\n * (Radix Tabs): trigger list + panels in one file, Radix replaced by\n * ~20 lines of vanilla JS (click + arrow-key activation, ARIA wired).\n *\n * Tabs are declared as a prop; each panel is a named slot keyed by id.\n * Ids double as DOM ids -- keep them unique per page.\n *\n *   <Tabs tabs={[\n *     { id: 'account', label: 'Account' },\n *     { id: 'password', label: 'Password' },\n *   ]}>\n *     <div slot=\"account\">...</div>\n *     <div slot=\"password\">...</div>\n *   </Tabs>\n */\nimport { cn } from '../../lib/utils';\n\ninterface Tab {\n  id: string;\n  label: string;\n}\n\ninterface Props {\n  tabs: Tab[];\n  /** id of the initially active tab; defaults to the first. */\n  initial?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { tabs, initial = tabs[0]?.id, class: className, ...rest } = Astro.props;\n\nconst TRIGGER =\n  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ' +\n  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +\n  'aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-sm';\n---\n\n<div class={cn(className)} data-astro-shad-tabs {...rest}>\n  <div\n    role=\"tablist\"\n    class=\"inline-flex h-10 items-center justify-center gap-1 rounded-md bg-muted p-1 text-muted-foreground\"\n  >\n    {tabs.map((tab) => (\n      <button\n        type=\"button\"\n        role=\"tab\"\n        id={`tab-${tab.id}`}\n        aria-controls={`panel-${tab.id}`}\n        aria-selected={tab.id === initial ? 'true' : 'false'}\n        tabindex={tab.id === initial ? 0 : -1}\n        class={TRIGGER}\n      >\n        {tab.label}\n      </button>\n    ))}\n  </div>\n  {tabs.map((tab) => (\n    <div\n      role=\"tabpanel\"\n      id={`panel-${tab.id}`}\n      aria-labelledby={`tab-${tab.id}`}\n      hidden={tab.id !== initial}\n      class=\"mt-2\"\n    >\n      <slot name={tab.id} />\n    </div>\n  ))}\n</div>\n\n<script>\n  function initTabs(root: HTMLElement) {\n    const triggers = Array.from(root.querySelectorAll<HTMLButtonElement>('[role=\"tab\"]'));\n\n    function activate(trigger: HTMLButtonElement) {\n      for (const t of triggers) {\n        const selected = t === trigger;\n        t.setAttribute('aria-selected', String(selected));\n        t.tabIndex = selected ? 0 : -1;\n        const panel = root.querySelector<HTMLElement>(`#${t.getAttribute('aria-controls')}`);\n        if (panel) panel.hidden = !selected;\n      }\n      trigger.focus();\n    }\n\n    triggers.forEach((trigger, i) => {\n      trigger.addEventListener('click', () => activate(trigger));\n      trigger.addEventListener('keydown', (e) => {\n        const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;\n        if (!delta) return;\n        e.preventDefault();\n        activate(triggers[(i + delta + triggers.length) % triggers.length]);\n      });\n    });\n  }\n\n  document.querySelectorAll<HTMLElement>('[data-astro-shad-tabs]').forEach(initTabs);\n</script>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Tabs.astro"
+    }
+  ],
+  "type": "registry:component"
+}

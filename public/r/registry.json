@@ -11,7 +11,7 @@
       "dependencies": ["clsx", "tailwind-merge"],
       "files": [
         {
-          "path": "lib/utils.ts",
+          "path": "src/lib/utils.ts",
           "type": "registry:lib",
           "target": "src/lib/utils.ts"
         }
@@ -24,7 +24,7 @@
       "description": "Three-layer token contract: shadcn slot vars, semantic utilities, slot-to-utility bridge. Neutral values -- override per brand.",
       "files": [
         {
-          "path": "styles/theme.css",
+          "path": "src/styles/theme.css",
           "type": "registry:file",
           "target": "src/styles/theme.css"
         }
@@ -38,7 +38,7 @@
       "registryDependencies": ["@astro-shad/utils"],
       "files": [
         {
-          "path": "components/Button.astro",
+          "path": "src/components/astro-shad/Button.astro",
           "type": "registry:component",
           "target": "src/components/astro-shad/Button.astro"
         }
@@ -48,12 +48,60 @@
       "name": "badge",
       "type": "registry:component",
       "title": "Badge",
-      "description": "shadcn badge converted to a self-contained .astro file. Renders <a> when href is given, <span> otherwise. Zero client JS. Spike note: this item deliberately omits a file target to test alias-based placement.",
+      "description": "shadcn badge converted to a self-contained .astro file. Renders <a> when href is given, <span> otherwise. Zero client JS.",
       "registryDependencies": ["@astro-shad/utils"],
       "files": [
         {
-          "path": "components/Badge.astro",
-          "type": "registry:component"
+          "path": "src/components/astro-shad/Badge.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Badge.astro"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:component",
+      "title": "Card",
+      "description": "shadcn card collapsed into one .astro file: title/description props plus header, default, and footer slots. Zero client JS.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Card.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Card.astro"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:component",
+      "title": "Tabs",
+      "description": "shadcn tabs with Radix replaced by minimal vanilla JS. Tabs declared as a prop, panels as named slots. Click + arrow-key activation, ARIA wired.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Tabs.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Tabs.astro"
+        }
+      ]
+    },
+    {
+      "name": "accordion",
+      "type": "registry:component",
+      "title": "Accordion",
+      "description": "shadcn accordion with Radix replaced by minimal vanilla JS. Accordion root + AccordionItem, single/multiple modes, CSS grid-rows height animation.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Accordion.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Accordion.astro"
+        },
+        {
+          "path": "src/components/astro-shad/AccordionItem.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/AccordionItem.astro"
         }
       ]
     }

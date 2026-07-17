@@ -15,7 +15,7 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.0",
     "@tailwindcss/vite": "^4.0.0",
-    "astro": "^5.0.0",
+    "astro": "^7.1.0",
     "astro-icon": "^1.1.0",
     "clsx": "^2.1.0",
     "tailwind-merge": "^3.0.0",

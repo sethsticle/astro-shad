@@ -2,15 +2,16 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "badge",
   "title": "Badge",
-  "description": "shadcn badge converted to a self-contained .astro file. Renders <a> when href is given, <span> otherwise. Zero client JS. Spike note: this item deliberately omits a file target to test alias-based placement.",
+  "description": "shadcn badge converted to a self-contained .astro file. Renders <a> when href is given, <span> otherwise. Zero client JS.",
   "registryDependencies": [
     "@astro-shad/utils"
   ],
   "files": [
     {
-      "path": "components/Badge.astro",
+      "path": "src/components/astro-shad/Badge.astro",
       "content": "---\n/**\n * Badge.astro -- astro-shad badge/pill. Converted from shadcn ui/badge.tsx:\n * cva shape kept as plain maps, React runtime dropped.\n *\n * Neutral tokens: resolves against the shadcn slot utilities bridged in\n * theme.css. Renders <a> when href is given, <span> otherwise.\n *\n *   <Badge>New</Badge>\n *   <Badge variant=\"outline\" href=\"/news\">12 updates</Badge>\n */\nimport { cn } from '../../lib/utils';\n\ntype Variant = 'primary' | 'secondary' | 'destructive' | 'outline' | 'accent';\n\nconst BASE =\n  'inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors ' +\n  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';\n\nconst VARIANTS: Record<Variant, string> = {\n  primary: 'bg-primary text-primary-foreground',\n  secondary: 'bg-secondary text-secondary-foreground',\n  destructive: 'bg-destructive text-destructive-foreground',\n  outline: 'border border-border text-foreground/70',\n  /* Tinted accent chip -- reads in both themes via opacity on the accent. */\n  accent: 'bg-primary/15 text-primary border border-primary/30',\n};\n\ninterface Props {\n  variant?: Variant;\n  href?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { variant = 'primary', href, class: className, ...rest } = Astro.props;\nconst classes = cn(BASE, VARIANTS[variant], className);\n---\n\n{href ? (\n  <a href={href} class={classes} {...rest}><slot /></a>\n) : (\n  <span class={classes} {...rest}><slot /></span>\n)}\n",
-      "type": "registry:component"
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Badge.astro"
     }
   ],
   "type": "registry:component"
