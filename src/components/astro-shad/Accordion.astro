@@ -1,0 +1,56 @@
+---
+/**
+ * Accordion.astro -- astro-shad accordion root. Converted from shadcn
+ * ui/accordion.tsx (Radix Accordion): this wrapper owns the behaviour
+ * (vanilla JS, event delegation); items are <AccordionItem> children.
+ *
+ * type="single" (default) closes the other items when one opens;
+ * type="multiple" lets any number stay open.
+ *
+ *   <Accordion>
+ *     <AccordionItem title="Is it accessible?">Yes -- ARIA wired.</AccordionItem>
+ *     <AccordionItem title="Is it styled?" open>Neutral tokens only.</AccordionItem>
+ *   </Accordion>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  type?: 'single' | 'multiple';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { type = 'single', class: className, ...rest } = Astro.props;
+---
+
+<div
+  class={cn('divide-y divide-border border-y border-border', className)}
+  data-astro-shad-accordion={type}
+  {...rest}
+>
+  <slot />
+</div>
+
+<script>
+  function setOpen(trigger: Element, open: boolean) {
+    trigger.setAttribute('aria-expanded', String(open));
+    const panel = trigger
+      .closest('[data-accordion-item]')
+      ?.querySelector<HTMLElement>('[data-accordion-panel]');
+    if (panel) panel.dataset.state = open ? 'open' : 'closed';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-accordion]').forEach((root) => {
+    root.addEventListener('click', (e) => {
+      const trigger = (e.target as HTMLElement).closest('[data-accordion-trigger]');
+      if (!trigger || trigger.closest('[data-astro-shad-accordion]') !== root) return;
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (root.dataset.astroShadAccordion === 'single' && !isOpen) {
+        root
+          .querySelectorAll('[data-accordion-trigger][aria-expanded="true"]')
+          .forEach((other) => setOpen(other, false));
+      }
+      setOpen(trigger, !isOpen);
+    });
+  });
+</script>

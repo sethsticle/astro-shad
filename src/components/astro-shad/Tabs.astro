@@ -1,0 +1,100 @@
+---
+/**
+ * Tabs.astro -- astro-shad tabs. Converted from shadcn ui/tabs.tsx
+ * (Radix Tabs): trigger list + panels in one file, Radix replaced by
+ * ~20 lines of vanilla JS (click + arrow-key activation, ARIA wired).
+ *
+ * Tabs are declared as a prop; each panel is a named slot keyed by id.
+ * Ids double as DOM ids -- keep them unique per page.
+ *
+ *   <Tabs tabs={[
+ *     { id: 'account', label: 'Account' },
+ *     { id: 'password', label: 'Password' },
+ *   ]}>
+ *     <div slot="account">...</div>
+ *     <div slot="password">...</div>
+ *   </Tabs>
+ */
+import { cn } from '../../lib/utils';
+
+interface Tab {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  tabs: Tab[];
+  /** id of the initially active tab; defaults to the first. */
+  initial?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { tabs, initial = tabs[0]?.id, class: className, ...rest } = Astro.props;
+
+const TRIGGER =
+  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +
+  'aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-sm';
+---
+
+<div class={cn(className)} data-astro-shad-tabs {...rest}>
+  <div
+    role="tablist"
+    class="inline-flex h-10 items-center justify-center gap-1 rounded-md bg-muted p-1 text-muted-foreground"
+  >
+    {tabs.map((tab) => (
+      <button
+        type="button"
+        role="tab"
+        id={`tab-${tab.id}`}
+        aria-controls={`panel-${tab.id}`}
+        aria-selected={tab.id === initial ? 'true' : 'false'}
+        tabindex={tab.id === initial ? 0 : -1}
+        class={TRIGGER}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  {tabs.map((tab) => (
+    <div
+      role="tabpanel"
+      id={`panel-${tab.id}`}
+      aria-labelledby={`tab-${tab.id}`}
+      hidden={tab.id !== initial}
+      class="mt-2"
+    >
+      <slot name={tab.id} />
+    </div>
+  ))}
+</div>
+
+<script>
+  function initTabs(root: HTMLElement) {
+    const triggers = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+
+    function activate(trigger: HTMLButtonElement) {
+      for (const t of triggers) {
+        const selected = t === trigger;
+        t.setAttribute('aria-selected', String(selected));
+        t.tabIndex = selected ? 0 : -1;
+        const panel = root.querySelector<HTMLElement>(`#${t.getAttribute('aria-controls')}`);
+        if (panel) panel.hidden = !selected;
+      }
+      trigger.focus();
+    }
+
+    triggers.forEach((trigger, i) => {
+      trigger.addEventListener('click', () => activate(trigger));
+      trigger.addEventListener('keydown', (e) => {
+        const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!delta) return;
+        e.preventDefault();
+        activate(triggers[(i + delta + triggers.length) % triggers.length]);
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-tabs]').forEach(initTabs);
+</script>

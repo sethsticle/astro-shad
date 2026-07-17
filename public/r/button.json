@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "button",
+  "title": "Button",
+  "description": "shadcn button converted to a self-contained .astro file. Renders <a> when href is given, <button> otherwise. Zero client JS.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "components/Button.astro",
+      "content": "---\n/**\n * Button.astro -- astro-shad button. Single file: variant styles, markup,\n * and types all live here (mirrors the shadcn ui/button.tsx shape, minus\n * React -- Astro's own props/slot replace forwardRef/Slot/JSX).\n *\n * Neutral tokens: styles resolve against the shadcn slot utilities\n * (bg-primary, text-muted-foreground, ...) bridged in theme.css. Re-brand\n * by overriding token values, never this markup.\n *\n * Renders <a> when href is given, <button> otherwise.\n *\n *   <Button href=\"/get-involved\" size=\"lg\">Get Involved</Button>\n *   <Button variant=\"destructive\" type=\"submit\">Delete</Button>\n */\nimport { cn } from '../../lib/utils';\n\ntype Variant = 'primary' | 'secondary' | 'inverse' | 'outline' | 'ghost' | 'destructive';\ntype Size = 'sm' | 'md' | 'lg';\n\nconst BASE =\n  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-semibold transition-colors cursor-pointer ' +\n  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ' +\n  'disabled:pointer-events-none disabled:opacity-50';\n\nconst VARIANTS: Record<Variant, string> = {\n  primary: 'bg-primary text-primary-foreground hover:bg-primary/85',\n  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',\n  /* Flips with the theme: foreground fill, background text. */\n  inverse: 'bg-foreground text-background hover:opacity-90',\n  outline: 'border border-border text-foreground/70 hover:border-primary hover:text-primary',\n  ghost: 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground',\n  destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/85',\n};\n\nconst SIZES: Record<Size, string> = {\n  sm: 'h-9 px-4',\n  md: 'h-10 px-5',\n  lg: 'h-11 px-6',\n};\n\ninterface Props {\n  variant?: Variant;\n  size?: Size;\n  href?: string;\n  type?: 'button' | 'submit' | 'reset';\n  target?: string;\n  rel?: string;\n  disabled?: boolean;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst {\n  variant = 'primary',\n  size = 'md',\n  href,\n  type = 'button',\n  target,\n  rel,\n  disabled,\n  class: className,\n  ...rest\n} = Astro.props;\n\nconst classes = cn(BASE, VARIANTS[variant], SIZES[size], className);\n---\n\n{href ? (\n  <a href={href} class={classes} target={target} rel={rel} {...rest}>\n    <slot />\n  </a>\n) : (\n  <button type={type} class={classes} disabled={disabled} {...rest}>\n    <slot />\n  </button>\n)}\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Button.astro"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -1,5 +1,10 @@
 node_modules/
-public/r/
-r/
+dist/
+.astro/
 .DS_Store
-spike-consumer/
+# spike-consumer/
+# sharing spike-consumer test repo as docs reference this anyways
+
+# public/r/ is deliberately COMMITTED -- built registry JSON served
+# straight from raw.githubusercontent.com. Rebuild before every push:
+# npm run registry:build

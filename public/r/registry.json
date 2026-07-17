@@ -1,0 +1,61 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "astro-shad",
+  "homepage": "https://github.com/sethhendrikz/astro-shad",
+  "items": [
+    {
+      "name": "utils",
+      "type": "registry:lib",
+      "title": "cn utility",
+      "description": "clsx + tailwind-merge class merger used by every astro-shad component.",
+      "dependencies": ["clsx", "tailwind-merge"],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "src/lib/utils.ts"
+        }
+      ]
+    },
+    {
+      "name": "theme",
+      "type": "registry:file",
+      "title": "astro-shad theme tokens",
+      "description": "Three-layer token contract: shadcn slot vars, semantic utilities, slot-to-utility bridge. Neutral values -- override per brand.",
+      "files": [
+        {
+          "path": "styles/theme.css",
+          "type": "registry:file",
+          "target": "src/styles/theme.css"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:component",
+      "title": "Button",
+      "description": "shadcn button converted to a self-contained .astro file. Renders <a> when href is given, <button> otherwise. Zero client JS.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "components/Button.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Button.astro"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:component",
+      "title": "Badge",
+      "description": "shadcn badge converted to a self-contained .astro file. Renders <a> when href is given, <span> otherwise. Zero client JS. Spike note: this item deliberately omits a file target to test alias-based placement.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "components/Badge.astro",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}

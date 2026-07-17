@@ -1,0 +1,6 @@
+/* Playground stylesheet -- mirrors exactly what a consumer's global.css
+ * does after `add @astro-shad/theme`: Tailwind first, then the token
+ * contract. Nothing else belongs here; brand overrides are a consumer
+ * concern. */
+@import "tailwindcss";
+@import "./theme.css";

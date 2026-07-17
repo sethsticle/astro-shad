@@ -1,0 +1,52 @@
+---
+/**
+ * Card.astro -- astro-shad card. Converted from shadcn ui/card.tsx: the
+ * six subcomponents (Card/Header/Title/Description/Content/Footer)
+ * collapse into one file using props + named slots.
+ *
+ * Neutral tokens: resolves against the shadcn slot utilities bridged in
+ * theme.css. Zero client JS.
+ *
+ *   <Card title="Notifications" description="Manage how we reach you.">
+ *     ...content...
+ *     <div slot="footer"><Button size="sm">Save</Button></div>
+ *   </Card>
+ *
+ * The "header" slot replaces title/description entirely when custom
+ * header markup is needed.
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  title?: string;
+  description?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { title, description, class: className, ...rest } = Astro.props;
+const hasHeader = Boolean(title || description) || Astro.slots.has('header');
+const hasFooter = Astro.slots.has('footer');
+---
+
+<div
+  class={cn('rounded-lg border border-border bg-card text-card-foreground shadow-sm', className)}
+  {...rest}
+>
+  {hasHeader && (
+    <div class="flex flex-col gap-1.5 p-6">
+      <slot name="header">
+        {title && <h3 class="text-lg font-semibold leading-none tracking-tight">{title}</h3>}
+        {description && <p class="text-sm text-muted-foreground">{description}</p>}
+      </slot>
+    </div>
+  )}
+  <div class={cn('p-6', hasHeader && 'pt-0')}>
+    <slot />
+  </div>
+  {hasFooter && (
+    <div class="flex items-center p-6 pt-0">
+      <slot name="footer" />
+    </div>
+  )}
+</div>

@@ -1,0 +1,136 @@
+---
+/**
+ * /dev -- the astro-shad playground. Every registry component renders
+ * here against the neutral theme before it ships (the "storybook" of
+ * the registry). New components must add a section.
+ */
+import '../styles/global.css';
+import Button from '../components/astro-shad/Button.astro';
+import Badge from '../components/astro-shad/Badge.astro';
+import Card from '../components/astro-shad/Card.astro';
+import Tabs from '../components/astro-shad/Tabs.astro';
+import Accordion from '../components/astro-shad/Accordion.astro';
+import AccordionItem from '../components/astro-shad/AccordionItem.astro';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>astro-shad / dev</title>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    <header class="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/90 px-8 py-4 backdrop-blur">
+      <div class="flex items-baseline gap-3">
+        <h1 class="text-lg font-semibold">astro-shad</h1>
+        <span class="text-sm text-muted-foreground">component playground · neutral theme</span>
+      </div>
+      <Button id="theme-toggle" variant="outline" size="sm">Toggle theme</Button>
+    </header>
+
+    <main class="mx-auto flex max-w-3xl flex-col gap-14 px-8 py-12">
+      <section class="flex flex-col gap-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Button</h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button>Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="inverse">Inverse</Button>
+          <Button variant="outline">Outline</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button variant="destructive">Destructive</Button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button size="sm">Small</Button>
+          <Button size="md">Medium</Button>
+          <Button size="lg">Large</Button>
+          <Button disabled>Disabled</Button>
+          <Button href="#" variant="outline">As link</Button>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Badge</h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <Badge>Primary</Badge>
+          <Badge variant="secondary">Secondary</Badge>
+          <Badge variant="destructive">Destructive</Badge>
+          <Badge variant="outline">Outline</Badge>
+          <Badge variant="accent">Accent</Badge>
+          <Badge variant="outline" href="#">As link</Badge>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Card</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <Card title="Notifications" description="Choose how you want to be reached.">
+            <p class="text-sm text-muted-foreground">
+              Body content lives in the default slot. Header spacing collapses
+              when no title, description, or header slot is given.
+            </p>
+            <div slot="footer" class="flex gap-2">
+              <Button size="sm">Save</Button>
+              <Button size="sm" variant="ghost">Cancel</Button>
+            </div>
+          </Card>
+          <Card>
+            <p class="text-sm text-muted-foreground">
+              Bare card: no header, no footer -- just the default slot.
+            </p>
+          </Card>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Tabs</h2>
+        <Tabs
+          tabs={[
+            { id: 'account', label: 'Account' },
+            { id: 'password', label: 'Password' },
+            { id: 'team', label: 'Team' },
+          ]}
+        >
+          <Card slot="account" title="Account">
+            <p class="text-sm text-muted-foreground">Account panel. Arrow keys move between triggers.</p>
+          </Card>
+          <Card slot="password" title="Password">
+            <p class="text-sm text-muted-foreground">Password panel.</p>
+          </Card>
+          <Card slot="team" title="Team">
+            <p class="text-sm text-muted-foreground">Team panel.</p>
+          </Card>
+        </Tabs>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Accordion · single</h2>
+        <Accordion>
+          <AccordionItem title="Is it accessible?">
+            Trigger is a real button with aria-expanded; panel animates via the CSS grid-rows trick.
+          </AccordionItem>
+          <AccordionItem title="Is it styled?" open>
+            Neutral tokens only -- re-brand by overriding theme.css values, never this markup.
+          </AccordionItem>
+          <AccordionItem title="Is it animated?">
+            Height transition with no measured heights and no JS animation code.
+          </AccordionItem>
+        </Accordion>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Accordion · multiple</h2>
+        <Accordion type="multiple">
+          <AccordionItem title="First item">Both of these can stay open at once.</AccordionItem>
+          <AccordionItem title="Second item">type="multiple" skips the close-siblings step.</AccordionItem>
+        </Accordion>
+      </section>
+    </main>
+
+    <script>
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const el = document.documentElement;
+        el.dataset.theme = el.dataset.theme === 'light' ? 'dark' : 'light';
+      });
+    </script>
+  </body>
+</html>

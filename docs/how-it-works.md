@@ -25,8 +25,9 @@ So astro-shad is: *our own shadcn-compatible registry, serving hand-converted `.
 ┌─────────────────────┐     shadcn build      ┌──────────────────────┐
 │  THIS REPO (source) │ ────────────────────► │  public/r/*.json     │
 │  registry.json      │                       │  (static, hostable)  │
-│  components/*.astro │                       └──────────┬───────────┘
-│  styles/theme.css   │                                  │ served over HTTP
+│  src/components/    │                       └──────────┬───────────┘
+│    astro-shad/      │                                  │ served over HTTP
+│  src/styles/        │                                  │
 │  lib/utils.ts       │                                  ▼
 └─────────────────────┘                       ┌──────────────────────┐
                                               │  CONSUMER REPO       │
@@ -58,7 +59,7 @@ The manifest at the repo root. One entry per installable item:
       "registryDependencies": ["@astro-shad/utils"],   // other ITEMS this needs (recursive)
       "files": [
         {
-          "path": "components/Button.astro",     // where it lives HERE (source)
+          "path": "src/components/astro-shad/Button.astro",   // where it lives HERE (source)
           "type": "registry:component",
           "target": "src/components/astro-shad/Button.astro"  // where it lands THERE (consumer)
         }
@@ -93,15 +94,15 @@ Components get their own `astro-shad/` subfolder so they're visibly registry-own
 
 ## 4. Anatomy of a component (the conversion contract)
 
-Open `components/Button.astro` — it's the reference example. The rules it embodies:
+Open `src/components/astro-shad/Button.astro` — it's the reference example. The rules it embodies:
 
 1. **Self-contained single file.** Variant maps, types, markup all in one `.astro` file. Mirrors the shadcn `ui/button.tsx` shape, with Astro's own props/`<slot />` replacing forwardRef/Slot/JSX. Plain `Record<Variant, string>` maps instead of cva.
-2. **Relative imports, written for the *installed* layout.** The button imports `import { cn } from '../../lib/utils'` — that path is correct from `src/components/astro-shad/` in the consumer (up to `src/`, into `lib/`). Note it does *not* resolve in a flat source layout — which is why the source repo should mirror the installed layout (`src/components/astro-shad/`, `src/lib/`, `src/styles/`), making every import literally true in both places and letting the repo render its own components in a dev playground. The CLI never rewrites these paths (verified: byte-identical delivery), so **the source file must be written as if it already lives at its target**. Never use `@/` aliases in component source — we can't rely on the consumer having them.
+2. **Relative imports, written for the *installed* layout.** The button imports `import { cn } from '../../lib/utils'` — that path is correct from `src/components/astro-shad/` in the consumer (up to `src/`, into `lib/`). This repo's source tree mirrors the installed layout (`src/components/astro-shad/`, `src/lib/`, `src/styles/`) for exactly this reason: every import is literally true in both places, `path` and `target` in registry.json are identical, and the repo can render its own components in the `/dev` playground. The CLI never rewrites these paths (verified: byte-identical delivery), so **the source file must be written as if it already lives at its target**. Never use `@/` aliases in component source — we can't rely on the consumer having them.
 3. **Styles only through tokens.** Components use shadcn slot utilities (`bg-primary`, `text-muted-foreground`, `ring-ring`, …) which the theme bridges (section below). Re-branding means overriding token *values*, never editing markup.
 4. **Zero client JS unless the component genuinely needs it** — and then minimal vanilla JS in a `<script>` tag, no framework islands.
 5. **Polymorphic where shadcn used `asChild`.** Button renders `<a>` when `href` is given, `<button>` otherwise.
 
-### The theme contract (`styles/theme.css`)
+### The theme contract (`src/styles/theme.css`)
 
 Three layers, shipped with neutral (grayscale) values:
 
@@ -113,32 +114,33 @@ A consumer re-brands by overriding values in layer 1 and 2 — in `theme.css` di
 
 ## 5. Recipe: adding a new component to the registry
 
-Say you're converting `Card` next:
+Say you're converting `Avatar` next:
 
-1. **Write the source**: `components/Card.astro`, following the contract in section 4. If it needs `cn()`, import it as `../../lib/utils` (relative, installed-layout path).
-2. **Add its item to `registry.json`**:
+1. **Write the source**: `src/components/astro-shad/Avatar.astro`, following the contract in section 4. If it needs `cn()`, import it as `../../lib/utils` (relative, installed-layout path — true here too, since the source tree mirrors the target).
+2. **Add its item to `registry.json`** (`path` and `target` are identical by convention):
    ```jsonc
    {
-     "name": "card",
+     "name": "avatar",
      "type": "registry:component",
-     "title": "Card",
+     "title": "Avatar",
      "description": "…",
      "registryDependencies": ["@astro-shad/utils"],
      "files": [{
-       "path": "components/Card.astro",
+       "path": "src/components/astro-shad/Avatar.astro",
        "type": "registry:component",
-       "target": "src/components/astro-shad/Card.astro"
+       "target": "src/components/astro-shad/Avatar.astro"
      }]
    }
    ```
-   Declare `dependencies` only if the file imports an npm package directly. Multi-file components list several entries in `files`, each with its own explicit target.
-3. **Validate and build**:
+   Declare `dependencies` only if the file imports an npm package directly. Multi-file components list several entries in `files`, each with its own explicit target (see `accordion`: `Accordion.astro` + `AccordionItem.astro` in one item).
+3. **Render it on `/dev`**: add a section to `src/pages/dev.astro` and eyeball it against the neutral theme in both light and dark (`npm run dev`).
+4. **Validate and build**:
    ```sh
    npm run registry:validate   # schema check (build validates too)
-   npm run registry:build      # emits public/r/card.json
+   npm run registry:build      # emits public/r/avatar.json
    ```
-4. **Smoke-test locally** (optional but cheap): `npm run serve` here, then in any consumer pointed at `http://localhost:4321/public/r/{name}.json`, run `npx shadcn add @astro-shad/card` and diff the installed file against the source. Then render it against the neutral theme.
-5. **Publish**: push / redeploy wherever `public/r/` is hosted.
+5. **Smoke-test the delivery** (optional but cheap): `npm run serve` here, then in a consumer pointed at `http://localhost:4321/public/r/{name}.json`, run `npx shadcn add @astro-shad/avatar` and diff the installed file against the source (`spike-consumer/` exists for exactly this).
+6. **Publish**: commit the rebuilt `public/r/` and push — GitHub raw URLs serve it directly, no deploy step.
 
 ## 6. Recipe: editing an existing component
 
@@ -176,7 +178,7 @@ Prerequisites: Astro project with Tailwind v4 (`@tailwindcss/vite`) already set 
        "hooks": "@/hooks"
      },
      "registries": {
-       "@astro-shad": "<registry-host>/r/{name}.json"
+       "@astro-shad": "https://raw.githubusercontent.com/sethhendrikz/astro-shad/main/public/r/{name}.json"
      }
    }
    ```

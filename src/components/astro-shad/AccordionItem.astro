@@ -1,0 +1,60 @@
+---
+/**
+ * AccordionItem.astro -- one collapsible row inside <Accordion>. Trigger
+ * markup + panel; behaviour lives in the Accordion root's script.
+ *
+ * Height animation is the CSS grid-rows trick (0fr -> 1fr), so panels can
+ * hold arbitrary content with no measured heights and no JS animation.
+ * Chevron is an inlined lucide chevron-down (self-contained on purpose --
+ * primitives carry no icon dependency; icon *props* on richer components
+ * use astro-icon).
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  title: string;
+  /** Render this item expanded on load. */
+  open?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { title, open = false, class: className, ...rest } = Astro.props;
+---
+
+<div class={cn(className)} data-accordion-item {...rest}>
+  <h3>
+    <button
+      type="button"
+      data-accordion-trigger
+      aria-expanded={open ? 'true' : 'false'}
+      class="group flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-foreground cursor-pointer transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {title}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-180"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </button>
+  </h3>
+  <div
+    data-accordion-panel
+    data-state={open ? 'open' : 'closed'}
+    class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 data-[state=open]:grid-rows-[1fr]"
+  >
+    <div class="overflow-hidden">
+      <div class="pb-4 text-sm text-muted-foreground">
+        <slot />
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,104 @@
+/* astro-shad theme -- the three-layer token contract, neutral values.
+ *
+ * Every astro-shad component styles itself only through these tokens.
+ * A host repo re-brands by overriding VALUES here (or in its own theme
+ * file loaded after this one) -- never by editing component markup.
+ *
+ * 1. :root         -- raw shadcn slot custom properties (+ light overrides).
+ * 2. @theme        -- semantic utilities the host repo types in its own
+ *                     markup (bg-canvas, text-ink, ...). Personality lives
+ *                     here: accents, radius, shadows.
+ * 3. @theme inline -- bridges slot vars into Tailwind utilities so
+ *                     bg-primary / text-muted-foreground etc. resolve.
+ *
+ * Dark is the default; html[data-theme="light"] overrides the same vars.
+ */
+
+/* ── 1. Raw shadcn slot custom properties (neutral dark) ── */
+:root {
+  --background:             #0a0a0a;
+  --foreground:             #fafafa;
+  --card:                   #171717;
+  --card-foreground:        #fafafa;
+  --popover:                #262626;
+  --popover-foreground:     #fafafa;
+  --primary:                #fafafa;
+  --primary-foreground:     #0a0a0a;
+  --secondary:              #262626;
+  --secondary-foreground:   #fafafa;
+  --muted:                  #262626;
+  --muted-foreground:       rgb(250 250 250 / 0.45);
+  --accent:                 #262626;
+  --accent-foreground:      #fafafa;
+  --destructive:            #dc2626;
+  --destructive-foreground: #fafafa;
+  --border:                 rgb(250 250 250 / 0.12);
+  --input:                  rgb(250 250 250 / 0.15);
+  --ring:                   #a3a3a3;
+  --radius:                 0.375rem;
+}
+
+/* ── 2. Semantic utilities (host-repo vocabulary, neutral values) ── */
+@theme {
+  /* Surface stack -- bg-canvas, bg-surface, bg-elevated, bg-shade */
+  --color-canvas:   #0a0a0a;
+  --color-surface:  #171717;
+  --color-elevated: #262626;
+  --color-shade:    #404040;
+
+  /* Semantic ink -- flips with the theme. text-ink, border-ink/15, ... */
+  --color-ink: #fafafa;
+
+  /* Radius is personality -- host repos change these three values. */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
+
+/* ── 3. shadcn slot -> Tailwind utility bridge ── */
+@theme inline {
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+}
+
+/* ── Light mode overrides ── */
+[data-theme="light"] {
+  --color-canvas:   #fafafa;
+  --color-surface:  #ffffff;
+  --color-elevated: #f5f5f5;
+  --color-shade:    #e5e5e5;
+  --color-ink:      #171717;
+
+  --background:             #fafafa;
+  --foreground:             #171717;
+  --card:                   #ffffff;
+  --card-foreground:        #171717;
+  --popover:                #f5f5f5;
+  --popover-foreground:     #171717;
+  --primary:                #171717;
+  --primary-foreground:     #fafafa;
+  --secondary:              #e5e5e5;
+  --secondary-foreground:   #171717;
+  --muted:                  #f5f5f5;
+  --muted-foreground:       rgb(23 23 23 / 0.50);
+  --border:                 rgb(23 23 23 / 0.12);
+  --input:                  rgb(23 23 23 / 0.10);
+  --ring:                   #737373;
+}
