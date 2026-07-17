@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "astro-shad",
-  "homepage": "https://github.com/sethhendrikz/astro-shad",
+  "homepage": "https://github.com/sethsticle/astro-shad",
   "items": [
     {
       "name": "utils",

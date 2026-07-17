@@ -49,7 +49,7 @@ The manifest at the repo root. One entry per installable item:
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "astro-shad",
-  "homepage": "https://github.com/sethhendrikz/astro-shad",
+  "homepage": "https://github.com/sethsticle/astro-shad",
   "items": [
     {
       "name": "button",                          // what consumers type: add @astro-shad/button
@@ -178,7 +178,7 @@ Prerequisites: Astro project with Tailwind v4 (`@tailwindcss/vite`) already set 
        "hooks": "@/hooks"
      },
      "registries": {
-       "@astro-shad": "https://raw.githubusercontent.com/sethhendrikz/astro-shad/main/public/r/{name}.json"
+       "@astro-shad": "https://raw.githubusercontent.com/sethsticle/astro-shad/main/public/r/{name}.json"
      }
    }
    ```

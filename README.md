@@ -51,7 +51,7 @@ Tradeoff: a second toolchain to learn, smaller ecosystem, and consumers need the
 
 ### Option C -- plain template repo (degit/giget)
 
-Zero infrastructure: `giget gh:sethhendrikz/astro-shad/components/Button.astro`. No dependency resolution, no cssVars injection, no registry semantics. Fine as a stopgap, not the destination.
+Zero infrastructure: `giget gh:sethsticle/astro-shad/components/Button.astro`. No dependency resolution, no cssVars injection, no registry semantics. Fine as a stopgap, not the destination.
 
 ### Verdict
 
