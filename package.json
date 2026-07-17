@@ -1,0 +1,14 @@
+{
+  "name": "astro-shad",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Personal registry of shadcn-quality components converted to lightweight Astro (HTML + Tailwind v4 + minimal vanilla JS).",
+  "scripts": {
+    "registry:build": "shadcn build",
+    "registry:validate": "shadcn registry validate",
+    "serve": "npx serve . -l 4321"
+  },
+  "devDependencies": {
+    "shadcn": "latest"
+  }
+}

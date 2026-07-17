@@ -1,0 +1,77 @@
+---
+/**
+ * Button.astro -- astro-shad button. Single file: variant styles, markup,
+ * and types all live here (mirrors the shadcn ui/button.tsx shape, minus
+ * React -- Astro's own props/slot replace forwardRef/Slot/JSX).
+ *
+ * Neutral tokens: styles resolve against the shadcn slot utilities
+ * (bg-primary, text-muted-foreground, ...) bridged in theme.css. Re-brand
+ * by overriding token values, never this markup.
+ *
+ * Renders <a> when href is given, <button> otherwise.
+ *
+ *   <Button href="/get-involved" size="lg">Get Involved</Button>
+ *   <Button variant="destructive" type="submit">Delete</Button>
+ */
+import { cn } from '../../lib/utils';
+
+type Variant = 'primary' | 'secondary' | 'inverse' | 'outline' | 'ghost' | 'destructive';
+type Size = 'sm' | 'md' | 'lg';
+
+const BASE =
+  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-semibold transition-colors cursor-pointer ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ' +
+  'disabled:pointer-events-none disabled:opacity-50';
+
+const VARIANTS: Record<Variant, string> = {
+  primary: 'bg-primary text-primary-foreground hover:bg-primary/85',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+  /* Flips with the theme: foreground fill, background text. */
+  inverse: 'bg-foreground text-background hover:opacity-90',
+  outline: 'border border-border text-foreground/70 hover:border-primary hover:text-primary',
+  ghost: 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground',
+  destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/85',
+};
+
+const SIZES: Record<Size, string> = {
+  sm: 'h-9 px-4',
+  md: 'h-10 px-5',
+  lg: 'h-11 px-6',
+};
+
+interface Props {
+  variant?: Variant;
+  size?: Size;
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  target?: string;
+  rel?: string;
+  disabled?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  href,
+  type = 'button',
+  target,
+  rel,
+  disabled,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = cn(BASE, VARIANTS[variant], SIZES[size], className);
+---
+
+{href ? (
+  <a href={href} class={classes} target={target} rel={rel} {...rest}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class={classes} disabled={disabled} {...rest}>
+    <slot />
+  </button>
+)}
