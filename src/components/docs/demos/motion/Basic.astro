@@ -1,0 +1,10 @@
+---
+import { motion } from '../../../../lib/motion';
+---
+
+<div class="max-w-xl rounded-lg border border-border bg-card p-6" {...motion('fade-up', { trigger: 'load', duration: 600 })}>
+  <h3 class="text-lg font-semibold">Ready when you are.</h3>
+  <p class="mt-2 text-sm text-muted-foreground">
+    One <code>data-motion</code> attribute, one plain div -- no source edits to anything.
+  </p>
+</div>

@@ -322,6 +322,40 @@ const initialized = new WeakSet<Element>();
 const staggered = new WeakSet<Element>();
 
 /**
+ * Cancel and replay every `[data-motion]` element's entrance animation
+ * within `root`, regardless of its trigger or whether it already fired --
+ * a manual re-trigger for preview tooling (docs `ComponentPreview`, /dev's
+ * `DevBoard`), not something a shipped page needs to call itself.
+ *
+ * Cancelling the existing `Animation` collapses `fill: "forwards"` back to
+ * the underlying CSS cascade (the pre-hide rule for load/in-view, or the
+ * element's natural visible state for hover/slide/etc.), so replaying is
+ * just "cancel, then animate again" -- no manual state bookkeeping needed,
+ * and `in-view`'s one-shot `IntersectionObserver` never has to re-observe
+ * since this bypasses triggers entirely and calls `Element.animate()`
+ * directly. Baked-in stagger delays (from `motionStagger`) are preserved --
+ * they're already sitting in `data-motion-delay`, read the same as always.
+ */
+export function replayMotion(root: ParentNode = document): void {
+  root.querySelectorAll<HTMLElement>("[data-motion]").forEach((el) => {
+    const parsed = parsePreset(el.dataset.motion ?? "");
+    if (!parsed) return;
+
+    el.getAnimations().forEach((animation) => animation.cancel());
+
+    if (prefersReducedMotion()) {
+      revealInstantly(el);
+      return;
+    }
+
+    const duration = Number(el.dataset.motionDuration) || DEFAULT_DURATION;
+    const delay = Number(el.dataset.motionDelay) || DEFAULT_DELAY;
+    const easing = el.dataset.motionEasing || DEFAULT_EASING;
+    el.animate(buildKeyframes(parsed, el), { duration, delay, easing, fill: "forwards" });
+  });
+}
+
+/**
  * Sweep `root` for `[data-motion]` elements and wire each one's trigger.
  * Safe to call more than once (e.g. after client-side DOM insertions) --
  * already-wired elements are skipped via a WeakSet guard.

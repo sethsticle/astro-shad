@@ -10,6 +10,12 @@
  * shown as text, so the two can never drift. Repo-relative component
  * imports in that source are rewritten to the consumer's installed
  * layout before display.
+ *
+ * Replay button: shown only when the preview actually contains
+ * `[data-motion]` elements (checked client-side, see the <script> below --
+ * most previews have none and stay clean). Calls `replayMotion()` scoped
+ * to just this preview's slot, not the whole page -- one preview replaying
+ * never disturbs another's `in-view` state.
  */
 import Snippet from "./Snippet.astro";
 
@@ -25,8 +31,32 @@ const code = rawCode?.replace(/(\.\.\/)+astro-shad\//g, "../components/astro-sha
 ---
 
 <div class="overflow-hidden rounded-lg border border-border bg-surface">
-  <div class={className ?? "flex flex-wrap items-center gap-3 p-8"}>
-    <slot />
+  <div class="relative" data-motion-preview>
+    <button
+      type="button"
+      class="absolute top-3 right-3 z-10 hidden items-center gap-1 rounded-md border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:border-foreground/40 hover:text-foreground"
+      data-motion-replay
+      aria-label="Replay animation"
+    >
+      <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 12a9 9 0 1 0 3-6.7" />
+        <path d="M3 4v5h5" />
+      </svg>
+      Replay
+    </button>
+    <div class={className ?? "flex flex-wrap items-center gap-3 p-8"} data-preview-scope>
+      <slot />
+    </div>
   </div>
   {
     code && (
@@ -53,3 +83,18 @@ const code = rawCode?.replace(/(\.\.\/)+astro-shad\//g, "../components/astro-sha
     )
   }
 </div>
+
+<script>
+  import { replayMotion } from "../../lib/motion";
+
+  document.querySelectorAll<HTMLElement>("[data-motion-preview]").forEach((wrap) => {
+    const btn = wrap.querySelector<HTMLButtonElement>("[data-motion-replay]");
+    const scope = wrap.querySelector<HTMLElement>("[data-preview-scope]");
+    if (!btn || !scope) return;
+    if (!scope.querySelector("[data-motion]")) return;
+
+    btn.classList.remove("hidden");
+    btn.classList.add("flex");
+    btn.addEventListener("click", () => replayMotion(scope));
+  });
+</script>

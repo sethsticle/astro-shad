@@ -384,7 +384,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
               </div>
             </DevBoard>
 
-            <DevBoard index={2} title="Cards" note="Card.astro · props + named slots · image / bgImage">
+            <DevBoard index={2} title="Cards" note="Card.astro · props + named slots · image / bgImage / imageSide">
               <div class="grid gap-4 sm:grid-cols-2">
                 <Card title="Notifications" description="Choose how you want to be reached.">
                   <p class="text-sm text-muted-foreground">
@@ -402,7 +402,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                   image="https://picsum.photos/seed/astro-shad/640/300"
                   imageAlt="Placeholder"
                   title="Image card"
-                  description="image prop renders edge-to-edge above the header."
+                  description="image prop renders edge-to-edge above the header (imageSide default: top)."
                 >
                   <p class="text-sm text-muted-foreground">The image slot wins over the prop when both exist.</p>
                 </Card>
@@ -412,6 +412,26 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                   description="Absolute cover layer behind the content with a bottom scrim."
                 >
                   <p class="text-sm text-white/80">Text goes literal white -- the scrim is dark in both themes.</p>
+                </Card>
+              </div>
+              <div class="mt-4 grid gap-4">
+                <Card
+                  image="https://picsum.photos/seed/astro-side-left/480/280"
+                  imageAlt="Placeholder"
+                  imageSide="left"
+                  title="imageSide=&quot;left&quot;"
+                  description="Row at lg (image ~1/3 width, left column). Stacks image-first below lg."
+                >
+                  <p class="text-sm text-muted-foreground">Resize the preview to see the lg breakpoint switch.</p>
+                </Card>
+                <Card
+                  image="https://picsum.photos/seed/astro-side-right/480/280"
+                  imageAlt="Placeholder"
+                  imageSide="right"
+                  title="imageSide=&quot;right&quot;"
+                  description="Row at lg (image ~1/3 width, right column via lg:order-last). Still stacks image-first below lg."
+                >
+                  <p class="text-sm text-muted-foreground">Same row layout, mirrored -- order flips only at lg+.</p>
                 </Card>
               </div>
             </DevBoard>
@@ -550,10 +570,12 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
               </div>
             </DevBoard>
 
-            <DevBoard index={6} title="Forms" note="Form.astro · FormField.astro · DatePicker.astro · native Constraint Validation API">
-              <div class="max-w-xl">
-                <Card title="Contact" description="Submit empty to see inline errors; they clear as you fix them.">
-                  <Form demo>
+            <DevBoard index={6} title="Forms" note="Form.astro · FormField.astro · DatePicker.astro · native Constraint Validation API · real POST to /api/contact">
+              <div class="grid gap-6 lg:grid-cols-2">
+                <Card title="Contact" description="Submit empty to see inline errors; they clear as you fix them. Valid submits POST to /api/contact for real.">
+                  <Form action="/api/contact" method="post" data-dev-form-log data-log-target="dev-contact-log">
+                    <!-- Honeypot: real users never see or fill this in; api/contact.ts silently accepts (never rejects) when it's non-empty -->
+                    <input type="text" name="_trap" style="display:none" tabindex="-1" autocomplete="off" />
                     <FormField name="name" label="Full name" required minlength="2" />
                     <FormField name="email" label="Email" type="email" required />
                     <FormField
@@ -576,6 +598,23 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                     <div><Button type="submit">Send</Button></div>
                   </Form>
                 </Card>
+
+                <div class="flex flex-col overflow-hidden rounded-lg border border-border bg-muted/30">
+                  <div class="flex items-center justify-between border-b border-border px-4 py-2">
+                    <span class="text-xs font-semibold text-muted-foreground">Request / response log -- POST /api/contact</span>
+                    <button
+                      type="button"
+                      data-log-clear="dev-contact-log"
+                      class="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <pre
+                    id="dev-contact-log"
+                    class="min-h-[22rem] flex-1 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-xs text-foreground"
+                  >Submit the form to see the request FormData go out and the JSON /api/contact sends back.</pre>
+                </div>
               </div>
             </DevBoard>
 
@@ -797,8 +836,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
               </div>
               <div class="dev-group tall-canvas">
                 <p class="dev-group-title">
-                  gsap-hero-01 -- ScrollTrigger-scrubbed parallax (first tier-2/GSAP item, scroll to see the background
-                  shift)
+                  gsap-hero-01 -- ScrollTrigger-scrubbed parallax (first tier-2/GSAP item, scroll to see the background shift)
                 </p>
                 <div class="overflow-hidden rounded-lg border border-border"><GsapHero01 /></div>
               </div>
@@ -1062,10 +1100,11 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
             </DevBoard>
 
             <!-- Motion pilot (docs/plans/motion-system.md), Phase 1a + 1b --
-                 lib/motion.ts, no registry.json entry yet. Pre-hide CSS + the
-                 sweep are page-level: once registry.json'd, both ship as one
-                 bootstrap alongside lib/motion.ts (see the plan's "aggregate
-                 as one registry item" note), not per-board. -->
+                 registry-published as @astro-shad/motion, documented at
+                 /docs/components/motion. Bootstrap kept page-level here
+                 (/dev is a bare page, no shared layout to hook into) --
+                 the docs site instead wires MOTION_PREHIDE_CSS + initMotion()
+                 once, site-wide, in DocsLayout.astro's <head>. -->
             <style set:html={MOTION_PREHIDE_CSS}></style>
             <script>
               import { initMotion } from "../lib/motion";
@@ -1075,7 +1114,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
             <DevBoard
               index={17}
               title="Motion pilot"
-              note="lib/motion.ts · WAAPI runtime, zero deps · full preset set + motionStagger() · unpublished, no registry.json entry yet"
+              note="lib/motion.ts · WAAPI runtime, zero deps · full preset set + motionStagger() · @astro-shad/motion, documented"
             >
               <div class="dev-group">
                 <p class="dev-group-title">
@@ -1099,9 +1138,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                   <Button variant="outline" {...motion("scale-in-[0.8]", { trigger: "hover", duration: 200 })}>
                     scale-in-[0.8] (bracket)
                   </Button>
-                  <Button variant="outline" {...motion("scale-out", { trigger: "hover", duration: 200 })}>
-                    scale-out (default)
-                  </Button>
+                  <Button variant="outline" {...motion("scale-out", { trigger: "hover", duration: 200 })}> scale-out (default) </Button>
                 </div>
               </div>
 
@@ -1244,6 +1281,25 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                 <p class="dev-group-title">in-view trigger -- Cta-01.astro, full section, zero component edits</p>
                 <div class="overflow-hidden rounded-lg border border-border">
                   <Cta01 {...motion("fade", { trigger: "in-view", duration: 700 })} />
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={18} title="Tab Card" note="move to the correct place when done here">
+              <div class="dev-group">
+                <p class="dev-group-title">tabbed cards right image</p>
+                <div class="relative flex h-64 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
+                  <div class="flex flex-col overflow-hidden rounded-md border border-border lg:flex-row">
+                    <div class="flex flex-1">
+                      <h2>Titile</h2>
+                      <p>Content Below</p>
+                    </div>
+                    <img
+                      src="https://picsum.photos/seed/bento2/480/280"
+                      title="test"
+                      class="h-[180px] w-full shrink-0 object-cover lg:w-1/3"
+                    />
+                  </div>
                 </div>
               </div>
             </DevBoard>
@@ -1498,7 +1554,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
          0-based board index to land on when this page loads -- change this
          while iterating on one board instead of scrolling/paging over each
          time. 0 = first board (the normal default). */
-      const DEFAULT_BOARD = 16;
+      const DEFAULT_BOARD = 17;
 
       /* ═══ Token controls ═══
          All overrides land as inline custom properties on #preview-scope,
@@ -1817,6 +1873,49 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
       apply();
       syncSidebar();
       syncPills();
+    </script>
+
+    <!--
+      Dev-only wiring for board 6 (Forms): intercepts the real POST to
+      /api/contact via fetch (instead of a full navigation) purely so the
+      round trip can be printed in the log panel beside it. Independent of
+      Form.astro's own delegated script -- see docs/forms-and-submissions.md.
+    -->
+    <script>
+      document.addEventListener("submit", async (e) => {
+        const form = (e.target as HTMLElement | null)?.closest<HTMLFormElement>("[data-dev-form-log]");
+        if (!form) return;
+        if (!form.checkValidity()) return; // Form.astro's own listener handles inline errors
+
+        e.preventDefault();
+
+        const log = document.getElementById(form.dataset.logTarget ?? "");
+        const write = (label: string, body: unknown) => {
+          if (!log) return;
+          const time = new Date().toLocaleTimeString();
+          log.textContent += `\n[${time}] ${label}\n${JSON.stringify(body, null, 2)}\n`;
+          log.scrollTop = log.scrollHeight;
+        };
+
+        const formData = new FormData(form);
+        write(`--> ${form.method.toUpperCase()} ${form.getAttribute("action")}`, Object.fromEntries(formData.entries()));
+
+        try {
+          const res = await fetch(form.action, { method: form.method, body: formData });
+          const json = await res.json();
+          write(`<-- ${res.status} ${res.statusText}`, json);
+          if (res.ok) form.reset();
+        } catch (err) {
+          write("<-- network error", { message: err instanceof Error ? err.message : String(err) });
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        const btn = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>("[data-log-clear]");
+        if (!btn) return;
+        const log = document.getElementById(btn.dataset.logClear ?? "");
+        if (log) log.textContent = "";
+      });
     </script>
   </body>
 </html>

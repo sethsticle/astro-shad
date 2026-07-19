@@ -1,0 +1,12 @@
+---
+import { motion } from '../../../../lib/motion';
+import Button from '../../../astro-shad/Button.astro';
+---
+
+<div class="flex flex-wrap gap-4">
+  <Button {...motion('scale-in', { trigger: 'hover', duration: 200 })}>scale-in (default)</Button>
+  <Button variant="outline" {...motion('scale-in-[0.8]', { trigger: 'hover', duration: 200 })}>
+    scale-in-[0.8] (bracket)
+  </Button>
+  <Button variant="outline" {...motion('scale-out', { trigger: 'hover', duration: 200 })}>scale-out (default)</Button>
+</div>

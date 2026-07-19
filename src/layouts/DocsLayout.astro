@@ -8,6 +8,12 @@
  * tokens -- the docs site is the registry's first real consumer and its
  * living proof. Re-brand theme.css and the whole site follows.
  *
+ * Motion bootstrap (docs/plans/motion-system.md): the pre-hide CSS + sweep
+ * live here, once, site-wide -- same reasoning as the theme-restore inline
+ * script below. Any docs demo using `motion()` (e.g. the Motion page itself)
+ * just works with zero per-page wiring; pages with no `[data-motion]`
+ * elements pay for an inert `querySelectorAll` and nothing else.
+ *
  *   <DocsLayout title="Button" description="..." registry="button">
  *     ...sections...
  *   </DocsLayout>
@@ -17,6 +23,7 @@ import Button from "../components/astro-shad/Button.astro";
 import Badge from "../components/astro-shad/Badge.astro";
 import FloatingHeader from "../components/astro-shad/FloatingHeader.astro";
 import { NAV, GITHUB, SOURCE_BASE } from "../components/docs/docs-nav";
+import { MOTION_PREHIDE_CSS } from "../lib/motion";
 
 interface Props {
   title: string;
@@ -41,6 +48,11 @@ const path = Astro.url.pathname.replace(/\/+$/, "") || "/docs";
       if (localStorage.getItem("astro-shad-theme") === "light") {
         document.documentElement.dataset.theme = "light";
       }
+    </script>
+    <style set:html={MOTION_PREHIDE_CSS}></style>
+    <script>
+      import { initMotion } from "../lib/motion";
+      initMotion();
     </script>
   </head>
   <body class="min-h-screen bg-background text-foreground antialiased">

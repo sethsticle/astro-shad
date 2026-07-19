@@ -1,0 +1,166 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/motion/Basic.astro';
+import basicSource from '../../../components/docs/demos/motion/Basic.astro?raw';
+import HoverDemo from '../../../components/docs/demos/motion/Hover.astro';
+import hoverSource from '../../../components/docs/demos/motion/Hover.astro?raw';
+import StaggerDemo from '../../../components/docs/demos/motion/Stagger.astro';
+import staggerSource from '../../../components/docs/demos/motion/Stagger.astro?raw';
+import ColorBgDemo from '../../../components/docs/demos/motion/ColorBg.astro';
+import colorBgSource from '../../../components/docs/demos/motion/ColorBg.astro?raw';
+
+// Guard: frontmatter tag-strings + a bare "Props" word in the template can
+// panic @astrojs/compiler's props scanner (see session manifest 2026-07-17 f).
+interface Props {}
+
+const bootstrapSnippet = `---
+import { MOTION_PREHIDE_CSS, initMotion } from '../lib/motion';
+---
+<style set:html={MOTION_PREHIDE_CSS}></style>
+<script>
+  import { initMotion } from '../lib/motion';
+  initMotion();
+</script>`;
+---
+
+<DocsLayout
+  title="Motion"
+  description="Tier-1 motion runtime: native Web Animations API, zero dependencies. Prop-driven fade/slide/scale/rotate/blur/color presets, three triggers, and sibling stagger -- works on any existing astro-shad component with zero source edits."
+  registry="motion"
+  sourceFile="motion.ts"
+>
+  <h2>Before you start -- the bootstrap is two required pieces</h2>
+  <ul class="docs-list">
+    <li>
+      <strong>Both the pre-hide style and <code>initMotion()</code> must run on the same page.</strong> The pre-hide
+      CSS hides <code>load</code>/<code>in-view</code> elements before first paint (Astro SSGs full markup with no
+      animation state -- without it you'd see a flash of the fully-visible element before the entrance plays). If you
+      add the CSS but forget to call <code>initMotion()</code>, there is <strong>no other reveal path</strong> --
+      the element stays at <code>opacity: 0</code> forever. That's a content-disappears bug, not a
+      degraded-animation one, so wire both together, always.
+    </li>
+    <li>Once per page (this docs site does it once, site-wide, in its root layout):</li>
+  </ul>
+  <Snippet lang="astro" code={bootstrapSnippet} />
+  <ul class="docs-list">
+    <li>
+      <code>prefers-reduced-motion</code> is respected automatically -- reduced-motion users still get revealed, just
+      without the transition (WAAPI does nothing about this on its own; the runtime checks explicitly, both in the
+      pre-hide CSS and at animate time).
+    </li>
+    <li>
+      Zero component edits required for any of this: <code>motion()</code> returns plain <code>data-motion-*</code>{' '}
+      attributes, and every shipped astro-shad component already spreads <code>{'{...rest}'}</code> from{' '}
+      <code>Astro.props</code> onto its root element -- confirmed against <code>Button.astro</code>,{' '}
+      <code>Card.astro</code>, and every layout section.
+    </li>
+  </ul>
+
+  <h2>Load trigger</h2>
+  <p>Plays once, immediately, as soon as the script runs after parse -- regardless of scroll position.</p>
+  <ComponentPreview code={basicSource}>
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Hover trigger</h2>
+  <p>
+    Starts from the natural visible state (no pre-hide -- there's nothing to hide) and replays the entrance
+    keyframes as a reveal pulse on <code>mouseenter</code>/<code>focus</code>. Shows the bracket-arbitrary escape
+    hatch alongside the bare-modifier default.
+  </p>
+  <ComponentPreview code={hoverSource}>
+    <HoverDemo />
+  </ComponentPreview>
+
+  <h2>In-view trigger + stagger</h2>
+  <p>
+    Fires once via <code>IntersectionObserver</code> and disconnects -- an entrance animation, not a repeat/toggle
+    mode. <code>motionStagger(amountMs)</code> spread on the parent bakes <code>index * amountMs</code> into each
+    direct <code>[data-motion]</code> child's own delay before the sweep runs. This group also shows the three
+    modifier forms on the same preset family: no-modifier (default), bare-number (<code>fade-up-24</code> = 24px),
+    and bracket-arbitrary (<code>fade-up-[3rem]</code>).
+  </p>
+  <ComponentPreview code={staggerSource}>
+    <StaggerDemo />
+  </ComponentPreview>
+
+  <h2>Color / background transition</h2>
+  <p>
+    <code>color</code> and <code>bg</code> are bracket-only -- there's no sensible bare-number or no-modifier default
+    for a color, so the base name alone is invalid and the runtime warns + reveals the element unanimated if you try
+    it. The end keyframe is always the element's own resolved color, read via <code>getComputedStyle</code> at
+    animate time.
+  </p>
+  <ComponentPreview code={colorBgSource}>
+    <ColorBgDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/motion" />
+
+  <h2><code>motion(preset, options)</code></h2>
+  <p>Returns the attribute object to spread onto any component's root element.</p>
+  <PropsTable
+    bare
+    rows={[
+      { name: 'preset', type: 'Preset', description: 'Base name, bare-number modifier, or bracket-arbitrary -- see the preset table below.' },
+      { name: 'trigger', type: "'load' | 'in-view' | 'hover'", default: "'load'", description: 'When the entrance plays.' },
+      { name: 'duration', type: 'number', default: '500', description: 'Animation duration in ms.' },
+      { name: 'delay', type: 'number', default: '0', description: 'Delay in ms before the entrance starts.' },
+      { name: 'easing', type: 'string', default: "'ease-out'", description: 'Any valid Web Animations API easing string.' },
+    ]}
+  />
+
+  <h2>Presets</h2>
+  <p>
+    Modifier grammar mirrors Tailwind's own convention: a bare number is a family-specific unit (not always px --
+    see below), and <code>[...]</code> is a verbatim CSS escape hatch that works the same way across every family.
+  </p>
+  <PropsTable
+    bare
+    rows={[
+      { name: 'fade', type: 'none', description: 'Opacity only. Takes no modifier at all.' },
+      { name: 'fade-up / -down / -left / -right', type: 'length', default: '16 (px)', description: 'Opacity + translate. Bare number = px distance; bracket = verbatim CSS length.' },
+      { name: 'slide-up / -down / -left / -right', type: 'length', default: '16 (px)', description: 'Translate only, no opacity change. Same modifier rules as fade-*.' },
+      { name: 'scale-in', type: 'percent', default: '10', description: 'Opacity + scale up from below 100%. Bare number = percentage points below 100 (scale-in-10 -> scale(0.90)), NOT a literal scale() value.' },
+      { name: 'scale-out', type: 'percent', default: '10', description: 'Opacity + scale down from above 100%. scale-out-10 -> scale(1.10).' },
+      { name: 'rotate', type: 'degrees', default: '8', description: 'Opacity + rotation to rotate(0). Bare number = degrees; bracket = verbatim CSS angle.' },
+      { name: 'blur-in', type: 'length', default: '8 (px)', description: 'Opacity + filter: blur() to sharp. Bare number = px blur radius.' },
+      { name: 'color-[<css-color>]', type: 'color', description: 'Text-color transition to the element\'s own resolved color. Bracket only -- color alone is invalid.' },
+      { name: 'bg-[<css-color>]', type: 'color', description: 'Background-color transition to the element\'s own resolved background. Bracket only.' },
+    ]}
+  />
+
+  <h2><code>replayMotion(root?)</code></h2>
+  <p>
+    Cancels and replays every <code>[data-motion]</code> element's entrance animation within <code>root</code>
+    (defaults to the whole document), regardless of trigger or whether it already fired -- useful for a "replay"
+    button in a preview/demo surface. Every preview on this docs site (and every board in <code>/dev</code>) has one
+    built in already whenever the preview contains motion. Not something a shipped page needs to call itself.
+  </p>
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>
+      <code>motionStagger(amountMs)</code> only affects direct <code>[data-motion]</code> children -- nested groups
+      need their own stagger call on their own immediate parent.
+    </li>
+    <li>
+      <code>in-view</code> fires once and disconnects its observer by design -- not a repeat-on-scroll-back mode.
+      That's a documented, deliberate future addition (not built), tracked in{' '}
+      <code>docs/plans/motion-system.md</code>.
+    </li>
+    <li>
+      A handful of presets are planned but not yet built: <code>blur-out</code>, <code>flip</code> (3D
+      rotateY/rotateX), and SVG stroke draw-in. None of these exist in the current preset set -- check back later.
+    </li>
+    <li>
+      This is tier 1 (zero-dependency WAAPI) only. Scroll-scrubbed/pinned sequences, draggable/inertia, and other
+      GSAP-driven (tier 2) motion are a separate, opt-in concern -- see individual registry items for those
+      (e.g. <code>gsap-hero-01</code>) once they're documented.
+    </li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,19 @@
+---
+import { motion, motionStagger } from '../../../../lib/motion';
+import Card from '../../../astro-shad/Card.astro';
+---
+
+<div class="grid grid-cols-2 gap-4 md:grid-cols-4" {...motionStagger(100)}>
+  <Card title="fade-up" description="default -- 16px" {...motion('fade-up', { trigger: 'in-view' })} />
+  <Card title="fade-up-24" description="bare number -- 24px" {...motion('fade-up-24', { trigger: 'in-view' })} />
+  <Card
+    title="fade-up-[3rem]"
+    description="bracket -- verbatim CSS length"
+    {...motion('fade-up-[3rem]', { trigger: 'in-view' })}
+  />
+  <Card
+    title="scale-in-20"
+    description="bare number -- 20 pct points, scale(0.80)"
+    {...motion('scale-in-20', { trigger: 'in-view' })}
+  />
+</div>

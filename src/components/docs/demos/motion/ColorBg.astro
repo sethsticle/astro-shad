@@ -1,0 +1,18 @@
+---
+import { motion } from '../../../../lib/motion';
+---
+
+<div class="flex flex-wrap gap-4">
+  <div
+    class="rounded-lg border border-border bg-card p-4 text-sm font-semibold"
+    {...motion('color-[#f43f5e]', { trigger: 'in-view', duration: 900 })}
+  >
+    color-[#f43f5e] -&gt; currentColor
+  </div>
+  <div
+    class="rounded-lg border border-border bg-card p-4 text-sm font-semibold text-card-foreground"
+    {...motion('bg-[#f43f5e]', { trigger: 'in-view', duration: 900 })}
+  >
+    bg-[#f43f5e] -&gt; bg-card
+  </div>
+</div>

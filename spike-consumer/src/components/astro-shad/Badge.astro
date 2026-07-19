@@ -1,0 +1,44 @@
+---
+/**
+ * Badge.astro -- astro-shad badge/pill. Converted from shadcn ui/badge.tsx:
+ * cva shape kept as plain maps, React runtime dropped.
+ *
+ * Neutral tokens: resolves against the shadcn slot utilities bridged in
+ * theme.css. Renders <a> when href is given, <span> otherwise.
+ *
+ *   <Badge>New</Badge>
+ *   <Badge variant="outline" href="/news">12 updates</Badge>
+ */
+import { cn } from '../../lib/utils';
+
+type Variant = 'primary' | 'secondary' | 'destructive' | 'outline' | 'accent';
+
+const BASE =
+  'inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+
+const VARIANTS: Record<Variant, string> = {
+  primary: 'bg-primary text-primary-foreground',
+  secondary: 'bg-secondary text-secondary-foreground',
+  destructive: 'bg-destructive text-destructive-foreground',
+  outline: 'border border-border text-foreground/70',
+  /* Tinted accent chip -- reads in both themes via opacity on the accent. */
+  accent: 'bg-primary/15 text-primary border border-primary/30',
+};
+
+interface Props {
+  variant?: Variant;
+  href?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { variant = 'primary', href, class: className, ...rest } = Astro.props;
+const classes = cn(BASE, VARIANTS[variant], className);
+---
+
+{href ? (
+  <a href={href} class={classes} {...rest}><slot /></a>
+) : (
+  <span class={classes} {...rest}><slot /></span>
+)}

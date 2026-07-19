@@ -78,6 +78,10 @@ export const NAV: DocsNavGroup[] = [
     ],
   },
   {
+    label: "Motion",
+    items: [{ title: "Motion", href: "/docs/components/motion" }],
+  },
+  {
     label: "Layouts",
     items: [
       { title: "Hero", href: "/docs/components/hero" },

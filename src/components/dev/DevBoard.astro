@@ -15,6 +15,11 @@
  *   so only the components inside respond to the controls.
  *
  *   <DevBoard index={1} title="Buttons" note="Button.astro">...</DevBoard>
+ *
+ * Replay button: shown only when the board actually contains
+ * `[data-motion]` elements (checked client-side, see the <script> below).
+ * Scoped to this board's own `data-board` root -- replaying one board
+ * never touches another's in-view state.
  */
 interface Props {
   index: number;
@@ -36,6 +41,28 @@ const num = String(index).padStart(2, '0');
     <span class="text-[10px] font-semibold tracking-widest text-[#6e6e76]">{num}</span>
     <h2 class="text-sm font-semibold text-[#e4e4e7]">{title}</h2>
     {note && <span class="hidden truncate text-xs text-[#6e6e76] sm:inline">{note}</span>}
+    <button
+      type="button"
+      class="ml-auto hidden shrink-0 items-center gap-1 rounded-md border border-[#26262b] px-2 py-1 text-[10px] font-semibold text-[#9d9da6] transition-colors hover:border-[#4b4b53] hover:text-[#e4e4e7]"
+      data-motion-replay
+      aria-label={`Replay animations in board ${num}`}
+    >
+      <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 12a9 9 0 1 0 3-6.7" />
+        <path d="M3 4v5h5" />
+      </svg>
+      Replay
+    </button>
   </header>
 
   <!-- token-scoped preview area (pb keeps content clear of the pagination pills) -->
@@ -45,3 +72,17 @@ const num = String(index).padStart(2, '0');
     </div>
   </div>
 </section>
+
+<script>
+  import { replayMotion } from "../../lib/motion";
+
+  document.querySelectorAll<HTMLElement>("[data-board]").forEach((board) => {
+    const btn = board.querySelector<HTMLButtonElement>("[data-motion-replay]");
+    if (!btn) return;
+    if (!board.querySelector("[data-motion]")) return;
+
+    btn.classList.remove("hidden");
+    btn.classList.add("flex");
+    btn.addEventListener("click", () => replayMotion(board));
+  });
+</script>
