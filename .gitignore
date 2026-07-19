@@ -2,6 +2,9 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+/docs/
+/.claude/
+CLAUDE.md
 # spike-consumer/
 # sharing spike-consumer test repo as docs reference this anyways
 
