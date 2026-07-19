@@ -513,6 +513,21 @@
       ]
     },
     {
+      "name": "gsap-hero-01",
+      "type": "registry:component",
+      "title": "GSAP Hero 01 — scroll parallax",
+      "description": "Layout section, ships populated: full-height hero with a ScrollTrigger-scrubbed parallax background layer. First tier-2 (GSAP) item in the registry (docs/plans/motion-system.md Phase 2) — opt-in, scoped to this item only. Genuine ScrollTrigger use case (continuous scroll-linked scrub), not something the zero-dependency @astro-shad/motion runtime covers. Consumer owns nothing extra: gsap installs alongside this item only.",
+      "dependencies": ["gsap@^3.13.0"],
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/badge", "@astro-shad/button"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/GsapHero-01.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/GsapHero-01.astro"
+        }
+      ]
+    },
+    {
       "name": "split-01",
       "type": "registry:component",
       "title": "Split 01 — media + content",
