@@ -11,3 +11,10 @@ CLAUDE.md
 # public/r/ is deliberately COMMITTED -- built registry JSON served
 # straight from raw.githubusercontent.com. Rebuild before every push:
 # npm run registry:build
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
