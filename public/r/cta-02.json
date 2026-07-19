@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "cta-02",
+  "title": "CTA 02 — animated band",
+  "description": "Layout section, ships populated: narrow centered call-to-action band on a card surface with the pulse-grid canvas animation as the background slot fallback (two demo colors + faint lattice; tune the props in place or fill the slot to replace the layer).",
+  "registryDependencies": [
+    "@astro-shad/utils",
+    "@astro-shad/button",
+    "@astro-shad/pulse-grid"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/sections/Cta-02.astro",
+      "content": "---\n/**\n * Cta-02.astro -- layout section: narrow centered call-to-action band on\n * a card surface with the pulse-grid canvas animation as the background\n * layer. Ships populated (frontend-contract.md §7): <Cta02 /> renders a\n * complete block; make it yours by editing this copy you own.\n *\n * `background` slot: absolute layer INSIDE the band. Ships with a\n * <PulseGrid> demo (two accent-ish colors, faint lattice) as the slot\n * fallback -- tune its props in place, or fill the slot to replace the\n * whole layer (an image + scrim like cta-01, an effects item, anything).\n */\nimport { cn } from \"../../../lib/utils\";\nimport Button from \"../Button.astro\";\nimport PulseGrid from \"../PulseGrid.astro\";\n\ninterface Props {\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { class: className, ...rest } = Astro.props;\n---\n\n<section class={cn(\"py-16 md:py-24\", className)} {...rest}>\n  <div class=\"mx-auto w-full max-w-6xl px-6\">\n    <div class=\"relative isolate overflow-hidden rounded-xl border border-border bg-card px-6 py-12 md:py-16\">\n      <div class=\"absolute inset-0 -z-10 overflow-hidden\">\n        <slot name=\"background\">\n          <!-- demo animation — tune the props, or fill the slot to replace the layer -->\n          <PulseGrid colors={[\"#60a5fa\", \"#a78bfa\"]} cellSize={56} speed={1.8} gridOpacity={0.05} fillOpacity={0.1} maxOpacity={0.9} />\n        </slot>\n      </div>\n      <div class=\"mx-auto flex max-w-3xl flex-col items-center gap-6 text-center\">\n        <!-- content — yours to edit: comment out and replace -->\n        <h2 class=\"text-3xl font-semibold tracking-tight md:text-4xl\">Ship it with a pulse.</h2>\n        <p class=\"text-muted-foreground\">The band stays alive without demanding attention — the grid glows on its own clock.</p>\n        <div class=\"flex gap-3\">\n          <Button size=\"lg\">Start building</Button>\n          <Button size=\"lg\" variant=\"ghost\">See the registry</Button>\n        </div>\n      </div>\n    </div>\n  </div>\n</section>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/sections/Cta-02.astro"
+    }
+  ],
+  "type": "registry:component"
+}

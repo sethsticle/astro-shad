@@ -18,6 +18,19 @@
       ]
     },
     {
+      "name": "motion",
+      "type": "registry:lib",
+      "title": "Motion runtime",
+      "description": "Tier-1 motion system (docs/plans/motion-system.md): zero-dependency WAAPI runtime. Full preset set -- fade family (5), slide family (4), scale-in/out, rotate, blur-in, color, bg -- plus motionStagger() for sibling stagger, three triggers (load/in-view/hover), FOUC pre-hide CSS, and prefers-reduced-motion handling. Bootstrap the pre-hide style + initMotion() once per page -- see the file header for usage.",
+      "files": [
+        {
+          "path": "src/lib/motion.ts",
+          "type": "registry:lib",
+          "target": "src/lib/motion.ts"
+        }
+      ]
+    },
+    {
       "name": "theme",
       "type": "registry:file",
       "title": "astro-shad theme tokens",
@@ -416,6 +429,34 @@
       ]
     },
     {
+      "name": "pulse-grid",
+      "type": "registry:component",
+      "title": "Pulse Grid",
+      "description": "react-bits CursorGrid minus react and minus the cursor: an ambient canvas grid where random speed-driven bursts light up cells that hold and fade, optionally as expanding rings, in one or more colors. Pointer-events-none absolute layer built for a section's background slot; self-suspends when idle or off-screen, static lattice under reduced motion.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/PulseGrid.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/PulseGrid.astro"
+        }
+      ]
+    },
+    {
+      "name": "pixel-transition",
+      "type": "registry:component",
+      "title": "Pixel Transition",
+      "description": "react-bits PixelTransition minus react and gsap: two stacked content layers swap under a random-order pixel flash on hover/tap/focus. The gsap stagger is rebuilt as per-pixel random delay custom properties baked at build time driving zero-length steps(1) CSS animations; the layer swap is a delayed visibility transition. pixelColor takes any CSS color including tokens.",
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/PixelTransition.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/PixelTransition.astro"
+        }
+      ]
+    },
+    {
       "name": "hero-01",
       "type": "registry:component",
       "title": "Hero 01 — centered",
@@ -538,6 +579,78 @@
           "path": "src/components/astro-shad/sections/Cta-01.astro",
           "type": "registry:component",
           "target": "src/components/astro-shad/sections/Cta-01.astro"
+        }
+      ]
+    },
+    {
+      "name": "cta-02",
+      "type": "registry:component",
+      "title": "CTA 02 — animated band",
+      "description": "Layout section, ships populated: narrow centered call-to-action band on a card surface with the pulse-grid canvas animation as the background slot fallback (two demo colors + faint lattice; tune the props in place or fill the slot to replace the layer).",
+      "registryDependencies": ["@astro-shad/utils", "@astro-shad/button", "@astro-shad/pulse-grid"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/sections/Cta-02.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/sections/Cta-02.astro"
+        }
+      ]
+    },
+    {
+      "name": "map",
+      "type": "registry:component",
+      "title": "Map",
+      "description": "MapLibre GL map family ported from mapcn (React) to vanilla JS: Map container (Carto light/dark basemaps with live theme tracking, blank tile-less mode, globe projection), MapMarker with popup/tooltip/label slots, MapControls (zoom / compass / locate / fullscreen), and standalone MapPopup annotations pinned to coordinates. First runtime npm dep in the registry: maplibre-gl (WebGL cannot be static output). The consumer owns the container height — h-full against an unsized parent renders a 0px map.",
+      "dependencies": ["maplibre-gl"],
+      "registryDependencies": ["@astro-shad/utils"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Map.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Map.astro"
+        },
+        {
+          "path": "src/components/astro-shad/MapMarker.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/MapMarker.astro"
+        },
+        {
+          "path": "src/components/astro-shad/MapControls.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/MapControls.astro"
+        },
+        {
+          "path": "src/components/astro-shad/MapPopup.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/MapPopup.astro"
+        }
+      ]
+    },
+    {
+      "name": "map-geojson",
+      "type": "registry:component",
+      "title": "Map GeoJSON",
+      "description": "GeoJSON fill + outline layers for the astro-shad Map — choropleths, districts, delivery zones; pairs with the blank basemap. Theme-aware monochrome paint defaults, hover feature-state via promoteId (hover paint merged as case expressions), click/hover CustomEvents with feature payloads. Re-adds itself on map:style-load so it survives theme-driven basemap swaps.",
+      "registryDependencies": ["@astro-shad/map"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/MapGeoJSON.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/MapGeoJSON.astro"
+        }
+      ]
+    },
+    {
+      "name": "map-route",
+      "type": "registry:component",
+      "title": "Map Route",
+      "description": "Line layer for the astro-shad Map: draws a GeoJSON route from a coordinates array — color/width/opacity/dash props, pointer cursor + route CustomEvents on hover/click. First layer child of the map family: re-adds itself on map:style-load so it survives theme-driven basemap swaps.",
+      "registryDependencies": ["@astro-shad/map"],
+      "files": [
+        {
+          "path": "src/components/astro-shad/MapRoute.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/MapRoute.astro"
         }
       ]
     }

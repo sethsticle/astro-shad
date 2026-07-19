@@ -1,0 +1,133 @@
+---
+/**
+ * GsapHero-01.astro -- layout section, tier-2 motion (docs/plans/motion-system.md
+ * Phase 2). First GSAP-backed item in the registry: `dependencies: ["gsap@^3.13.0"]`
+ * (caret floor, no ceiling -- GSAP 3 has shipped no breaking major release in
+ * years, and 3.13 is where every plugin, including ScrollTrigger, became free).
+ *
+ * Ships populated (frontend-contract.md §7), same shape as Hero-01: zero props,
+ * zero children renders a complete block. Content block is delimited by a
+ * `<!-- content — yours to edit -->` comment, same copy-and-own convention.
+ *
+ * WHY GSAP, NOT lib/motion.ts: this is a scroll-SCRUBBED parallax -- the
+ * background layer's position is continuously tied to scroll offset, not a
+ * one-shot entrance animation. That's explicitly tier 2's territory per the
+ * plan (WAAPI's `IntersectionObserver`-driven triggers only fire once/toggle,
+ * they don't scrub); ScrollTrigger's `scrub: true` is the actual justification
+ * for pulling GSAP in at all, not decorative -- this component intentionally
+ * does NOT reimplement anything WAAPI could already do.
+ *
+ * PORTING PHILOSOPHY (Phase 2, deliberately different from tier 1's WAAPI
+ * conversions): the animation below is stock ScrollTrigger parallax code, the
+ * same shape as GSAP's own docs/CodePen examples -- registerPlugin, a single
+ * gsap.fromTo with a scrollTrigger config. Not funneled through motion.ts's
+ * preset vocabulary or a custom abstraction. The goal is that a real GSAP
+ * template found in the wild can be pasted in here with minimal translation,
+ * not rewritten into a bespoke API.
+ *
+ * Architecture: bespoke per-component script, no shared tier-2 lib (mirrors
+ * Map.astro, "first runtime npm dep" precedent) -- `gsap.registerPlugin` is
+ * idempotent, safe to call once per component even with multiple instances
+ * on a page. One <script> sweeps every `[data-gsap-hero]` on the page.
+ *
+ * Background layer mechanics: the slot's wrapper (`[data-gsap-hero-bg]`) is
+ * oversized (`inset: -15% 0`) and translated via `yPercent` between -10/+10
+ * on scroll -- oversizing keeps the edges covered at both scroll extremes.
+ * Swapping the `background` slot content (image, video, effects item) still
+ * animates correctly since the mechanism lives on the wrapper, not the slot
+ * content itself -- same pattern as Hero-01's slot fallback.
+ *
+ * Scroller auto-detection: ScrollTrigger defaults to `window` as the scroll
+ * container, which breaks inside a nested `overflow-y: auto` preview (e.g.
+ * /dev's per-board scroll area). `resolveScroller()` walks up for the
+ * nearest scrollable ancestor and falls back to `undefined` (window) when
+ * none is found -- same ancestor-walk shape as Map.astro's `resolveTheme()`,
+ * applied to a different problem.
+ *
+ * KNOWN GAP (Phase 2 pass bar item 2, honestly not fully closed): this repo
+ * has no Astro view-transitions (`ClientRouter`) in use anywhere, so plain
+ * MPA navigation tears the whole page down between routes and there is
+ * nothing to leak. ScrollTrigger instances are not explicitly `.kill()`'d.
+ * If/when this repo (or a consumer's) adopts view-transitions, this needs an
+ * `astro:before-swap` cleanup pass -- flagged, not silently assumed handled.
+ *
+ *   <GsapHero01>
+ *     <img slot="background" src="/hero.webp" class="h-full w-full object-cover" />
+ *   </GsapHero01>
+ */
+import { cn } from "../../../lib/utils";
+import Badge from "../Badge.astro";
+import Button from "../Button.astro";
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<section class={cn("relative isolate grid min-h-svh place-items-center overflow-hidden", className)} data-gsap-hero {...rest}>
+  <div class="absolute inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-x-0 -top-[15%] -bottom-[15%]" data-gsap-hero-bg>
+      <slot name="background">
+        <!-- demo image — swap for your local asset -->
+        <img src="https://unsplash.com/photos/2bfHAKhGn4g/download?w=1920" alt="" class="h-full w-full object-cover" />
+        <div class="absolute inset-0 bg-background/60"></div>
+      </slot>
+    </div>
+  </div>
+  <div class="mx-auto w-full max-w-6xl px-6">
+    <div class="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
+      <!-- content — yours to edit: comment out and replace -->
+      <Badge variant="accent">GSAP-powered</Badge>
+      <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">Scroll, and the background moves with you.</h1>
+      <p class="text-muted-foreground">
+        A ScrollTrigger-scrubbed parallax layer -- tier 2 motion, opt-in only when a section genuinely needs it.
+      </p>
+      <div class="flex gap-3">
+        <Button size="lg">Get started</Button>
+        <Button size="lg" variant="outline">Browse layouts</Button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function resolveScroller(el: HTMLElement): HTMLElement | undefined {
+    let node = el.parentElement;
+    while (node) {
+      const overflowY = getComputedStyle(node).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll") return node;
+      node = node.parentElement;
+    }
+    return undefined;
+  }
+
+  function initParallax(section: HTMLElement) {
+    const bg = section.querySelector<HTMLElement>("[data-gsap-hero-bg]");
+    if (!bg) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    gsap.fromTo(
+      bg,
+      { yPercent: -20 },
+      {
+        yPercent: 20,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          scroller: resolveScroller(section),
+          scrub: true,
+        },
+      },
+    );
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-gsap-hero]").forEach(initParallax);
+</script>

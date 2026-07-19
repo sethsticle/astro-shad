@@ -66,6 +66,7 @@ import MapRoute from "../components/astro-shad/MapRoute.astro";
 import MapGeoJSON from "../components/astro-shad/MapGeoJSON.astro";
 import PulseGrid from "../components/astro-shad/PulseGrid.astro";
 import PixelTransition from "../components/astro-shad/PixelTransition.astro";
+import { motion, motionStagger, MOTION_PREHIDE_CSS } from "../lib/motion";
 
 /* Demo districts for the MapGeoJSON board: rough hand-drawn zones around
    Cape Town -- shapes are illustrative, not accurate boundaries. */
@@ -126,6 +127,7 @@ import Hero01 from "../components/astro-shad/sections/Hero-01.astro";
 import Hero02 from "../components/astro-shad/sections/Hero-02.astro";
 import Hero03 from "../components/astro-shad/sections/Hero-03.astro";
 import Hero04 from "../components/astro-shad/sections/Hero-04.astro";
+import GsapHero01 from "../components/astro-shad/sections/GsapHero-01.astro";
 import Split01 from "../components/astro-shad/sections/Split-01.astro";
 import FeatureGrid01 from "../components/astro-shad/sections/FeatureGrid-01.astro";
 import FeatureSection01 from "../components/astro-shad/sections/FeatureSection-01.astro";
@@ -283,6 +285,15 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
             aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg
           >
         </button>
+
+        <!-- Icon source for the per-dev-group viewport toggles JS builds below.
+             Rendered once at build time (astro-icon is build-time only) then
+             cloned per group at runtime -- never displayed itself. -->
+        <template id="viewport-icons">
+          <span data-icon="phone"><Icon name="lucide:smartphone" size={12} /></span>
+          <span data-icon="tablet"><Icon name="lucide:tablet" size={12} /></span>
+          <span data-icon="laptop"><Icon name="lucide:laptop" size={12} /></span>
+        </template>
 
         <div class="h-full overflow-hidden rounded-lg border border-[#26262b]">
           <!-- #preview-scope: ALL token overrides + data-theme land here -->
@@ -768,21 +779,28 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
               title="Layout sections"
               note="sections/ · ship populated · <Hero01 /> is the whole demo · customise by editing your installed copy"
             >
-              <div class="dev-group">
+              <div class="dev-group tall-canvas">
                 <p class="dev-group-title">hero-01 -- full-height, centered stack</p>
                 <div class="overflow-hidden rounded-lg border border-border"><Hero01 /></div>
               </div>
-              <div class="dev-group">
+              <div class="dev-group tall-canvas">
                 <p class="dev-group-title">hero-02 -- content anchored bottom-left</p>
                 <div class="overflow-hidden rounded-lg border border-border"><Hero02 /></div>
               </div>
-              <div class="dev-group">
+              <div class="dev-group tall-canvas">
                 <p class="dev-group-title">hero-03 -- centered + footer feature strip (auto-fit columns)</p>
                 <div class="overflow-hidden rounded-lg border border-border"><Hero03 /></div>
               </div>
-              <div class="dev-group">
+              <div class="dev-group tall-canvas">
                 <p class="dev-group-title">hero-04 -- split + feature row (carousel stand-in)</p>
                 <div class="overflow-hidden rounded-lg border border-border"><Hero04 /></div>
+              </div>
+              <div class="dev-group tall-canvas">
+                <p class="dev-group-title">
+                  gsap-hero-01 -- ScrollTrigger-scrubbed parallax (first tier-2/GSAP item, scroll to see the background
+                  shift)
+                </p>
+                <div class="overflow-hidden rounded-lg border border-border"><GsapHero01 /></div>
               </div>
               <div class="dev-group">
                 <p class="dev-group-title">split-01 -- media left (default)</p>
@@ -800,7 +818,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                 <p class="dev-group-title">feature-grid-01 -- columns=4</p>
                 <div class="overflow-hidden rounded-lg border border-border"><FeatureGrid01 columns={4} /></div>
               </div>
-              <div class="dev-group">
+              <div class="dev-group tall-canvas">
                 <p class="dev-group-title">feature-section-01 -- header + six icon cards, zero JS</p>
                 <div class="overflow-hidden rounded-lg border border-border"><FeatureSection01 /></div>
               </div>
@@ -1042,15 +1060,206 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                 </PixelTransition>
               </div>
             </DevBoard>
+
+            <!-- Motion pilot (docs/plans/motion-system.md), Phase 1a + 1b --
+                 lib/motion.ts, no registry.json entry yet. Pre-hide CSS + the
+                 sweep are page-level: once registry.json'd, both ship as one
+                 bootstrap alongside lib/motion.ts (see the plan's "aggregate
+                 as one registry item" note), not per-board. -->
+            <style set:html={MOTION_PREHIDE_CSS}></style>
+            <script>
+              import { initMotion } from "../lib/motion";
+              initMotion();
+            </script>
+
+            <DevBoard
+              index={17}
+              title="Motion pilot"
+              note="lib/motion.ts · WAAPI runtime, zero deps · full preset set + motionStagger() · unpublished, no registry.json entry yet"
+            >
+              <div class="dev-group">
+                <p class="dev-group-title">
+                  load trigger -- whole-block fade-up (heading + paragraph together, not per-word/char -- that's SplitText's territory)
+                </p>
+                <div
+                  class="max-w-xl rounded-lg border border-border bg-card p-6"
+                  {...motion("fade-up", { trigger: "load", duration: 600 })}
+                >
+                  <h3 class="text-lg font-semibold">Ready when you are.</h3>
+                  <p class="mt-2 text-sm text-muted-foreground">
+                    One <code>data-motion</code> attribute, one plain div -- no source edits to anything.
+                  </p>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">hover trigger -- Button.astro, zero component edits · no-modifier + bracket-arbitrary</p>
+                <div class="flex flex-wrap gap-4">
+                  <Button {...motion("scale-in", { trigger: "hover", duration: 200 })}>scale-in (default)</Button>
+                  <Button variant="outline" {...motion("scale-in-[0.8]", { trigger: "hover", duration: 200 })}>
+                    scale-in-[0.8] (bracket)
+                  </Button>
+                  <Button variant="outline" {...motion("scale-out", { trigger: "hover", duration: 200 })}>
+                    scale-out (default)
+                  </Button>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">
+                  in-view trigger + motionStagger() -- Card.astro, 4-up grid · no-modifier, bare-number, bracket-arbitrary
+                </p>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-4" {...motionStagger(100)}>
+                  <Card title="fade-up" description="default -- 16px" {...motion("fade-up", { trigger: "in-view" })} />
+                  <Card title="fade-up-24" description="bare number -- 24px" {...motion("fade-up-24", { trigger: "in-view" })} />
+                  <Card
+                    title="fade-up-[3rem]"
+                    description="bracket -- verbatim CSS length"
+                    {...motion("fade-up-[3rem]", { trigger: "in-view" })}
+                  />
+                  <Card
+                    title="scale-in-20"
+                    description="bare number -- 20 pct points, scale(0.80)"
+                    {...motion("scale-in-20", { trigger: "in-view" })}
+                  />
+                </div>
+              </div>
+
+              <!-- spacer: pushes each in-view group below the board's own
+                   initial viewport so in-view actually requires a scroll to
+                   trigger, instead of firing the moment the board is shown -->
+              <div class="h-[50vh]" aria-hidden="true"></div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">in-view trigger + motionStagger() -- fade family, all 4 directions (1b expansion)</p>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-4" {...motionStagger(80)}>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("fade-up", { trigger: "in-view" })}
+                  >
+                    fade-up
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("fade-down", { trigger: "in-view" })}
+                  >
+                    fade-down
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("fade-left", { trigger: "in-view" })}
+                  >
+                    fade-left
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("fade-right", { trigger: "in-view" })}
+                  >
+                    fade-right
+                  </div>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">in-view trigger + motionStagger() -- slide family, translate only (no opacity change)</p>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-4" {...motionStagger(80)}>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("slide-up", { trigger: "in-view" })}
+                  >
+                    slide-up
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("slide-down", { trigger: "in-view" })}
+                  >
+                    slide-down
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("slide-left", { trigger: "in-view" })}
+                  >
+                    slide-left
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("slide-right", { trigger: "in-view" })}
+                  >
+                    slide-right
+                  </div>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">in-view trigger + motionStagger() -- rotate + blur-in</p>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-4" {...motionStagger(80)}>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("rotate", { trigger: "in-view" })}
+                  >
+                    rotate (default 8deg)
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("rotate-[-15deg]", { trigger: "in-view" })}
+                  >
+                    rotate-[-15deg]
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("blur-in", { trigger: "in-view" })}
+                  >
+                    blur-in (default 8px)
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-center text-sm"
+                    {...motion("blur-in-16", { trigger: "in-view" })}
+                  >
+                    blur-in-16
+                  </div>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">in-view trigger -- color / bg transition (bracket-only, no bare/no-modifier form)</p>
+                <div class="flex flex-wrap gap-4">
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-sm font-semibold"
+                    {...motion("color-[#f43f5e]", { trigger: "in-view", duration: 900 })}
+                  >
+                    color-[#f43f5e] -&gt; currentColor
+                  </div>
+                  <div
+                    class="rounded-lg border border-border bg-card p-4 text-sm font-semibold text-card-foreground"
+                    {...motion("bg-[#f43f5e]", { trigger: "in-view", duration: 900 })}
+                  >
+                    bg-[#f43f5e] -&gt; bg-card
+                  </div>
+                </div>
+              </div>
+
+              <div class="h-[50vh]" aria-hidden="true"></div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">in-view trigger -- Cta-01.astro, full section, zero component edits</p>
+                <div class="overflow-hidden rounded-lg border border-border">
+                  <Cta01 {...motion("fade", { trigger: "in-view", duration: 700 })} />
+                </div>
+              </div>
+            </DevBoard>
           </div>
         </div>
 
-        <!-- ── Pagination pills (built by script from board count) ── -->
+        <!-- ── Pagination pills (built by script from board count) ──
+             Capped to a max-width with its own horizontal scroll (id
+             pagination-scroll) once the pill row would otherwise overflow
+             the canvas -- the row itself stays centered via the outer nav. -->
         <nav
           id="pagination"
-          class="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1 rounded-md border border-[#26262b] bg-[#131316] p-1 shadow-lg"
+          class="absolute bottom-4 left-1/2 flex max-w-[min(90vw,28rem)] -translate-x-1/2 gap-1 rounded-md border border-[#26262b] bg-[#131316] p-1 shadow-lg"
           aria-label="Boards"
         >
+          <div id="pagination-scroll" class="flex gap-1 overflow-x-auto"></div>
         </nav>
       </div>
     </div>
@@ -1114,6 +1323,103 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
         background: #e4e4e7;
         color: #0b0b0c;
       }
+      .viewport-btn {
+        display: grid;
+        width: 1.5rem;
+        height: 1.5rem;
+        place-items: center;
+        color: #9d9da6;
+        background: transparent;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+      .viewport-btn:hover {
+        color: #e4e4e7;
+      }
+      .viewport-btn[aria-pressed="true"] {
+        background: #e4e4e7;
+        color: #0b0b0c;
+      }
+
+      /* ── Per-dev-group viewport toggle ──
+         JS (below) splits every .dev-group into a .group-header row (title
+         + toggle, inline, far right) and a .group-canvas div holding
+         everything else. The toggle lives in the title row -- not floated
+         over the content -- so it never collides with a component's own
+         top-right chrome (map zoom controls, etc). Each group narrows
+         independently; toggling one never touches another, and the board
+         header, sidebar, and pagination are untouched since they're outside
+         .dev-group entirely. Only affects intrinsic layout (flex-wrap,
+         grid, ButtonGroup, etc); sm:/md: utilities key off the actual
+         browser viewport and won't re-trigger from a narrowed container. */
+      .group-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .group-header .dev-group-title {
+        flex: 1;
+        margin-bottom: 0;
+      }
+      .group-canvas {
+        max-width: 100%;
+        margin-inline: auto;
+        transition: max-width 200ms ease;
+      }
+      .group-canvas[data-viewport="phone"] {
+        max-width: 375px;
+      }
+      .group-canvas[data-viewport="tablet"] {
+        max-width: 768px;
+      }
+      /* height, not max-height -- min-h-svh below needs a DEFINITE ancestor
+         height to resolve its own min-height:100% against. A percentage
+         height against an auto-height ancestor computes to nothing. */
+      .tall-canvas .group-canvas[data-viewport="phone"] {
+        height: 800px;
+        overflow-y: auto;
+      }
+      .tall-canvas .group-canvas[data-viewport="tablet"] {
+        height: 768px;
+        overflow-y: auto;
+      }
+      /* Board markup usually wraps the demo in its own div (e.g. the
+         overflow-hidden/rounded-lg/border-border box around <Hero01 />) --
+         that div has no height of its own, which breaks the percentage
+         chain the min-h-svh override below depends on. flex + stretch
+         forces it to fill .group-canvas's definite height instead of
+         sizing to its own auto content, so the chain reaches all the way
+         down to the section. */
+      .tall-canvas .group-canvas[data-viewport] {
+        display: flex;
+        flex-direction: column;
+      }
+      .tall-canvas .group-canvas[data-viewport] > * {
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+      /* svh/dvh/vh always resolve against the REAL browser viewport, never
+         a container -- so no wrapper sizing above can shrink a min-h-svh
+         section on its own. Override it directly while narrowed so Hero
+         sections fill the box we gave them instead of demanding the
+         monitor's full height and scrolling inside it. */
+      .tall-canvas .group-canvas[data-viewport] :is(.min-h-svh, .min-h-dvh, .min-h-screen) {
+        min-height: 100%;
+      }
+      .group-viewport-toggle {
+        flex: none;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.125rem;
+        padding: 0.25rem;
+        border-radius: 6px;
+        border: 1px solid #26262b;
+        background: #131316;
+      }
 
       /* Board content helpers (inside the preview scope -- token-styled) */
       .dev-group {
@@ -1151,6 +1457,15 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
         display: none;
       }
 
+      /* Pagination pill strip: same scrollbar-hide treatment once the pill
+         count overflows the nav's max-width (see the nav element). */
+      #pagination-scroll {
+        scrollbar-width: none;
+      }
+      #pagination-scroll::-webkit-scrollbar {
+        display: none;
+      }
+
       /* ── Collapsible sidebar ──
          Mobile: fixed off-canvas drawer. Desktop: static column that
          collapses away entirely. State = data-sidebar on <body>. */
@@ -1179,6 +1494,12 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
     </style>
 
     <script>
+      /* ═══ Dev config ═══
+         0-based board index to land on when this page loads -- change this
+         while iterating on one board instead of scrolling/paging over each
+         time. 0 = first board (the normal default). */
+      const DEFAULT_BOARD = 16;
+
       /* ═══ Token controls ═══
          All overrides land as inline custom properties on #preview-scope,
          never :root -- chrome is untouched by design. */
@@ -1392,7 +1713,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
       /* ═══ Board pagination ═══ */
       const scroller = scope;
       const boards = scroller.querySelectorAll("[data-board]");
-      const nav = document.getElementById("pagination")!;
+      const nav = document.getElementById("pagination-scroll")!;
       const pills: HTMLButtonElement[] = [];
 
       boards.forEach((_, i) => {
@@ -1405,8 +1726,8 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
         pills.push(pill);
       });
 
-      function goTo(i: number) {
-        scroller.scrollTo({ left: i * scroller.clientWidth, behavior: "smooth" });
+      function goTo(i: number, behavior: ScrollBehavior = "smooth") {
+        scroller.scrollTo({ left: i * scroller.clientWidth, behavior });
       }
       function currentIndex() {
         return Math.min(boards.length - 1, Math.max(0, Math.round(scroller.scrollLeft / scroller.clientWidth)));
@@ -1414,7 +1735,13 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
       function syncPills() {
         const idx = currentIndex();
         pills.forEach((p, i) => p.setAttribute("aria-current", String(i === idx)));
+        pills[idx]?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
       }
+
+      if (DEFAULT_BOARD > 0 && DEFAULT_BOARD < boards.length) {
+        goTo(DEFAULT_BOARD, "instant");
+      }
+      syncPills();
 
       let ticking = false;
       scroller.addEventListener("scroll", () => {
@@ -1433,6 +1760,58 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
         if (t && t.closest && t.closest('[role="tablist"]')) return;
         if (e.key === "ArrowRight") goTo(Math.min(boards.length - 1, currentIndex() + 1));
         if (e.key === "ArrowLeft") goTo(Math.max(0, currentIndex() - 1));
+      });
+
+      /* ═══ Per-dev-group viewport toggles ═══
+         Every .dev-group gets its own phone/tablet/laptop toggle, top-right
+         of its own canvas -- independent of every other group. Content
+         after the title moves into a .group-canvas wrapper (CSS narrows
+         that, not the group itself, so the title row stays put); the
+         toggle button icons come from the astro-icon render in the
+         #viewport-icons <template> since astro-icon is build-time only. */
+      const iconTpl = document.getElementById("viewport-icons") as HTMLTemplateElement;
+      const VIEWPORTS = ["phone", "tablet", "laptop"] as const;
+      const VIEWPORT_LABELS: Record<(typeof VIEWPORTS)[number], string> = {
+        phone: "Phone width",
+        tablet: "Tablet width",
+        laptop: "Full width",
+      };
+      const iconHTML = Object.fromEntries(
+        VIEWPORTS.map((v) => [v, iconTpl.content.querySelector(`[data-icon="${v}"]`)!.innerHTML]),
+      ) as Record<(typeof VIEWPORTS)[number], string>;
+
+      document.querySelectorAll<HTMLElement>(".dev-group").forEach((group) => {
+        const title = group.querySelector<HTMLElement>(":scope > .dev-group-title");
+        const canvas = document.createElement("div");
+        canvas.className = "group-canvas";
+        Array.from(group.childNodes).forEach((node) => {
+          if (node !== title) canvas.appendChild(node);
+        });
+
+        const toggle = document.createElement("div");
+        toggle.className = "group-viewport-toggle";
+        toggle.setAttribute("role", "group");
+        toggle.setAttribute("aria-label", "Preview viewport width");
+        toggle.innerHTML = VIEWPORTS.map(
+          (v) =>
+            `<button type="button" class="viewport-btn" data-value="${v}" aria-label="${VIEWPORT_LABELS[v]}" aria-pressed="${v === "laptop"}">${iconHTML[v]}</button>`,
+        ).join("");
+
+        const header = document.createElement("div");
+        header.className = "group-header";
+        if (title) header.appendChild(title);
+        header.appendChild(toggle);
+
+        group.replaceChildren(header, canvas);
+
+        toggle.addEventListener("click", (e) => {
+          const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-value]");
+          if (!btn) return;
+          const value = btn.dataset.value as (typeof VIEWPORTS)[number];
+          if (value === "laptop") delete canvas.dataset.viewport;
+          else canvas.dataset.viewport = value;
+          toggle.querySelectorAll<HTMLElement>("[data-value]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        });
       });
 
       apply();
