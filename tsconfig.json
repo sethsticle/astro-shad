@@ -2,8 +2,20 @@
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
-  "include": [".astro/types.d.ts", "src/**/*"],
-  "exclude": ["dist", "spike-consumer", "node_modules"]
+  "include": [
+    ".astro/types.d.ts",
+    "src/**/*",
+    "./worker-configuration.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "spike-consumer",
+    "node_modules"
+  ]
 }
