@@ -1,0 +1,115 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import ComponentPreview from '../../../components/docs/ComponentPreview.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Snippet from '../../../components/docs/Snippet.astro';
+import BasicDemo from '../../../components/docs/demos/theme-toggle/Basic.astro';
+import basicSource from '../../../components/docs/demos/theme-toggle/Basic.astro?raw';
+import MultipleInstancesDemo from '../../../components/docs/demos/theme-toggle/MultipleInstances.astro';
+import multipleInstancesSource from '../../../components/docs/demos/theme-toggle/MultipleInstances.astro?raw';
+
+// Guard: frontmatter tag-strings + a bare "Props" word in the template can
+// panic @astrojs/compiler's props scanner (see session manifest 2026-07-17 f).
+interface Props {}
+
+const bootstrapSnippet = `---
+import { THEME_PREHIDE_JS } from '../lib/theme';
+---
+<script is:inline set:html={THEME_PREHIDE_JS}></script>`;
+---
+
+<DocsLayout
+  title="Theme Toggle"
+  description="Dark/light toggle button. Wraps Button.astro + @astro-shad/theme-script's initThemeToggle() runtime -- one install wires the whole click handler, no manual script required beyond a one-time head snippet."
+  registry="theme-toggle"
+  sourceFile="ThemeToggle.astro"
+>
+  <h2>Two required pieces</h2>
+  <ul class="docs-list">
+    <li>
+      <strong><code>@astro-shad/theme-toggle</code> pulls in <code>@astro-shad/theme-script</code> automatically</strong>{' '}
+      (it's a real <code>registryDependencies</code> entry, not just a doc pairing) -- installing the toggle also
+      installs <code>src/lib/theme.ts</code>, which exports <code>THEME_PREHIDE_JS</code> and{' '}
+      <code>initThemeToggle(buttonId)</code>. The two are distinct registry items only because a component and a lib
+      are different <code>registry:*</code> types -- one <code>npx shadcn add @astro-shad/theme-toggle</code> is the
+      whole install.
+    </li>
+    <li>
+      <strong>
+        The one thing that install can't do for you: add <code>THEME_PREHIDE_JS</code> to your root layout's{' '}
+        <code>&lt;head&gt;</code>, once per site.
+      </strong>{' '}
+      This project SSGs dark-by-default markup (<code>theme.css</code>'s <code>:root</code> has no{' '}
+      <code>[data-theme]</code> guard), so a returning light-mode visitor would flash dark for one frame without this
+      running inline, ahead of anything else on the page.
+    </li>
+  </ul>
+  <Snippet lang="astro" code={bootstrapSnippet} />
+  <p>
+    This docs site does exactly that once, site-wide, in <code>BaseLayout.astro</code> -- every page (including this
+    one) already has it, which is why the toggle below actually works.
+  </p>
+
+  <h2>Preview</h2>
+  <p>
+    This toggles <code>document.documentElement</code>'s <code>data-theme</code> -- clicking it flips the whole page
+    (this docs site), not just the box below. That's real behaviour, not a preview artifact: the component has no
+    concept of a scoped preview surface.
+  </p>
+  <ComponentPreview code={basicSource}>
+    <BasicDemo />
+  </ComponentPreview>
+
+  <h2>Multiple instances</h2>
+  <p>
+    Default <code>id</code> is the fixed constant <code>astro-shad-theme-toggle</code> -- a second instance with no
+    explicit <code>id</code> silently breaks (duplicate DOM ids; init only wires whichever the browser resolves
+    first). Give every instance beyond the first its own explicit <code>id</code>, as below.
+  </p>
+  <ComponentPreview code={multipleInstancesSource}>
+    <MultipleInstancesDemo />
+  </ComponentPreview>
+
+  <h2>Install</h2>
+  <Snippet lang="bash" code="npx shadcn add @astro-shad/theme-toggle" />
+
+  <h2>ThemeToggle props</h2>
+  <PropsTable
+    rows={[
+      { name: 'id', type: 'string', default: "'astro-shad-theme-toggle'", description: 'DOM id the runtime wires the click handler to. Override for every instance beyond the first on a page.' },
+      { name: 'variant', type: "'primary' | 'secondary' | 'inverse' | 'outline' | 'ghost' | 'destructive'", default: "'outline'", description: 'Passed through to the underlying Button.astro.' },
+      { name: 'size', type: "'sm' | 'md' | 'lg'", default: "'sm'", description: 'Passed through to Button.astro.' },
+    ]}
+  />
+
+  <h2>Slots</h2>
+  <PropsTable
+    bare
+    rows={[{ name: 'default', type: 'slot', description: 'Button label. Defaults to "Theme".' }]}
+  />
+
+  <h2><code>@astro-shad/theme-script</code> exports</h2>
+  <p>The runtime <code>ThemeToggle.astro</code> wraps -- reach for these directly only if building a custom trigger.</p>
+  <PropsTable
+    bare
+    rows={[
+      { name: 'THEME_PREHIDE_JS', type: 'string', description: 'Inline script source (FOUC guard) -- restores the stored theme before first paint. See the bootstrap snippet above.' },
+      { name: 'initThemeToggle(buttonId)', type: 'function', description: 'Wires a click listener onto the element with buttonId: flips data-theme and persists the choice to localStorage.' },
+    ]}
+  />
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>
+      Distinct from the <code>@astro-shad/theme</code> registry item (the CSS-only token contract shipped by{' '}
+      <code>theme.css</code>) despite the similar name -- no relation beyond both touching "theme".
+    </li>
+    <li>
+      <code>ThemeToggle.astro</code>'s own <code>&lt;script&gt;</code> queries every{' '}
+      <code>[data-astro-shad-theme-toggle]</code> on the page rather than closing over one id from frontmatter --
+      Astro dedupes the script itself to one copy per page regardless of instance count, so each rendered button
+      needs to be wired individually at runtime.
+    </li>
+    <li>Persists to <code>localStorage</code> under <code>astro-shad-theme</code>.</li>
+  </ul>
+</DocsLayout>

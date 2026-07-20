@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "checkbox",
+  "title": "Checkbox",
+  "description": "Bare checkbox primitive. Converted from shadcn ui/checkbox.tsx (base-ui Checkbox.Root/Indicator) to rung-1 pure CSS — appearance-none input + peer-checked sibling check-mark SVG, zero JS. Unlabelled building block for compositions outside FormField.astro.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/Checkbox.astro",
+      "content": "---\n/**\n * Checkbox.astro -- astro-shad bare checkbox primitive. Converted from\n * shadcn ui/checkbox.tsx (base-ui Checkbox.Root/Indicator). Rung 1: a\n * real `<input type=\"checkbox\">` with `appearance-none` styling plus a\n * sibling check-mark SVG shown via the `peer`/`peer-checked:` CSS\n * selector -- base-ui's Root/Indicator split existed to sync a \"checked\"\n * data-attribute to a rendered child; the browser already tracks\n * `:checked`, so that's the whole mechanism, zero JS.\n *\n * This is the unlabelled building block -- `FormField.astro`'s\n * `type=\"checkbox\"` renders its own inline markup (it needs the\n * label/description/error wiring); reach for this one when composing a\n * checkbox outside FormField (e.g. a filter list, a sidebar toggle row).\n *\n *   <label class=\"flex items-center gap-2\"><Checkbox name=\"tos\" /> I agree</label>\n *   <Checkbox checked disabled />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  checked?: boolean;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { checked, class: className, ...rest } = Astro.props;\n---\n\n<span class=\"relative inline-flex size-4 shrink-0\">\n  <input\n    type=\"checkbox\"\n    data-slot=\"checkbox\"\n    checked={checked}\n    class={cn(\n      'peer size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border border-input bg-transparent transition-colors ' +\n        'checked:border-primary checked:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +\n        'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive',\n      className\n    )}\n    {...rest}\n  />\n  <svg\n    class=\"pointer-events-none absolute inset-0 m-auto hidden size-3 text-primary-foreground peer-checked:block\"\n    viewBox=\"0 0 24 24\"\n    fill=\"none\"\n    stroke=\"currentColor\"\n    stroke-width=\"3\"\n    stroke-linecap=\"round\"\n    stroke-linejoin=\"round\"\n    aria-hidden=\"true\"\n  >\n    <path d=\"M20 6 9 17l-5-5\" />\n  </svg>\n</span>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Checkbox.astro"
+    }
+  ],
+  "type": "registry:component"
+}

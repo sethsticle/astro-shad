@@ -5,9 +5,11 @@
  * compass (live bearing+pitch needle, click resets north), locate (geolocation
  * + flyTo, 10s timeout so a dismissed permission prompt doesn't wedge the
  * button), and fullscreen toggle on the map container. lucide-react icons
- * inlined as SVGs per the icon rule; hover surfaces use `bg-muted` per the
- * accent-token decision (mapcn used hover:bg-accent + a dark: variant --
- * registry markup carries no dark: variants, tokens flip instead).
+ * inlined as SVGs per the icon rule; hover surfaces use `bg-muted` (mapcn
+ * used hover:bg-accent + a dark: variant -- registry markup carries no
+ * dark: variants, tokens flip instead; `bg-accent` would now also work
+ * since the 2026-07-20 realignment made `--accent` numerically identical
+ * to `--muted`, but `bg-muted` stays the explicit, unambiguous choice).
  *
  * Must be a child of <Map>. A successful locate dispatches `map:locate`
  * (detail: { longitude, latitude }) on the map root.

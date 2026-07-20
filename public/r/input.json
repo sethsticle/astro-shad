@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "input",
+  "title": "Input",
+  "description": "Bare text input primitive. Converted from shadcn ui/input.tsx (base-ui Input, a plain <input> under the hood). Unlabelled building block for compositions outside FormField.astro (e.g. Sidebar's search box).",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/Input.astro",
+      "content": "---\n/**\n * Input.astro -- astro-shad bare input primitive. Converted from shadcn\n * ui/input.tsx (base-ui Input, which is just a plain <input> under the\n * hood -- deleted, no behaviour was riding on it).\n *\n * This is the unlabelled building block: `FormField.astro` renders its\n * own inline input markup (it needs the label/description/error wiring),\n * this component is for compositions that need a bare field -- e.g.\n * `Sidebar.astro`'s search box, or a form built by hand outside FormField.\n *\n *   <Input type=\"email\" placeholder=\"you@example.com\" />\n *   <Input type=\"search\" class=\"h-8\" />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  type?: string;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { type = 'text', class: className, ...rest } = Astro.props;\n\nconst INPUT =\n  'flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors ' +\n  'file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground ' +\n  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +\n  'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive';\n---\n\n<input type={type} data-slot=\"input\" class={cn(INPUT, className)} {...rest} />\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Input.astro"
+    }
+  ],
+  "type": "registry:component"
+}

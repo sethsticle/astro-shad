@@ -1,0 +1,74 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import VariantBlock from "../../../components/docs/VariantBlock.astro";
+import BasicDemo from "../../../components/docs/demos/gsap-hero-01/Basic.astro";
+import basicSource from "../../../components/docs/demos/gsap-hero-01/Basic.astro?raw";
+---
+
+<DocsLayout
+  title="GSAP Hero 01"
+  description="Full-height hero with a ScrollTrigger-scrubbed parallax background layer -- the registry's first tier-2 (GSAP) item. Ships populated, same copy-and-own convention as the tier-1 Hero family, but the background slot is a genuine continuous scroll-linked animation, not a static layer."
+  registry="gsap-hero-01"
+  sourceFile="sections/GsapHero-01.astro"
+>
+  <h2>Before you start -- this installs an npm dependency</h2>
+  <ul class="docs-list">
+    <li>
+      <code>npx shadcn add @astro-shad/gsap-hero-01</code> installs <code>gsap@^3.13.0</code> alongside the
+      component file -- same pattern as <a href="/docs/components/map">Map</a>'s <code>maplibre-gl</code>. No other
+      astro-shad primitive pulls in a runtime npm package; every tier-1 item (see{' '}
+      <a href="/docs/components/motion">Motion</a>) stays zero-dependency on purpose.
+    </li>
+    <li>
+      Why GSAP, not <code>@astro-shad/motion</code>: the background layer's position is continuously tied to scroll
+      offset (<code>scrollTrigger: {'{'} scrub: true {'}'}</code>), not a one-shot entrance. Tier-1's{' '}
+      <code>IntersectionObserver</code>-driven triggers fire once or toggle; they don't scrub. This component
+      intentionally doesn't reimplement anything the zero-dependency runtime could already do.
+    </li>
+  </ul>
+
+  <h2>Preview</h2>
+  <p>
+    Scroll the preview area -- the oversized background layer (<code>inset-x-0 -top-[15%] -bottom-[15%]</code>)
+    translates <code>yPercent -10 → 10</code> against scroll position, edges always covered at both extremes.
+  </p>
+  <VariantBlock registry="gsap-hero-01" source={basicSource} previewClass="p-0">
+    <BasicDemo />
+  </VariantBlock>
+
+  <h2>Props</h2>
+  <p>
+    Same as the tier-1 heroes (frontend contract §7): no content props. Accepts <code>class</code> and arbitrary
+    rest attributes. The <code>background</code> slot fallback is an Unsplash demo image + scrim -- swap the{' '}
+    <code>src</code> for a local asset, or fill the slot to replace the layer entirely; the parallax mechanism lives
+    on the wrapper, not the slot content, so a swapped image still animates correctly.
+  </p>
+
+  <h2>Notes</h2>
+  <ul class="docs-list">
+    <li>
+      <strong>Scroller auto-detection.</strong> ScrollTrigger defaults to <code>window</code> as the scroll
+      container, which breaks inside a nested <code>overflow-y: auto</code> preview area (like this docs page's own
+      component previews, or <code>/dev</code>'s per-board scroll region). The component walks up from itself for
+      the nearest scrollable ancestor and falls back to <code>window</code> when none is found -- no prop needed,
+      this is automatic.
+    </li>
+    <li>
+      <code>prefers-reduced-motion</code> skips creating the ScrollTrigger entirely -- no reduced-motion fallback
+      animation, since a static hero with no parallax already reads correctly with zero extra code.
+    </li>
+    <li>
+      <strong>Known gap, stated honestly:</strong> ScrollTrigger instances are never explicitly <code>.kill()</code>
+      'd. Harmless today -- this registry has no Astro view-transitions (<code>ClientRouter</code>) anywhere, so
+      plain MPA navigation tears the whole page down between routes and there's nothing to leak. If your project (or
+      a future version of this one) adopts view-transitions, add an <code>astro:before-swap</code> cleanup pass
+      before relying on this component across client-side route swaps.
+    </li>
+    <li>
+      Porting philosophy diverges from tier-1 on purpose: the script is close to stock ScrollTrigger boilerplate
+      (<code>registerPlugin</code> + one <code>gsap.fromTo</code>), not funneled through a custom preset
+      abstraction -- so a real GSAP snippet found elsewhere can be pasted in here with minimal translation.
+    </li>
+    <li>Pulls in <code>badge</code> and <code>button</code> automatically via registry dependencies.</li>
+  </ul>
+</DocsLayout>

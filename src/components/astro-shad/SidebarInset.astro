@@ -1,0 +1,50 @@
+---
+/**
+ * SidebarInset.astro -- astro-shad main-content wrapper for a `<Sidebar>`
+ * layout. Converted from shadcn's SidebarInset. When the sibling
+ * `<Sidebar variant="inset">` is used, this renders as its own inset
+ * rounded/shadowed card (margin, `rounded-xl`, `shadow-sm`) instead of
+ * full width -- driven by `peer-data-[variant=inset]` reading
+ * `Sidebar.astro`'s root `data-variant` (a real DOM sibling, see that
+ * file's header comment for why `peer` lives there and not on the
+ * `<aside>`). `peer-data-[state=collapsed]` narrows the left margin
+ * further once the sidebar collapses, kept in sync by `SidebarTrigger`.
+ *
+ * No explicit `height` here (no `h-full`) -- this is a flex item of the
+ * consumer's flex row, and `height:100%` sits OUTSIDE the margin box
+ * (margin is added on top of 100%, not subtracted from it), so a `h-full`
+ * element carrying the inset variant's `m-2` would overflow its
+ * container by the margin amount, clipping the bottom rounded corner
+ * against any `overflow-hidden` ancestor. Flexbox's default
+ * `align-items:stretch` sizes an unset-height item to the container's
+ * cross-axis size MINUS its own margin automatically -- the fix is
+ * simply not fighting that with an explicit percentage height.
+ *
+ *   <div class="flex min-h-svh">
+ *     <Sidebar>...</Sidebar>
+ *     <SidebarInset>
+ *       <SidebarTrigger />
+ *       ...page content...
+ *     </SidebarInset>
+ *   </div>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<main
+  data-slot="sidebar-inset"
+  class={cn(
+    'flex w-full flex-1 flex-col bg-background',
+    'md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+    className
+  )}
+  {...rest}>
+  <slot />
+</main>

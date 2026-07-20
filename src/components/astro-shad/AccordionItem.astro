@@ -42,7 +42,7 @@ const { title, open = false, class: className, highlight = false, ...rest } = As
       class={cn(
         "group flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-sm font-medium text-foreground transition-colors hover:font-bold focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         // Accent open state text and icons
-        highlight && "aria-expanded:text-accent [&_svg]:group-aria-expanded:text-accent",
+        highlight && "aria-expanded:text-primary [&_svg]:group-aria-expanded:text-primary",
       )}
     >
       {title}

@@ -16,14 +16,14 @@
  * source's killTweensOf.
  *
  * `pixelColor` is a live CSS color (default currentColor -- these are DOM
- * divs, not canvas, so tokens like var(--accent) work here). Divergences
+ * divs, not canvas, so any token, e.g. var(--primary), works here). Divergences
  * from the source: the card chrome is token-styled (bg-card/border-border,
  * no fixed 300px width -- size via class), and reduced motion swaps the
  * layers instantly with no pixel flash. The second layer is inert while
  * shown (source behaviour): the reveal is decorative, the card itself
  * stays the interactive surface. No-JS fallback = first content, static.
  *
- *   <PixelTransition class="w-72" gridSize={8} pixelColor="var(--accent)">
+ *   <PixelTransition class="w-72" gridSize={8} pixelColor="var(--primary)">
  *     <img slot="first" src="..." alt="..." class="h-full w-full object-cover" />
  *     <div slot="second" class="grid h-full w-full place-items-center bg-card">
  *       <p class="text-3xl font-black">Meow!</p>

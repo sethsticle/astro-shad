@@ -1,0 +1,150 @@
+---
+/**
+ * Dialog.astro -- astro-shad modal dialog. Converted from shadcn
+ * ui/dialog.tsx (base-ui Dialog primitive, centered variant of the same
+ * shape Sheet.astro converts as an edge panel). The seven-file compound
+ * collapses into one file (props + `trigger`/`footer` named slots, body
+ * as the default slot) -- same convention as Sheet.astro, deliberately
+ * NOT sharing a script with it: the two use separate `data-dialog-*` /
+ * `data-sheet-*` attribute namespaces so a page using both never cross-
+ * fires (Astro dedupes each component's own script once regardless of
+ * instance count, so this costs nothing at runtime).
+ *
+ * No focus trap (see Sheet.astro's note -- same call). Escape, overlay
+ * click, and the close button are the dismiss paths; body scroll locks
+ * while open.
+ *
+ *   <Dialog title="Delete component?" description="This can't be undone.">
+ *     <button slot="trigger">Delete</button>
+ *     <p>Are you sure you want to remove this from the registry?</p>
+ *     <Button slot="footer" variant="destructive">Delete</Button>
+ *   </Dialog>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  title?: string;
+  description?: string;
+  showCloseButton?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  title,
+  description,
+  showCloseButton = true,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const uid = crypto.randomUUID().slice(0, 6);
+const id = `dialog-${uid}`;
+---
+
+<div class="inline-flex" data-astro-shad-dialog={id} {...rest}>
+  <span data-dialog-trigger>
+    <slot name="trigger" />
+  </span>
+
+  <div
+    data-dialog-overlay
+    data-state="closed"
+    class="fixed inset-0 z-50 hidden bg-background/60 backdrop-blur-xs transition-opacity duration-150 data-[state=closed]:opacity-0 data-[state=open]:opacity-100"
+  >
+  </div>
+
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby={title ? `${id}-title` : undefined}
+    data-dialog-panel
+    data-state="closed"
+    class={cn(
+      'fixed left-1/2 top-1/2 z-50 hidden w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/10 transition-[opacity,scale] duration-150 sm:max-w-sm data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[state=open]:scale-100 data-[state=open]:opacity-100',
+      className
+    )}
+  >
+    {(title || description) && (
+      <div class="flex flex-col gap-2 pr-8">
+        {title && (
+          <h2 id={`${id}-title`} class="text-base font-medium leading-none text-foreground">
+            {title}
+          </h2>
+        )}
+        {description && <p class="text-sm text-muted-foreground">{description}</p>}
+      </div>
+    )}
+    {showCloseButton && (
+      <button
+        type="button"
+        data-dialog-close
+        aria-label="Close"
+        class="absolute right-2 top-2 grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+        </svg>
+      </button>
+    )}
+    <slot />
+    <div class="-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t border-border bg-muted/50 p-4 empty:hidden sm:flex-row sm:justify-end">
+      <slot name="footer" />
+    </div>
+  </div>
+</div>
+
+<script>
+  function openDialog(root: HTMLElement) {
+    const overlay = root.querySelector<HTMLElement>('[data-dialog-overlay]')!;
+    const panel = root.querySelector<HTMLElement>('[data-dialog-panel]')!;
+    overlay.classList.remove('hidden');
+    panel.classList.remove('hidden');
+    panel.classList.add('flex');
+    requestAnimationFrame(() => {
+      overlay.dataset.state = 'open';
+      panel.dataset.state = 'open';
+    });
+    document.body.style.overflow = 'hidden';
+    panel.querySelector<HTMLElement>('[data-dialog-close]')?.focus();
+  }
+
+  function closeDialog(root: HTMLElement) {
+    const overlay = root.querySelector<HTMLElement>('[data-dialog-overlay]')!;
+    const panel = root.querySelector<HTMLElement>('[data-dialog-panel]')!;
+    overlay.dataset.state = 'closed';
+    panel.dataset.state = 'closed';
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+      panel.classList.add('hidden');
+      panel.classList.remove('flex');
+    }, 150);
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.closest) return;
+
+    const trigger = t.closest('[data-dialog-trigger]');
+    if (trigger) {
+      const root = trigger.closest<HTMLElement>('[data-astro-shad-dialog]');
+      if (root) openDialog(root);
+      return;
+    }
+
+    const closer = t.closest('[data-dialog-close], [data-dialog-overlay]');
+    if (closer) {
+      const root = closer.closest<HTMLElement>('[data-astro-shad-dialog]');
+      if (root) closeDialog(root);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll<HTMLElement>('[data-dialog-panel][data-state="open"]').forEach((panel) => {
+      const root = panel.closest<HTMLElement>('[data-astro-shad-dialog]');
+      if (root) closeDialog(root);
+    });
+  });
+</script>

@@ -1,0 +1,213 @@
+---
+/**
+ * DropdownMenu.astro -- astro-shad dropdown menu. Converted from shadcn
+ * ui/dropdown-menu.tsx (base-ui Menu primitive). The eleven-piece shadcn
+ * compound (Content/Group/Label/Item/CheckboxItem/RadioGroup/RadioItem/
+ * Sub/Separator/Shortcut) shrinks to two registry files: this root
+ * (trigger + positioned popup) and `DropdownMenuItem.astro` (the row) --
+ * `Separator.astro` already covers `DropdownMenuSeparator` (it's a plain
+ * `-mx-1 my-1 h-px bg-border` rule, no menu-specific behaviour), and
+ * checkbox/radio/submenu items are dropped for v1 (not needed by any
+ * known consumer; add as siblings to DropdownMenuItem.astro if one comes
+ * up rather than reintroducing base-ui's generic-heavy API).
+ *
+ * Rung 3: one delegated click-listener opens/closes every instance
+ * (`data-astro-shad-menu` root, `data-menu-trigger`/`-content`/`-item`
+ * hooks) and one keydown listener drives ArrowUp/ArrowDown roving focus
+ * + Escape. Only one menu open at a time (opening any closes the rest).
+ *
+ *   <DropdownMenu align="end">
+ *     <Button slot="trigger" variant="outline" size="sm">Options</Button>
+ *     <DropdownMenuItem>Edit</DropdownMenuItem>
+ *     <DropdownMenuItem href="/export">Export</DropdownMenuItem>
+ *     <Separator class="-mx-1 my-1" />
+ *     <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+ *   </DropdownMenu>
+ *
+ * `side="left"|"right"` pops the menu out beside the trigger instead of
+ * below/above it (a sidebar-item submenu, e.g.) -- `align` only applies
+ * to `top`/`bottom` (it controls horizontal position, meaningless once
+ * the menu is already offset horizontally); left/right always pin their
+ * top edge level with the trigger's.
+ *
+ *   <DropdownMenu side="right"><SidebarMenuButton slot="trigger">Theme</SidebarMenuButton>...</DropdownMenu>
+ *
+ * `breakout` (default false): the default popup is `position:absolute`
+ * against its own trigger wrapper -- correct and simplest for the common
+ * case, but `absolute` cannot escape ANY ancestor with `overflow` other
+ * than `visible` (it clips regardless of position), so a trigger sitting
+ * inside a scrollable region (e.g. Sidebar's `overflow-x-hidden` content
+ * area) clips the popup at that ancestor's edge instead of letting it
+ * float freely over the rest of the page. `breakout` switches the popup
+ * to `position:fixed` (viewport-relative, ignores every ancestor's
+ * overflow) and computes its on-screen position from the trigger's
+ * `getBoundingClientRect()` at open time -- a real escalation, not a
+ * class swap, since fixed positioning needs real pixel coordinates
+ * rather than the relative-to-parent offsets `absolute` uses. Known,
+ * accepted gap: position is computed ONCE on open, not on scroll/resize
+ * while open -- fine for a menu that closes on outside-click/Escape
+ * anyway, not fine for a popup meant to track a moving trigger.
+ *
+ *   <DropdownMenu side="right" breakout>...</DropdownMenu>
+ *
+ * `class` styles the OUTER wrapper (the relative/fixed positioning
+ * container around both the trigger and the popup) -- it does NOT reach
+ * the popup itself, since the trigger lives inside that same wrapper and
+ * would get clipped/sized along with it.
+ *
+ * The popup is two nested elements, not one, specifically so a scroll
+ * mask/fade doesn't bleed onto the popup's own border/shadow/background
+ * (a CSS `mask`/`mask-image` masks an element's ENTIRE painted box --
+ * fills, borders, shadows, everything -- there's no way to mask "just
+ * the content" of a single element that also owns visible chrome):
+ *   - `contentClass` -- the FRAME (border/bg-popover/shadow/rounded/
+ *     entrance transition). Rarely needed; for frame-level overrides
+ *     like width.
+ *   - `scrollClass` -- the inner SCROLL REGION wrapping your items. This
+ *     is where height limits, overflow, and any mask/fade belong:
+ *
+ *   <DropdownMenu scrollClass="max-h-64 overflow-y-auto no-scrollbar [mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)]">
+ *     ...
+ *   </DropdownMenu>
+ */
+import { cn } from "../../lib/utils";
+
+interface Props {
+  align?: "start" | "center" | "end";
+  side?: "top" | "bottom" | "left" | "right";
+  /** position:fixed + JS-computed placement, escapes ancestor overflow clipping */
+  breakout?: boolean;
+  class?: string;
+  /** extra classes for the popup's frame (border/bg/shadow) -- rarely needed, see scrollClass for height/overflow/mask */
+  contentClass?: string;
+  /** extra classes for the inner scroll region (max-h, overflow-y-auto, mask-image, ...) -- see the class/contentClass/scrollClass note above */
+  scrollClass?: string;
+  [key: string]: unknown;
+}
+
+const { align = "start", side = "bottom", breakout = false, class: className, contentClass, scrollClass, ...rest } = Astro.props;
+const uid = crypto.randomUUID().slice(0, 6);
+const id = `menu-${uid}`;
+const isVertical = side === "top" || side === "bottom";
+
+const ALIGN: Record<string, string> = {
+  start: "left-0",
+  center: "left-1/2 -translate-x-1/2",
+  end: "right-0",
+};
+const SIDE: Record<string, string> = {
+  bottom: "top-full mt-1.5",
+  top: "bottom-full mb-1.5",
+  right: "left-full top-0 ml-1.5",
+  left: "right-full top-0 mr-1.5",
+};
+---
+
+<div class={cn("relative inline-block", className)} data-astro-shad-menu={id} {...rest}>
+  <span data-menu-trigger aria-haspopup="menu" aria-expanded="false">
+    <slot name="trigger" />
+  </span>
+  <div
+    role="menu"
+    data-menu-content
+    data-state="closed"
+    data-menu-breakout={breakout ? "" : undefined}
+    data-menu-side={breakout ? side : undefined}
+    data-menu-align={breakout ? align : undefined}
+    class={cn(
+      "z-50 hidden min-w-40 origin-top scale-95 overflow-hidden rounded-lg bg-popover text-popover-foreground opacity-0 shadow-md ring-1 ring-foreground/10 transition-[opacity,transform] duration-100 data-[state=open]:scale-100 data-[state=open]:opacity-100",
+      breakout ? "fixed" : "absolute",
+      !breakout && isVertical && ALIGN[align],
+      !breakout && SIDE[side],
+      contentClass,
+    )}
+  >
+    <div class={cn("p-1", scrollClass)}>
+      <slot />
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAP = 12; /* updated from 6 due to overlapping right edge of sidebar */
+
+  function positionBreakout(trigger: HTMLElement, content: HTMLElement) {
+    const side = content.dataset.menuSide || "bottom";
+    const align = content.dataset.menuAlign || "start";
+    const r = trigger.getBoundingClientRect();
+    const c = content.getBoundingClientRect();
+
+    let top = r.top;
+    let left = r.left;
+
+    if (side === "right") {
+      left = r.right + GAP;
+    } else if (side === "left") {
+      left = r.left - c.width - GAP;
+    } else {
+      top = side === "bottom" ? r.bottom + GAP : r.top - c.height - GAP;
+      left = align === "end" ? r.right - c.width : align === "center" ? r.left + r.width / 2 - c.width / 2 : r.left;
+    }
+
+    content.style.top = `${top}px`;
+    content.style.left = `${left}px`;
+  }
+
+  function closeAll(except?: HTMLElement) {
+    document.querySelectorAll<HTMLElement>("[data-astro-shad-menu]").forEach((root) => {
+      if (root === except) return;
+      const content = root.querySelector<HTMLElement>("[data-menu-content]")!;
+      content.dataset.state = "closed";
+      content.classList.add("hidden");
+      root.querySelector("[data-menu-trigger]")?.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.closest) return;
+
+    const trigger = t.closest("[data-menu-trigger]");
+    if (trigger) {
+      const root = trigger.closest<HTMLElement>("[data-astro-shad-menu]")!;
+      const content = root.querySelector<HTMLElement>("[data-menu-content]")!;
+      const opening = content.classList.contains("hidden");
+      closeAll(root);
+      if (opening) {
+        content.classList.remove("hidden");
+        if (content.hasAttribute("data-menu-breakout")) positionBreakout(trigger as HTMLElement, content);
+        requestAnimationFrame(() => (content.dataset.state = "open"));
+        trigger.setAttribute("aria-expanded", "true");
+        content.querySelector<HTMLElement>("[data-menu-item]")?.focus();
+      } else {
+        content.dataset.state = "closed";
+        content.classList.add("hidden");
+        trigger.setAttribute("aria-expanded", "false");
+      }
+      return;
+    }
+
+    if (t.closest("[data-menu-item]")) {
+      closeAll();
+      return;
+    }
+
+    if (!t.closest("[data-astro-shad-menu]")) closeAll();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeAll();
+      return;
+    }
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+
+    const content = (document.activeElement as HTMLElement)?.closest<HTMLElement>('[data-menu-content][data-state="open"]');
+    if (!content) return;
+    const items = Array.from(content.querySelectorAll<HTMLElement>("[data-menu-item]:not([disabled])"));
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    e.preventDefault();
+    const next = e.key === "ArrowDown" ? i + 1 : i - 1;
+    items[(next + items.length) % items.length]?.focus();
+  });
+</script>

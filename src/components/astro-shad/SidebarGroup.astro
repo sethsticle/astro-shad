@@ -1,0 +1,38 @@
+---
+/**
+ * SidebarGroup.astro -- astro-shad sidebar section. Converted from
+ * shadcn's SidebarGroup + SidebarGroupLabel + SidebarGroupContent, folded
+ * into one file (label as a prop, content as the default slot) -- the
+ * three-way split existed in React only to let SidebarGroupLabel render
+ * as something other than a div (`useRender`); this registry drops that
+ * polymorphism (not needed by any known consumer yet).
+ *
+ * `SidebarMenu`/`SidebarMenuItem`'s `<ul>/<li>` wrapper is also dropped --
+ * `SidebarMenuButton`s are placed directly as children, one per row.
+ *
+ *   <SidebarGroup label="Platform">
+ *     <SidebarMenuButton href="/create" active>Create</SidebarMenuButton>
+ *     <SidebarMenuButton href="/docs">Docs</SidebarMenuButton>
+ *   </SidebarGroup>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  label?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { label, class: className, ...rest } = Astro.props;
+---
+
+<div class={cn('flex w-full min-w-0 flex-col gap-1 p-2', className)} {...rest}>
+  {label && (
+    <div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 transition-opacity duration-200 group-data-[state=collapsed]/sidebar:opacity-0">
+      {label}
+    </div>
+  )}
+  <div class="flex w-full min-w-0 flex-col gap-0.5">
+    <slot />
+  </div>
+</div>

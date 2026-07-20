@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "separator",
+  "title": "Separator",
+  "description": "Horizontal or vertical rule. Converted from shadcn ui/separator.tsx (base-ui Separator) — role=\"separator\" + orientation are native attributes, zero client JS.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/Separator.astro",
+      "content": "---\n/**\n * Separator.astro -- astro-shad separator. Converted from shadcn\n * ui/separator.tsx (base-ui Separator primitive): a horizontal or\n * vertical rule, zero client JS -- Radix/base-ui here was only ever\n * doing role=\"separator\" + orientation, both native attributes.\n *\n * decorative (default true) sets role=\"none\" so screen readers skip a\n * purely visual rule; pass decorative={false} for a rule that carries\n * real document structure.\n *\n *   <Separator />\n *   <Separator orientation=\"vertical\" class=\"h-6\" />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  orientation?: 'horizontal' | 'vertical';\n  decorative?: boolean;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst {\n  orientation = 'horizontal',\n  decorative = true,\n  class: className,\n  ...rest\n} = Astro.props;\n---\n\n<div\n  data-slot=\"separator\"\n  role={decorative ? 'none' : 'separator'}\n  aria-orientation={decorative ? undefined : orientation}\n  class={cn(\n    'shrink-0 bg-border',\n    orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px self-stretch',\n    className\n  )}\n  {...rest}\n/>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Separator.astro"
+    }
+  ],
+  "type": "registry:component"
+}

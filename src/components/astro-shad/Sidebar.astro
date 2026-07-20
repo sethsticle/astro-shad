@@ -1,0 +1,217 @@
+---
+/**
+ * Sidebar.astro -- astro-shad app sidebar. Converted from shadcn
+ * ui/sidebar.tsx (the SidebarProvider/Sidebar/useIsMobile/useSidebar
+ * stack, ~720 lines). React's job there was almost entirely state
+ * plumbing (open/collapsed/mobile) through context -- all three collapse
+ * to DOM state here:
+ *
+ * - open/collapsed lives as `data-state` on this component's own root,
+ *   read by children via `group-data-[state=collapsed]/sidebar:*`
+ *   (Tailwind arbitrary group variant) -- no context, no prop drilling.
+ * - mobile vs desktop is NOT a JS media-query (useIsMobile deleted
+ *   entirely): both the desktop `<aside>` (`hidden md:flex`) and a mobile
+ *   `<Sheet>` wrapping the SAME slotted content (`md:hidden`) render in
+ *   the DOM; the breakpoint is CSS `display`, so exactly one is ever
+ *   visible. `header`/default/`footer` slot content is needed in BOTH
+ *   places -- literally repeating `<slot>` tags for this turned out to be
+ *   unreliable in practice (Astro's "render a slot again" escape hatch,
+ *   `data-astro-rerun`, plus multiple same-named-slot siblings on the
+ *   caller side, hit several compounding edge cases -- astro#17266 and
+ *   related). Sidestepped entirely: each slot is rendered to an HTML
+ *   string exactly ONCE via `Astro.slots.render()` in the frontmatter
+ *   below, then `set:html` puts that string DIRECTLY on the real wrapper
+ *   `<div>` in both the desktop and mobile markup -- no `<slot>` tag
+ *   appears more than once anywhere in this file, and no `<Fragment>`
+ *   indirection either (`set:html` on a `<Fragment>` proved unreliable
+ *   paired with `Astro.slots.render()` -- a real DOM node is what
+ *   `set:html` wants). Each wrapper only renders when its slot actually
+ *   has content (`{headerHtml && <div .../>}`) -- replaces the
+ *   `empty:hidden` CSS trick, which doesn't reliably catch this case
+ *   (line-break whitespace between tags can keep a div out of `:empty`).
+ *   Trade-off, stated plainly: header/content/footer content still exists
+ *   TWICE in the HTML (once per branch) -- fine for nav markup (links,
+ *   buttons), a poor fit for anything with client state or a
+ *   crypto.randomUUID()-based id that must be unique per page (e.g. two
+ *   <Combobox> instances with the same name would each render twice).
+ * - `SidebarTrigger` drives both branches from one click: it flips this
+ *   root's `data-state`, then click()s the mobile Sheet's own hidden
+ *   trigger span so Sheet's existing open logic runs unchanged. Harmless
+ *   on desktop -- the whole mobile branch is `md:hidden`, so the Sheet
+ *   opening there is invisible.
+ *
+ * `variant` ("sidebar" default | "floating" | "inset") matches shadcn's
+ * three looks: "sidebar" is a flush edge-to-edge rail with a border;
+ * "floating" adds padding around a rounded/ring/shadow inner card;
+ * "inset" looks the same as "sidebar" on its own but tells `SidebarInset`
+ * (via a `peer`/`peer-data-[variant=inset]` relationship -- see below) to
+ * render the main content as its own inset rounded card instead of full
+ * width. The draggable resize `SidebarRail` (shadcn's collapse-by-drag
+ * handle) is still dropped -- decorative, not core, addable later if a
+ * design calls for it.
+ *
+ * "inset"'s illusion (one continuous page, a white card floating inset
+ * on all four sides) depends on a PAGE-LEVEL choice this component can't
+ * make for you: give your own outer wrapper `bg-sidebar` (not the
+ * default `bg-background`), so the color around `SidebarInset`'s margin
+ * matches the `<aside>` itself -- the aside then visually blends into
+ * "the page" and only `SidebarInset`'s card (still `bg-background`)
+ * reads as distinct. Collapsed, this is also why the aside appears to
+ * "disappear": it's still there physically (an icon rail, or nothing at
+ * all under `collapsible="offcanvas"`), just the same flat color as
+ * everything around it.
+ *
+ *   <div class="flex min-h-svh bg-sidebar">
+ *     <Sidebar variant="inset">...</Sidebar>
+ *     <SidebarInset>...</SidebarInset>
+ *   </div>
+ * `collapsible="none"` renders an always-expanded, non-collapsing aside
+ * (no mobile Sheet needed either, since there's nothing to toggle).
+ *
+ * The `peer`/`peer-data-*` link to `SidebarInset` needs a REAL DOM
+ * sibling, not the inner `<aside>` -- this component's own root
+ * (`data-astro-shad-sidebar-root`) is `display:contents` precisely so it
+ * doesn't add a layout box, but it's still the literal DOM sibling of
+ * `<SidebarInset>` in consumer markup, so `peer`/`data-variant`/
+ * `data-state` live there. `SidebarTrigger` keeps that root's
+ * `data-state` in sync with the `<aside>`'s on every toggle (both are
+ * updated together), so `SidebarInset`'s `peer-data-[state=collapsed]`
+ * margin adjustment (inset variant only) never goes stale.
+ *
+ *   <div class="flex min-h-svh">
+ *     <Sidebar>
+ *       <div slot="header">...brand...</div>
+ *       <SidebarGroup label="Platform">
+ *         <SidebarMenuButton href="/create" active>
+ *           <Icon slot="icon" name="lucide:layout-grid" />Create
+ *         </SidebarMenuButton>
+ *       </SidebarGroup>
+ *       <div slot="footer">...user menu...</div>
+ *     </Sidebar>
+ *     <SidebarInset>
+ *       <SidebarTrigger />
+ *       ...page content...
+ *     </SidebarInset>
+ *   </div>
+ *
+ * `header`/`footer` are raw slots -- Sidebar.astro imposes no structure on
+ * them (unlike `SidebarMenuButton`'s dedicated `icon` slot + auto-hiding
+ * label). If your header/footer content is a brand row or a user row
+ * (mark + text label), apply the SAME collapse convention
+ * `SidebarMenuButton` uses internally, by hand: leave the mark (svg / img
+ * / styled span badge -- whatever it is) bare so it keeps showing at any
+ * width, and add `class="group-data-[state=collapsed]/sidebar:hidden"`
+ * to the text label so it disappears instead of wrapping/smushing in the
+ * 3rem icon rail. A one-class convention beats a dedicated slot API here
+ * since it works identically regardless of what the mark element is.
+ *
+ *   <div slot="header" class="flex items-center gap-2 group-data-[state=collapsed]/sidebar:justify-center">
+ *     <span class="grid size-6 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">A</span>
+ *     <span class="truncate group-data-[state=collapsed]/sidebar:hidden">astro-shad</span>
+ *   </div>
+ *
+ * Need more than one piece of content in `footer` (e.g. a quick-links
+ * group ABOVE a user row)? Put both inside one `<div slot="footer"
+ * class="contents">` rather than giving each element its own
+ * `slot="footer"` -- several separate same-named-slot siblings hits an
+ * open Astro edge case (astro#17266) where only one ends up rendering.
+ * A real DOM node (not `<Fragment>`) matters here too -- this repo's
+ * `Astro.slots.render()` usage above only picked up a Fragment-wrapped
+ * slot's content unreliably; `class="contents"` (`display: contents`)
+ * keeps the wrapper out of the layout tree, so it costs nothing visually:
+ *
+ *   <div slot="footer" class="contents">
+ *     <SidebarGroup label="Projects">...</SidebarGroup>
+ *     <div class="flex items-center gap-2 px-2 py-1.5">...user row...</div>
+ *   </div>
+ */
+import { cn } from "../../lib/utils";
+import Sheet from "./Sheet.astro";
+
+interface Props {
+  side?: "left" | "right";
+  variant?: "sidebar" | "floating" | "inset";
+  collapsible?: "icon" | "offcanvas" | "none";
+  defaultOpen?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { side = "left", variant = "sidebar", collapsible = "icon", defaultOpen = true, class: className, ...rest } = Astro.props;
+
+const state = defaultOpen ? "expanded" : "collapsed";
+const padded = variant === "floating" || variant === "inset";
+
+/* Every branch must appear as a complete literal string in this file for
+   Tailwind's static scanner to pick it up -- a template-literal-built
+   class name would never match. */
+const COLLAPSE_CLASS =
+  collapsible === "offcanvas"
+    ? "data-[state=collapsed]:w-0 data-[state=collapsed]:overflow-hidden data-[state=collapsed]:border-transparent data-[state=collapsed]:p-0"
+    : padded
+      ? "data-[state=collapsed]:w-[calc(var(--sidebar-width-icon)+1rem)]"
+      : "data-[state=collapsed]:w-(--sidebar-width-icon)";
+
+const SIDE_BORDER_CLASS = padded ? "" : side === "left" ? "border-r border-sidebar-border" : "border-l border-sidebar-border";
+
+/* Render each slot to an HTML string exactly once -- see the header
+   comment. Reused via set:html in both the desktop and mobile markup
+   below instead of ever writing <slot> more than once. */
+const headerHtml = await Astro.slots.render("header");
+const contentHtml = await Astro.slots.render("default");
+const footerHtml = await Astro.slots.render("footer");
+---
+
+<div class="peer contents" data-astro-shad-sidebar-root data-variant={variant} data-state={state} {...rest}>
+  <!-- desktop -->
+  <div
+    data-astro-shad-sidebar
+    data-state={state}
+    data-side={side}
+    style="--sidebar-width:16rem;--sidebar-width-icon:3rem"
+    class={cn(
+      "group/sidebar hidden h-full w-(--sidebar-width) shrink-0 flex-col text-sidebar-foreground transition-[width] duration-200 ease-linear md:flex",
+      side === "right" && "order-last",
+      padded ? "p-2" : SIDE_BORDER_CLASS,
+      collapsible !== "none" && COLLAPSE_CLASS,
+      className,
+    )}
+  >
+    <div
+      class={cn(
+        "flex size-full flex-col bg-sidebar",
+        variant === "floating" && "rounded-lg shadow-sm ring-1 ring-sidebar-border bg-accent",
+      )}
+    >
+      {headerHtml && <div class="flex flex-col gap-2 p-2" set:html={headerHtml} />}
+
+      {
+        contentHtml && (
+          <div
+            class="no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-x-hidden overflow-y-auto group-data-[state=collapsed]/sidebar:overflow-hidden"
+            set:html={contentHtml}
+          />
+        )
+      }
+
+      {footerHtml && <div class="flex flex-col gap-2 p-2" set:html={footerHtml} />}
+    </div>
+  </div>
+
+  <!-- mobile: same content (already-rendered strings above), inside a Sheet, CSS-hidden at md+ -->
+  {
+    collapsible !== "none" && (
+      <div class="md:hidden">
+        <Sheet side={side} title="Menu" showCloseButton={true}>
+          <div class="flex h-full flex-col">
+            {headerHtml && <div class="flex flex-col gap-2 pb-2" set:html={headerHtml} />}
+            {contentHtml && (
+              <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-x-hidden overflow-y-auto" set:html={contentHtml} />
+            )}
+            {footerHtml && <div class="flex flex-col gap-2 pt-2" set:html={footerHtml} />}
+          </div>
+        </Sheet>
+      </div>
+    )
+  }
+</div>

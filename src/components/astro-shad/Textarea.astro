@@ -1,0 +1,28 @@
+---
+/**
+ * Textarea.astro -- astro-shad bare textarea primitive. Converted from
+ * shadcn ui/textarea.tsx verbatim (already a plain `<textarea>` + one
+ * class, no runtime to strip). This is the unlabelled building block --
+ * `FormField.astro`'s `type="textarea"` renders its own inline markup
+ * (label/description/error wiring); reach for this one composing outside
+ * FormField.
+ *
+ *   <Textarea rows={6} placeholder="Add a note..." />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  rows?: number;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { rows = 4, class: className, ...rest } = Astro.props;
+
+const TEXTAREA =
+  'flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors ' +
+  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive';
+---
+
+<textarea data-slot="textarea" rows={rows} class={cn(TEXTAREA, className)} {...rest}></textarea>

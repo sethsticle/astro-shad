@@ -1,0 +1,81 @@
+---
+/**
+ * SidebarTrigger.astro -- astro-shad sidebar toggle button. Converted from
+ * shadcn's SidebarTrigger (a Button wrapping `useSidebar().toggleSidebar`).
+ * No context to call: `<Sidebar>` and `<SidebarInset>` are SIBLINGS in
+ * consumer markup (`<div class="flex min-h-svh"><Sidebar/><SidebarInset>
+ * <SidebarTrigger/>...`), and this button typically lives inside
+ * SidebarInset -- so `[data-astro-shad-sidebar-root]` (Sidebar's own
+ * wrapper) is never an ANCESTOR of the trigger, only a sibling's
+ * descendant. The click handler therefore walks UP from the trigger
+ * through each ancestor, searching that ancestor's subtree for the
+ * sidebar root, until it finds the nearest shared wrapper -- effectively
+ * "the closest ancestor whose subtree contains a sidebar", which is
+ * exactly the consumer's own flex wrapper, no extra markup required from
+ * them. From there: flip the desktop `<Sidebar>`'s `data-state`, and
+ * click() the mobile `<Sheet>`'s trigger span so Sheet's own open logic
+ * runs -- one button drives both render branches (see Sidebar.astro's
+ * header comment). The keyboard shortcut (cmd/ctrl+b in the shadcn
+ * source) is dropped -- global key bindings are a page-level decision,
+ * not a primitive's to own.
+ *
+ *   <SidebarTrigger />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<button
+  type="button"
+  data-sidebar-trigger
+  aria-label="Toggle Sidebar"
+  class={cn(
+    'grid size-8 shrink-0 place-items-center rounded-md text-foreground/70 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+    className
+  )}
+  {...rest}
+>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect width="18" height="18" x="3" y="3" rx="2" /><path d="M9 3v18" />
+  </svg>
+  <span class="sr-only">Toggle Sidebar</span>
+</button>
+
+<script>
+  function findSidebarRoot(trigger: HTMLElement): HTMLElement | null {
+    /* trigger.closest() only searches ancestors -- the sidebar root is a
+       sibling's descendant, not an ancestor, so walk up manually and
+       search each ancestor's subtree instead. */
+    let node = trigger.parentElement;
+    while (node) {
+      const root = node.querySelector<HTMLElement>('[data-astro-shad-sidebar-root]');
+      if (root) return root;
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    const trigger = t.closest?.('[data-sidebar-trigger]');
+    if (!trigger) return;
+
+    const root = findSidebarRoot(trigger as HTMLElement);
+    if (!root) return;
+
+    const aside = root.querySelector<HTMLElement>('[data-astro-shad-sidebar]');
+    if (aside) {
+      aside.dataset.state = aside.dataset.state === 'collapsed' ? 'expanded' : 'collapsed';
+      /* Root also carries data-state (for SidebarInset's peer-data-[state=
+         collapsed] inset-variant margin) -- keep both in sync. */
+      root.dataset.state = aside.dataset.state;
+    }
+    root.querySelector<HTMLElement>('[data-sheet-trigger]')?.click();
+  });
+</script>

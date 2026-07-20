@@ -1,0 +1,76 @@
+---
+/**
+ * SidebarMenuButton.astro -- astro-shad sidebar nav row. Converted from
+ * shadcn's SidebarMenuButton (`useRender` polymorphism + `cva` variants +
+ * a `useSidebar()` read for the collapsed-state tooltip). Polymorphism ->
+ * `href` prop (renders `<a>`, else `<button>`, same rule as Button.astro);
+ * `cva` variants dropped to the single default look (shadcn's `outline`
+ * variant wasn't used anywhere upstream -- add back as a `variant` prop
+ * if a design needs it); the icon-mode width collapse reads the ancestor
+ * `<Sidebar>`'s `data-state` via `group-data-[state=collapsed]/sidebar:*`
+ * instead of context.
+ *
+ * `tooltip` wraps the button in `Tooltip.astro` -- shown on hover always
+ * (a small divergence from shadcn, which hides it except when the
+ * sidebar is collapsed; not worth the extra plumbing for a registry
+ * primitive, and a tooltip on an already-labelled expanded row is
+ * harmless).
+ *
+ *   <SidebarMenuButton href="/create" active>
+ *     <Icon slot="icon" name="lucide:layout-grid" />Create
+ *   </SidebarMenuButton>
+ *   <SidebarMenuButton tooltip="Settings"><Icon slot="icon" name="lucide:settings" />Settings</SidebarMenuButton>
+ */
+import { cn } from '../../lib/utils';
+import Tooltip from './Tooltip.astro';
+
+interface Props {
+  href?: string;
+  active?: boolean;
+  disabled?: boolean;
+  tooltip?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  href,
+  active = false,
+  disabled,
+  tooltip,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = cn(
+  'flex h-8 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none transition-colors ' +
+    'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ' +
+    'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 ' +
+    'data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground ' +
+    'group-data-[state=collapsed]/sidebar:size-8 group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:p-0 ' +
+    '[&_svg]:size-4 [&_svg]:shrink-0',
+  className
+);
+---
+
+{tooltip ? (
+  <Tooltip content={tooltip} side="right" class="w-full">
+    {href ? (
+      <a href={href} data-active={active ? '' : undefined} aria-disabled={disabled} class={classes} {...rest}>
+        <slot name="icon" /><span class="truncate group-data-[state=collapsed]/sidebar:hidden"><slot /></span>
+      </a>
+    ) : (
+      <button type="button" data-active={active ? '' : undefined} disabled={disabled} class={classes} {...rest}>
+        <slot name="icon" /><span class="truncate group-data-[state=collapsed]/sidebar:hidden"><slot /></span>
+      </button>
+    )}
+  </Tooltip>
+) : href ? (
+  <a href={href} data-active={active ? '' : undefined} aria-disabled={disabled} class={classes} {...rest}>
+    <slot name="icon" /><span class="truncate group-data-[state=collapsed]/sidebar:hidden"><slot /></span>
+  </a>
+) : (
+  <button type="button" data-active={active ? '' : undefined} disabled={disabled} class={classes} {...rest}>
+    <slot name="icon" /><span class="truncate group-data-[state=collapsed]/sidebar:hidden"><slot /></span>
+  </button>
+)}

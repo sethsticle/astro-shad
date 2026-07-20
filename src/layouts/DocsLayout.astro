@@ -1,29 +1,22 @@
 ---
 /**
- * DocsLayout.astro -- shell for every /docs page: sticky header, left
- * sidebar generated from docs-nav.ts, content column.
+ * DocsLayout.astro -- shell for every /docs page: left sidebar generated
+ * from docs-nav.ts + content column, built on top of `BaseLayout`
+ * (shared `<html>`/head/FloatingHeader/theme-toggle -- see that file's
+ * header comment; `/create` is the other consumer as of 2026-07-20).
  *
  * Deliberately the OPPOSITE of /dev's chrome policy: the docs shell is
  * built from astro-shad primitives and styled entirely by theme.css
  * tokens -- the docs site is the registry's first real consumer and its
  * living proof. Re-brand theme.css and the whole site follows.
  *
- * Motion bootstrap (docs/plans/motion-system.md): the pre-hide CSS + sweep
- * live here, once, site-wide -- same reasoning as the theme-restore inline
- * script below. Any docs demo using `motion()` (e.g. the Motion page itself)
- * just works with zero per-page wiring; pages with no `[data-motion]`
- * elements pay for an inert `querySelectorAll` and nothing else.
- *
  *   <DocsLayout title="Button" description="..." registry="button">
  *     ...sections...
  *   </DocsLayout>
  */
-import "../styles/global.css";
-import Button from "../components/astro-shad/Button.astro";
+import BaseLayout from "./BaseLayout.astro";
 import Badge from "../components/astro-shad/Badge.astro";
-import FloatingHeader from "../components/astro-shad/FloatingHeader.astro";
-import { NAV, GITHUB, SOURCE_BASE } from "../components/docs/docs-nav";
-import { MOTION_PREHIDE_CSS } from "../lib/motion";
+import { NAV, SOURCE_BASE } from "../components/docs/docs-nav";
 
 interface Props {
   title: string;
@@ -38,54 +31,27 @@ const { title, description, registry, sourceFile } = Astro.props;
 const path = Astro.url.pathname.replace(/\/+$/, "") || "/docs";
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · astro-shad</title>
-    <meta name="description" content={description} />
-    <script is:inline>
-      if (localStorage.getItem("astro-shad-theme") === "light") {
-        document.documentElement.dataset.theme = "light";
-      }
-    </script>
-    <style set:html={MOTION_PREHIDE_CSS}></style>
-    <script>
-      import { initMotion } from "../lib/motion";
-      initMotion();
-    </script>
-  </head>
-  <body class="min-h-screen bg-background text-foreground antialiased">
-    <FloatingHeader class="">
-      <Fragment slot="brand">
-        <button
-          id="docs-nav-toggle"
-          class="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground md:hidden"
-          aria-label="Toggle navigation"
-          aria-expanded="false"
+<BaseLayout title={title} description={description}>
+    <Fragment slot="brand-start">
+      <button
+        id="docs-nav-toggle"
+        class="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground md:hidden"
+        aria-label="Toggle navigation"
+        aria-expanded="false"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg
         >
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg
-          >
-        </button>
-        <a href="/docs" class="text-sm font-semibold tracking-tight">astro-shad</a>
-      </Fragment>
-      <Fragment slot="nav">
-        <a href="/docs" class="transition-colors hover:text-foreground">Docs</a>
-        <a href="/dev" class="transition-colors hover:text-foreground">Playground</a>
-        <a href={GITHUB} target="_blank" rel="noreferrer" class="transition-colors hover:text-foreground">GitHub</a>
-      </Fragment>
-      <Button slot="actions" id="theme-toggle" variant="outline" size="sm">Theme</Button>
-    </FloatingHeader>
-
+      </button>
+    </Fragment>
     <div class="mx-auto flex max-w-6xl gap-10 px-6">
       <div id="docs-nav-backdrop" class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
 
@@ -132,6 +98,11 @@ const path = Astro.url.pathname.replace(/\/+$/, "") || "/docs";
                         {item.status === "experimental" && (
                           <Badge variant="outline" class="px-1.5 py-0 text-[9px]">
                             exp
+                          </Badge>
+                        )}
+                        {item.deps && (
+                          <Badge variant="outline" class="px-1.5 py-0 text-[9px]" title="Installs a runtime npm dependency">
+                            npm
                           </Badge>
                         )}
                       </a>
@@ -212,12 +183,6 @@ const path = Astro.url.pathname.replace(/\/+$/, "") || "/docs";
     </style>
 
     <script>
-      document.getElementById("theme-toggle")?.addEventListener("click", () => {
-        const el = document.documentElement;
-        el.dataset.theme = el.dataset.theme === "light" ? "dark" : "light";
-        localStorage.setItem("astro-shad-theme", el.dataset.theme);
-      });
-
       const sidebar = document.getElementById("docs-sidebar")!;
       const backdrop = document.getElementById("docs-nav-backdrop")!;
       const toggle = document.getElementById("docs-nav-toggle")!;
@@ -229,5 +194,4 @@ const path = Astro.url.pathname.replace(/\/+$/, "") || "/docs";
       toggle.addEventListener("click", () => setNav(sidebar.classList.contains("max-md:hidden")));
       backdrop.addEventListener("click", () => setNav(false));
     </script>
-  </body>
-</html>
+</BaseLayout>

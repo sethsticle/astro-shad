@@ -1,0 +1,53 @@
+---
+/**
+ * ThemeToggle.astro -- astro-shad dark/light toggle button. Wraps
+ * Button.astro + @astro-shad/theme-script's initThemeToggle(), so
+ * installing this one item is the whole consumer-side wiring -- no
+ * manual script required (the FOUC-guard head script, THEME_PREHIDE_JS,
+ * still needs adding once per page; see theme.ts's header comment).
+ *
+ * Default label is "Theme"; pass your own via the default slot.
+ * `id` defaults to a namespaced constant -- override it if a page needs
+ * more than one toggle instance.
+ *
+ *   <ThemeToggle />
+ *   <ThemeToggle variant="ghost">Toggle theme</ThemeToggle>
+ */
+import Button from './Button.astro';
+import { initThemeToggle } from '../../lib/theme';
+
+type Variant = 'primary' | 'secondary' | 'inverse' | 'outline' | 'ghost' | 'destructive';
+type Size = 'sm' | 'md' | 'lg';
+
+interface Props {
+  id?: string;
+  variant?: Variant;
+  size?: Size;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  id = 'astro-shad-theme-toggle',
+  variant = 'outline',
+  size = 'sm',
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<Button id={id} variant={variant} size={size} class={className} data-astro-shad-theme-toggle {...rest}>
+  <slot>Theme</slot>
+</Button>
+
+<script>
+  // Queries the DOM rather than closing over a frontmatter id: Astro
+  // dedupes this script to one copy per page even with multiple
+  // <ThemeToggle> instances, so each rendered button (not deduped) is
+  // wired individually here instead of relying on a single captured id.
+  import { initThemeToggle } from '../../lib/theme';
+
+  document.querySelectorAll<HTMLElement>('[data-astro-shad-theme-toggle]').forEach((button) => {
+    if (button.id) initThemeToggle(button.id);
+  });
+</script>

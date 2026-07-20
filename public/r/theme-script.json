@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "theme-script",
+  "title": "Theme toggle runtime",
+  "description": "Dark/light toggle runtime, zero dependencies. Exports THEME_PREHIDE_JS (FOUC guard -- restores the stored theme before first paint) and initThemeToggle(buttonId) (click handler + localStorage persistence). Distinct from @astro-shad/theme (the CSS-only token-contract item) despite the similar name -- pairs with @astro-shad/theme-toggle, the component that wraps this runtime.",
+  "files": [
+    {
+      "path": "src/lib/theme.ts",
+      "content": "/**\n * theme.ts -- astro-shad dark/light toggle runtime. Registry item:\n * @astro-shad/theme-script (distinct from @astro-shad/theme, the CSS-only\n * token-contract item -- no name collision, no relation beyond both\n * touching \"theme\").\n *\n * Two pieces, same split as @astro-shad/motion's MOTION_PREHIDE_CSS +\n * initMotion(): a pre-paint script (FOUC guard) and a click-handler\n * initializer, both consumed once per page.\n *\n *   <script is:inline set:html={THEME_PREHIDE_JS}></script>\n *   ...\n *   <script>\n *     import { initThemeToggle } from \"../lib/theme\";\n *     initThemeToggle(\"my-toggle-id\");\n *   </script>\n *\n * Extracted 2026-07-20 from BaseLayout.astro (chunk 4 of the /create\n * sequencing, docs/plans/create-page.md) so a consumer gets the whole\n * toggle via `npx shadcn add @astro-shad/theme-toggle` instead of hand-\n * wiring a script -- see ThemeToggle.astro, the component that pairs with\n * this lib.\n */\n\n/**\n * Restores the stored theme before first paint. Astro SSGs dark-by-default\n * markup (theme.css's :root has no [data-theme] guard), so a returning\n * light-mode visitor would flash dark for one frame without this running\n * inline in <head>, ahead of anything else.\n */\nexport const THEME_PREHIDE_JS = `\nif (localStorage.getItem(\"astro-shad-theme\") === \"light\") {\n  document.documentElement.dataset.theme = \"light\";\n}\n`;\n\n/**\n * Wires a click listener onto the element with `buttonId`: flips\n * `document.documentElement.dataset.theme` between \"light\"/\"dark\" and\n * persists the choice. Parameterized (not hardcoded to one id) so more\n * than one toggle instance -- or a consumer's own custom trigger element\n * -- can reuse the same logic.\n */\nexport function initThemeToggle(buttonId: string): void {\n  document.getElementById(buttonId)?.addEventListener('click', () => {\n    const el = document.documentElement;\n    el.dataset.theme = el.dataset.theme === 'light' ? 'dark' : 'light';\n    localStorage.setItem('astro-shad-theme', el.dataset.theme);\n  });\n}\n",
+      "type": "registry:lib",
+      "target": "src/lib/theme.ts"
+    }
+  ],
+  "type": "registry:lib"
+}

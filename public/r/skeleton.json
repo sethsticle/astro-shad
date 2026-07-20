@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "skeleton",
+  "title": "Skeleton",
+  "description": "Loading placeholder. Converted from shadcn ui/skeleton.tsx verbatim — already a bare div + one class.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/Skeleton.astro",
+      "content": "---\n/**\n * Skeleton.astro -- astro-shad loading placeholder. Converted from shadcn\n * ui/skeleton.tsx verbatim -- it was already a bare div + one class, no\n * runtime to strip.\n *\n *   <Skeleton class=\"h-4 w-32\" />\n *   <Skeleton class=\"size-8 rounded-full\" />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { class: className, ...rest } = Astro.props;\n---\n\n<div data-slot=\"skeleton\" class={cn('animate-pulse rounded-md bg-muted', className)} {...rest} />\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Skeleton.astro"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -8,6 +8,8 @@ export interface DocsNavItem {
   title: string;
   href: string;
   status?: "stable" | "experimental";
+  /** installs a runtime npm dependency (maplibre-gl, gsap, ...) -- shown as a sidebar badge */
+  deps?: boolean;
 }
 
 export interface DocsNavGroup {
@@ -74,7 +76,8 @@ export const NAV: DocsNavGroup[] = [
     items: [
       { title: "Top Bar", href: "/docs/components/top-bar" },
       { title: "Floating Header", href: "/docs/components/floating-header" },
-      { title: "Map", href: "/docs/components/map" },
+      { title: "Map", href: "/docs/components/map", deps: true },
+      { title: "Theme Toggle", href: "/docs/components/theme-toggle" },
     ],
   },
   {
@@ -89,6 +92,7 @@ export const NAV: DocsNavGroup[] = [
       { title: "Feature Grid", href: "/docs/components/feature-grid" },
       { title: "Feature Section", href: "/docs/components/feature-section" },
       { title: "CTA", href: "/docs/components/cta" },
+      { title: "GSAP Hero 01", href: "/docs/components/gsap-hero-01", deps: true },
     ],
   },
 ];

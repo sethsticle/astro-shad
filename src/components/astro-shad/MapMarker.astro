@@ -109,11 +109,12 @@ const config = JSON.stringify({
       )
     }
     <slot>
-      <!-- default pin: bg-accent (the chromatic highlight token -- primary is
-           near-monochrome in the neutral theme and vanishes against tiles);
-           border-white is literal on purpose, the ring must read against map
-           tiles in both themes, not against a token surface -->
-      <div class="h-4 w-4 rounded-full border-2 border-white bg-accent shadow-lg"></div>
+      <!-- default pin: bg-primary (the chromatic brand token as of the
+           2026-07-20 accent/primary realignment -- previously bg-accent,
+           back when accent held the chromatic value and primary was
+           near-monochrome); border-white is literal on purpose, the ring
+           must read against map tiles in both themes, not a token surface -->
+      <div class="h-4 w-4 rounded-full border-2 border-white bg-primary shadow-lg"></div>
     </slot>
   </div>
 

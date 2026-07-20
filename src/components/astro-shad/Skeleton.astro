@@ -1,0 +1,20 @@
+---
+/**
+ * Skeleton.astro -- astro-shad loading placeholder. Converted from shadcn
+ * ui/skeleton.tsx verbatim -- it was already a bare div + one class, no
+ * runtime to strip.
+ *
+ *   <Skeleton class="h-4 w-32" />
+ *   <Skeleton class="size-8 rounded-full" />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<div data-slot="skeleton" class={cn('animate-pulse rounded-md bg-muted', className)} {...rest} />

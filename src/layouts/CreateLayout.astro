@@ -1,0 +1,650 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Icon } from "astro-icon/components";
+import Sidebar from "../components/astro-shad/Sidebar.astro";
+import SidebarGroup from "../components/astro-shad/SidebarGroup.astro";
+import SidebarMenuButton from "../components/astro-shad/SidebarMenuButton.astro";
+import SidebarInset from "../components/astro-shad/SidebarInset.astro";
+import DropdownMenu from "../components/astro-shad/DropdownMenu.astro";
+import DropdownMenuItem from "../components/astro-shad/DropdownMenuItem.astro";
+import Combobox from "../components/astro-shad/Combobox.astro";
+import Pagination from "../components/astro-shad/Pagination.astro";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Create" } = Astro.props;
+
+/**
+ * Curated Google Fonts roster for the Typography axis -- the full Google
+ * Fonts catalog (~1800 families) has no key-free runtime listing endpoint,
+ * so this is a fixed, hand-picked set spanning sans/serif/mono/display,
+ * same shape as the Base/Theme/Chart color arrays above. Mirrored verbatim
+ * (not derived) in the client <script> below, since that script needs the
+ * plain family-name strings to build Google Fonts CSS2 URLs and can't read
+ * frontmatter directly.
+ */
+const GOOGLE_FONTS = [
+  "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins",
+  "Source Sans 3", "Nunito", "Work Sans", "Rubik", "Manrope",
+  "Space Grotesk", "DM Sans", "Outfit", "Plus Jakarta Sans", "Sora",
+  "Urbanist", "Karla", "Mulish", "Barlow",
+  "IBM Plex Sans", "IBM Plex Mono", "JetBrains Mono", "Fira Code",
+  "Source Code Pro", "Inconsolata",
+  "Playfair Display", "Merriweather", "Lora", "PT Serif",
+  "Libre Baskerville", "Crimson Text", "EB Garamond", "Cormorant Garamond",
+  "Bitter", "Domine", "Zilla Slab",
+  "Archivo", "Oswald", "Bebas Neue", "Anton", "Raleway", "Quicksand",
+  "Josefin Sans", "Comfortaa", "Caveat", "Pacifico", "Dancing Script",
+];
+
+/**
+ * Canvas pagination: real URL state (`?canvas=1`/`?canvas=2`), owned by
+ * Pagination.astro's own zero-JS anchor-href design (see that file's
+ * header comment) -- no client toggle logic needed, consistent with how
+ * every other paginated thing in this registry already works. The page
+ * (create.astro) reads the SAME query param independently to decide
+ * which content block to put in the default slot; the layout doesn't
+ * pass anything down for this, both just read Astro.url.
+ *
+ * Scaffolded here, 2 pages, because the canvas is expected to hit its
+ * horizontal scroll limit before all planned content fits on one page --
+ * see docs/plans/create-page.md.
+ */
+const TOTAL_CANVAS_PAGES = 2;
+const canvasPage = Math.min(TOTAL_CANVAS_PAGES, Math.max(1, Number(Astro.url.searchParams.get("canvas")) || 1));
+---
+
+<BaseLayout title="Create">
+  <!-- Outer wrapper: locks height to viewport minus the site header and
+       kills page scroll, so nothing outside the canvas (below) ever
+       moves. 60px is an approximation of TopBar's real rendered height
+       (border-b + py-3 + its tallest slotted content, currently the
+       ThemeToggle button) -- worth re-measuring live if TopBar's own
+       content/padding changes, this isn't derived from a shared constant. -->
+  <div class="flex h-[calc(100svh-80px)] w-full overflow-hidden px-2 pt-2">
+    <Sidebar variant="floating" collapsible="none" class="py-4">
+      <div slot="header" class="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold text-sidebar-foreground">
+        <span class="grid size-6 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">A</span>
+        <span class="truncate">astro-shad</span>
+      </div>
+
+      <SidebarGroup label="Appearance">
+        <div class="flex items-center gap-1">
+          <DropdownMenu
+            side="right"
+            breakout
+            class="flex-1"
+            scrollClass="max-h-64 overflow-y-auto no-scrollbar [mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)]"
+          >
+            <SidebarMenuButton slot="trigger" class="">
+              <Icon slot="icon" name="lucide:swatch-book" size={16} />
+              Base color
+            </SidebarMenuButton>
+            <DropdownMenuItem data-create-base="neutral">Neutral</DropdownMenuItem>
+            <DropdownMenuItem data-create-base="olive">Olive</DropdownMenuItem>
+            <DropdownMenuItem data-create-base="zinc">Zinc</DropdownMenuItem>
+            <DropdownMenuItem data-create-base="stone">Stone</DropdownMenuItem>
+            <DropdownMenuItem data-create-base="mauve">Mauve</DropdownMenuItem>
+            <DropdownMenuItem data-create-base="mist">Mist</DropdownMenuItem>
+            <DropdownMenuItem data-create-base="taupe">Taupe</DropdownMenuItem>
+          </DropdownMenu>
+          <button type="button" data-create-lock="base" aria-pressed="false" aria-label="Lock base color" class="flex size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[locked=true]:text-primary">
+            <Icon name="lucide:lock" size={14} />
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <DropdownMenu side="right" breakout class="flex-1">
+            <SidebarMenuButton slot="trigger">
+              <Icon slot="icon" name="lucide:square" size={16} />
+              Radius
+            </SidebarMenuButton>
+            <DropdownMenuItem data-create-radius="none">None</DropdownMenuItem>
+            <DropdownMenuItem data-create-radius="sm">Small</DropdownMenuItem>
+            <DropdownMenuItem data-create-radius="md">Default</DropdownMenuItem>
+            <DropdownMenuItem data-create-radius="lg">Large</DropdownMenuItem>
+            <DropdownMenuItem data-create-radius="xl">XL</DropdownMenuItem>
+          </DropdownMenu>
+          <button type="button" data-create-lock="radius" aria-pressed="false" aria-label="Lock radius" class="flex size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[locked=true]:text-primary">
+            <Icon name="lucide:lock" size={14} />
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <DropdownMenu
+            side="right"
+            breakout
+            class="flex-1"
+            scrollClass="max-h-64 overflow-y-auto no-scrollbar [mask-image:linear-gradient(to_bottom,transparent,black_36px,black_calc(100%-36px),transparent)]"
+          >
+            <SidebarMenuButton slot="trigger">
+              <Icon slot="icon" name="lucide:paintbrush" size={16} />
+              Theme color
+            </SidebarMenuButton>
+            <DropdownMenuItem data-create-brand="default">Default</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="blue">Blue</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="amber">Amber</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="cyan">Cyan</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="emerald">Emerald</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="fuchsia">Fuchsia</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="green">Green</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="indigo">Indigo</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="lime">Lime</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="orange">Orange</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="pink">Pink</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="purple">Purple</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="red">Red</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="rose">Rose</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="sky">Sky</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="teal">Teal</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="violet">Violet</DropdownMenuItem>
+            <DropdownMenuItem data-create-brand="yellow">Yellow</DropdownMenuItem>
+          </DropdownMenu>
+          <button type="button" data-create-lock="brand" aria-pressed="false" aria-label="Lock theme color" class="flex size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[locked=true]:text-primary">
+            <Icon name="lucide:lock" size={14} />
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <DropdownMenu
+            side="right"
+            breakout
+            class="flex-1"
+            scrollClass="max-h-64 overflow-y-auto no-scrollbar [mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)]"
+          >
+            <SidebarMenuButton slot="trigger">
+              <Icon slot="icon" name="lucide:bar-chart-3" size={16} />
+              Chart color
+            </SidebarMenuButton>
+            <DropdownMenuItem data-create-chart="default">Default</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="blue">Blue</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="amber">Amber</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="cyan">Cyan</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="emerald">Emerald</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="fuchsia">Fuchsia</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="green">Green</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="indigo">Indigo</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="lime">Lime</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="orange">Orange</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="pink">Pink</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="purple">Purple</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="red">Red</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="rose">Rose</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="sky">Sky</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="teal">Teal</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="violet">Violet</DropdownMenuItem>
+            <DropdownMenuItem data-create-chart="yellow">Yellow</DropdownMenuItem>
+          </DropdownMenu>
+          <button type="button" data-create-lock="chart" aria-pressed="false" aria-label="Lock chart color" class="flex size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[locked=true]:text-primary">
+            <Icon name="lucide:lock" size={14} />
+          </button>
+        </div>
+      </SidebarGroup>
+
+      <SidebarGroup label="Typography">
+        <div class="flex flex-col gap-1.5 px-2 py-1">
+          <span class="flex items-center gap-2 text-xs text-sidebar-foreground/70">
+            <Icon name="lucide:heading" size={14} />
+            Heading font
+          </span>
+          <div class="flex items-center gap-1">
+            <Combobox
+              breakout
+              class="flex-1"
+              name="create-heading-font"
+              options={GOOGLE_FONTS}
+              value="Inter"
+              placeholder="Search fonts..."
+              emptyText="No fonts found."
+              data-create-font="heading"
+            />
+            <button type="button" data-create-lock="headingFont" aria-pressed="false" aria-label="Lock heading font" class="flex size-9 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[locked=true]:text-primary">
+              <Icon name="lucide:lock" size={14} />
+            </button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5 px-2 py-1">
+          <span class="flex items-center gap-2 text-xs text-sidebar-foreground/70">
+            <Icon name="lucide:type" size={14} />
+            Body font
+          </span>
+          <div class="flex items-center gap-1">
+            <Combobox
+              breakout
+              class="flex-1"
+              name="create-body-font"
+              options={GOOGLE_FONTS}
+              value="Inter"
+              placeholder="Search fonts..."
+              emptyText="No fonts found."
+              data-create-font="body"
+            />
+            <button type="button" data-create-lock="bodyFont" aria-pressed="false" aria-label="Lock body font" class="flex size-9 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[locked=true]:text-primary">
+              <Icon name="lucide:lock" size={14} />
+            </button>
+          </div>
+        </div>
+      </SidebarGroup>
+
+      <div slot="footer" class="flex flex-col gap-2 px-2 py-1.5">
+        <div class="flex gap-1.5">
+          <button
+            type="button"
+            data-create-copy
+            class="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-sidebar-border px-2 py-1.5 text-xs font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          >
+            <Icon name="lucide:copy" size={14} />
+            <span data-create-copy-label>Copy tokens</span>
+          </button>
+          <button
+            type="button"
+            data-create-shuffle
+            class="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-sidebar-border px-2 py-1.5 text-xs font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          >
+            <Icon name="lucide:shuffle" size={14} />
+            Shuffle
+          </button>
+        </div>
+        <p class="px-0.5 text-xs text-sidebar-foreground/60">
+          Base/Theme/Chart color + Radius + Typography are live. Icons -- lucide only, no picker needed.
+        </p>
+      </div>
+    </Sidebar>
+
+    <SidebarInset class="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
+      <!-- Canvas frame: fixed size (fills the remaining flex space, never
+           grows/shrinks the page), rounded border, own overflow-hidden so
+           its corners always clip the scroll region correctly. `relative`
+           so the pagination pill below anchors to THIS box's corner, not
+           the viewport -- it stays pinned in place while the inner div
+           scrolls beneath it on both axes. -->
+      <div class="relative my-4 min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
+        <div class="h-full w-full overflow-auto pt-6 pr-6 pb-10 pl-6">
+          <slot />
+        </div>
+
+        {
+          TOTAL_CANVAS_PAGES > 1 && (
+            <Pagination
+              currentPage={canvasPage}
+              totalPages={TOTAL_CANVAS_PAGES}
+              hrefFor={(p: number) => `?canvas=${p}`}
+              class="absolute right-3 bottom-3 z-10 rounded-lg border border-border bg-popover/95 p-1 shadow-lg backdrop-blur"
+            />
+          )
+        }
+      </div>
+    </SidebarInset>
+  </div>
+</BaseLayout>
+
+<script>
+  // Not a registry item -- page-local tooling per docs/plans/create-page.md
+  // ("/create's axis controls stay page-local, not registry items").
+  const root = document.documentElement;
+  const BASE_KEY = "astro-shad-create-base";
+  const RADIUS_KEY = "astro-shad-create-radius";
+  const BRAND_KEY = "astro-shad-create-brand";
+  const CHART_KEY = "astro-shad-create-chart";
+  const HEADING_FONT_KEY = "astro-shad-create-heading-font";
+  const BODY_FONT_KEY = "astro-shad-create-body-font";
+
+  // Mirrors the GOOGLE_FONTS array in this file's frontmatter -- see that
+  // const's own comment for why it's duplicated rather than shared (this
+  // script only needs the plain family-name strings, to build Google
+  // Fonts CSS2 URLs and to pre-select a Combobox option on load).
+  const GOOGLE_FONTS = [
+    "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins",
+    "Source Sans 3", "Nunito", "Work Sans", "Rubik", "Manrope",
+    "Space Grotesk", "DM Sans", "Outfit", "Plus Jakarta Sans", "Sora",
+    "Urbanist", "Karla", "Mulish", "Barlow",
+    "IBM Plex Sans", "IBM Plex Mono", "JetBrains Mono", "Fira Code",
+    "Source Code Pro", "Inconsolata",
+    "Playfair Display", "Merriweather", "Lora", "PT Serif",
+    "Libre Baskerville", "Crimson Text", "EB Garamond", "Cormorant Garamond",
+    "Bitter", "Domine", "Zilla Slab",
+    "Archivo", "Oswald", "Bebas Neue", "Anton", "Raleway", "Quicksand",
+    "Josefin Sans", "Comfortaa", "Caveat", "Pacifico", "Dancing Script",
+  ];
+
+  function highlight(attr: string, value: string) {
+    document.querySelectorAll<HTMLElement>(`[data-create-${attr}]`).forEach((el) => {
+      const active = (el.dataset as Record<string, string>)[`create${attr[0].toUpperCase()}${attr.slice(1)}`] === value;
+      el.classList.toggle("text-primary", active);
+      el.classList.toggle("font-semibold", active);
+    });
+  }
+
+  // Base colors that also have their own [data-brand="x"]/[data-chart="x"]
+  // entry in theme.css (their own native tone, captured from the same
+  // "all 3 axes matched" exports data-base's own blocks came from).
+  // "Default" mirrors data-base onto data-brand/data-chart for exactly
+  // these -- taupe is a real, documented gap (no "taupe + no override"
+  // export was ever captured), so Default at base=taupe still falls
+  // through to the true global default (chunk 1's blue / chunk 2's
+  // neutral ramp) rather than a taupe-native tone.
+  const MIRRORABLE = ["olive", "zinc", "stone", "mauve", "mist"];
+
+  // radius has no default/no-op concept -- every one of its 5 options is
+  // a real override, and no menu item ever produces "", so it always
+  // takes the "set the attribute" branch below by construction.
+  let currentBase = localStorage.getItem(BASE_KEY) || "neutral";
+  let currentBrand = localStorage.getItem(BRAND_KEY) || "default";
+  let currentChart = localStorage.getItem(CHART_KEY) || "default";
+
+  // Brand/chart aren't simple "value or no-op" like base/radius: "default"
+  // is its own semantic state (not a color name) that re-derives from
+  // whichever base is currently active every time either changes, so
+  // switching base while at Default theme/chart tracks along live --
+  // exactly the shadcn behaviour this page is matching.
+  function applyMirrored(attr: "brand" | "chart", current: string) {
+    if (current === "default") {
+      if (MIRRORABLE.includes(currentBase)) root.dataset[attr] = currentBase;
+      else delete root.dataset[attr];
+    } else {
+      root.dataset[attr] = current;
+    }
+    highlight(attr, current);
+  }
+
+  if (currentBase !== "neutral") root.dataset.base = currentBase;
+  highlight("base", currentBase);
+  applyMirrored("brand", currentBrand);
+  applyMirrored("chart", currentChart);
+
+  if (localStorage.getItem(RADIUS_KEY)) root.dataset.radius = localStorage.getItem(RADIUS_KEY)!;
+  highlight("radius", localStorage.getItem(RADIUS_KEY) || "");
+
+  document.querySelectorAll<HTMLElement>("[data-create-base]").forEach((el) => {
+    el.addEventListener("click", () => {
+      currentBase = el.dataset.createBase!;
+      if (currentBase === "neutral") delete root.dataset.base;
+      else root.dataset.base = currentBase;
+      localStorage.setItem(BASE_KEY, currentBase);
+      highlight("base", currentBase);
+      // base changed -- re-derive any brand/chart still on "default"
+      applyMirrored("brand", currentBrand);
+      applyMirrored("chart", currentChart);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>("[data-create-radius]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const value = el.dataset.createRadius!;
+      root.dataset.radius = value;
+      localStorage.setItem(RADIUS_KEY, value);
+      highlight("radius", value);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>("[data-create-brand]").forEach((el) => {
+    el.addEventListener("click", () => {
+      currentBrand = el.dataset.createBrand!;
+      localStorage.setItem(BRAND_KEY, currentBrand);
+      applyMirrored("brand", currentBrand);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>("[data-create-chart]").forEach((el) => {
+    el.addEventListener("click", () => {
+      currentChart = el.dataset.createChart!;
+      localStorage.setItem(CHART_KEY, currentChart);
+      applyMirrored("chart", currentChart);
+    });
+  });
+
+  // ── Typography axis ── one Google Fonts <link>, rebuilt from whichever
+  // families are currently selected (deduped, since heading/body can
+  // match) -- only the 2 chosen families are ever fetched, never the full
+  // curated list. --font-heading/--font-body are set as inline styles on
+  // <html> (arbitrary user-picked values, unlike the finite data-* enums
+  // above, so a stylesheet rule can't target them by attribute).
+  let currentHeadingFont = localStorage.getItem(HEADING_FONT_KEY) || "Inter";
+  let currentBodyFont = localStorage.getItem(BODY_FONT_KEY) || "Inter";
+
+  function googleFontLink(families: string[]): string {
+    const params = families
+      .map((f) => `family=${f.replace(/ /g, "+")}:wght@400;500;600;700`)
+      .join("&");
+    return `https://fonts.googleapis.com/css2?${params}&display=swap`;
+  }
+
+  function applyFonts() {
+    const families = Array.from(new Set([currentHeadingFont, currentBodyFont]));
+    let link = document.getElementById("astro-shad-google-font") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "astro-shad-google-font";
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    link.href = googleFontLink(families);
+
+    root.style.setProperty("--font-heading", `"${currentHeadingFont}", ui-sans-serif, system-ui, sans-serif`);
+    root.style.setProperty("--font-body", `"${currentBodyFont}", ui-sans-serif, system-ui, sans-serif`);
+  }
+
+  // Combobox.astro's initial selection is baked server-side from its
+  // `value` prop -- both pickers always render defaulted to "Inter" at
+  // SSR time, so a persisted non-default choice needs replaying into the
+  // DOM by hand on load (same trigger-label/hidden-input/check-mark
+  // writes Combobox's own internal `select()` does, duplicated here since
+  // that function isn't exported).
+  function preselectCombobox(wrapper: HTMLElement, value: string) {
+    const option = wrapper.querySelector<HTMLElement>(`[data-cb-option][data-value="${CSS.escape(value)}"]`);
+    if (!option) return;
+    const hidden = wrapper.querySelector<HTMLInputElement>("[data-cb-value]")!;
+    hidden.value = value;
+    const labelEl = wrapper.querySelector<HTMLElement>("[data-cb-label]")!;
+    labelEl.textContent = value;
+    labelEl.classList.remove("text-muted-foreground");
+    wrapper.querySelectorAll<HTMLElement>("[data-cb-option]").forEach((o) => {
+      const match = o === option;
+      o.setAttribute("aria-selected", String(match));
+      o.querySelector<HTMLElement>("[data-cb-check]")?.classList.toggle("invisible", !match);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-create-font]").forEach((el) => {
+    const axis = el.dataset.createFont as "heading" | "body";
+    preselectCombobox(el, axis === "heading" ? currentHeadingFont : currentBodyFont);
+  });
+
+  applyFonts();
+
+  document.addEventListener("change", (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.matches?.("[data-cb-value]")) return;
+    const wrapper = t.closest<HTMLElement>("[data-create-font]");
+    if (!wrapper) return;
+    const value = (t as HTMLInputElement).value || "Inter";
+    if (wrapper.dataset.createFont === "heading") {
+      currentHeadingFont = value;
+      localStorage.setItem(HEADING_FONT_KEY, value);
+    } else {
+      currentBodyFont = value;
+      localStorage.setItem(BODY_FONT_KEY, value);
+    }
+    applyFonts();
+  });
+
+  // ── Lock axis ── one JSON blob in localStorage, keyed by the same axis
+  // names used above (base/radius/brand/chart/headingFont/bodyFont).
+  // Read by shuffleAll() below to skip whichever axes are locked -- the
+  // lock buttons themselves are plain siblings of each DropdownMenu/
+  // Combobox (not inside their trigger), so no click-propagation handling
+  // is needed to keep them from also opening the menu/panel.
+  const LOCKS_KEY = "astro-shad-create-locks";
+  let locks: Record<string, boolean> = {};
+  try {
+    locks = JSON.parse(localStorage.getItem(LOCKS_KEY) || "{}");
+  } catch {
+    locks = {};
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-create-lock]").forEach((el) => {
+    const axis = el.dataset.createLock!;
+    el.dataset.locked = String(!!locks[axis]);
+    el.setAttribute("aria-pressed", String(!!locks[axis]));
+    el.addEventListener("click", () => {
+      locks[axis] = !locks[axis];
+      localStorage.setItem(LOCKS_KEY, JSON.stringify(locks));
+      el.dataset.locked = String(locks[axis]);
+      el.setAttribute("aria-pressed", String(locks[axis]));
+    });
+  });
+
+  // ── Shuffle ── randomizes every axis except locked ones, reusing the
+  // real `data-create-<attr>` DOM as each axis's option list (rather than
+  // a separately maintained array) so it can never drift from what the
+  // menus actually offer.
+  function optionValues(attr: string): string[] {
+    const key = `create${attr[0].toUpperCase()}${attr.slice(1)}`;
+    return Array.from(document.querySelectorAll<HTMLElement>(`[data-create-${attr}]`)).map(
+      (el) => (el.dataset as Record<string, string>)[key]!,
+    );
+  }
+
+  function randomFrom<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function shuffleAll() {
+    if (!locks.base) {
+      currentBase = randomFrom(optionValues("base"));
+      if (currentBase === "neutral") delete root.dataset.base;
+      else root.dataset.base = currentBase;
+      localStorage.setItem(BASE_KEY, currentBase);
+      highlight("base", currentBase);
+    }
+
+    if (!locks.radius) {
+      const value = randomFrom(optionValues("radius"));
+      root.dataset.radius = value;
+      localStorage.setItem(RADIUS_KEY, value);
+      highlight("radius", value);
+    }
+
+    if (!locks.brand) {
+      currentBrand = randomFrom(optionValues("brand"));
+      localStorage.setItem(BRAND_KEY, currentBrand);
+    }
+    if (!locks.chart) {
+      currentChart = randomFrom(optionValues("chart"));
+      localStorage.setItem(CHART_KEY, currentChart);
+    }
+    // Re-derive AFTER base is finalized above (Default at either axis
+    // tracks whichever base just got picked, same as a manual pick does).
+    applyMirrored("brand", currentBrand);
+    applyMirrored("chart", currentChart);
+
+    if (!locks.headingFont) {
+      currentHeadingFont = randomFrom(GOOGLE_FONTS);
+      localStorage.setItem(HEADING_FONT_KEY, currentHeadingFont);
+      document
+        .querySelectorAll<HTMLElement>('[data-create-font="heading"]')
+        .forEach((el) => preselectCombobox(el, currentHeadingFont));
+    }
+    if (!locks.bodyFont) {
+      currentBodyFont = randomFrom(GOOGLE_FONTS);
+      localStorage.setItem(BODY_FONT_KEY, currentBodyFont);
+      document
+        .querySelectorAll<HTMLElement>('[data-create-font="body"]')
+        .forEach((el) => preselectCombobox(el, currentBodyFont));
+    }
+    applyFonts();
+  }
+
+  document.querySelector<HTMLElement>("[data-create-shuffle]")?.addEventListener("click", shuffleAll);
+
+  // ── Copy tokens ── reads the LIVE resolved custom-property values off
+  // <html> (not which data-* attribute is active) so it's correct
+  // regardless of axis combination, base/brand/chart interaction, or
+  // inline font overrides. Only reflects whichever [data-theme] is
+  // CURRENTLY active -- light and dark are two separate blocks in
+  // theme.css, this copies one at a time; toggle theme and copy again for
+  // the other mode.
+  const COPY_TOKENS = [
+    "background", "foreground", "card", "card-foreground", "popover", "popover-foreground",
+    "primary", "primary-foreground", "secondary", "secondary-foreground", "muted", "muted-foreground",
+    "accent", "accent-foreground", "destructive", "destructive-foreground", "border", "input", "ring",
+    "chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "radius",
+    "sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground",
+    "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring",
+    "font-heading", "font-body",
+  ];
+
+  function buildThemeCssBlock(): string {
+    const cs = getComputedStyle(root);
+    const lines = COPY_TOKENS.map((t) => `  --${t}: ${cs.getPropertyValue(`--${t}`).trim()};`);
+    return `:root {\n${lines.join("\n")}\n}`;
+  }
+
+  const copyBtn = document.querySelector<HTMLElement>("[data-create-copy]");
+  copyBtn?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(buildThemeCssBlock());
+    const label = copyBtn.querySelector<HTMLElement>("[data-create-copy-label]");
+    if (!label) return;
+    const original = label.textContent;
+    label.textContent = "Copied!";
+    setTimeout(() => {
+      label.textContent = original;
+    }, 1500);
+  });
+
+  // Canvas-page switching, client-side -- real bug fix (see create.astro's
+  // header comment for the full diagnosis): this project has no SSR
+  // adapter, so every route is implicitly prerendered, INCLUDING in
+  // `astro dev` -- clicking Pagination's real `?canvas=N` links updated
+  // the URL bar correctly but never re-ran server logic, so the wrong
+  // canvas page always stayed rendered. Both `[data-canvas-page="1"]`/
+  // `"2"]` blocks are always in the DOM (create.astro); this script is
+  // what actually shows the right one, on load AND on click, via
+  // `history.pushState` instead of a real navigation. Pagination's own
+  // hrefs stay real (`?canvas=N`) for no-JS/right-click-open-in-new-tab.
+  function currentCanvasPage(): number {
+    const p = new URLSearchParams(window.location.search).get("canvas");
+    return p === "2" ? 2 : 1;
+  }
+
+  // Pagination.astro is a static, zero-JS component: its CURRENT vs LINK
+  // classes (see that file's own ITEM/LINK/CURRENT consts) are baked into
+  // the HTML at server-render time, for a currentPage that's always 1 in
+  // this project (no SSR adapter -- see the comment above). First cut
+  // here only ADDED a text-primary highlight on top without touching
+  // Pagination's own baked-in classes, so page 1's link kept its
+  // server-rendered border+bg-card "current" look permanently, no matter
+  // which page was actually active. Real fix: swap the literal class
+  // sets, matching Pagination.astro's own definitions exactly. Tightly
+  // coupled to that file on purpose (there's no prop/hook to do this any
+  // other way without either fighting CSS specificity with `!important`
+  // or duplicating Pagination.astro's rendering logic) -- if its
+  // CURRENT/LINK classes ever change, this needs updating too.
+  const PAGINATION_CURRENT_CLASSES = ["border", "border-border", "bg-card", "text-foreground"];
+  const PAGINATION_LINK_CLASSES = ["text-muted-foreground", "hover:bg-muted", "hover:text-foreground"];
+
+  function applyCanvasPage(page: number) {
+    document.querySelectorAll<HTMLElement>("[data-canvas-page]").forEach((el) => {
+      el.classList.toggle("hidden", el.dataset.canvasPage !== String(page));
+    });
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="?canvas="]').forEach((a) => {
+      const isCurrent = a.getAttribute("href") === `?canvas=${page}`;
+      a.classList.remove(...(isCurrent ? PAGINATION_LINK_CLASSES : PAGINATION_CURRENT_CLASSES));
+      a.classList.add(...(isCurrent ? PAGINATION_CURRENT_CLASSES : PAGINATION_LINK_CLASSES));
+      a.setAttribute("aria-current", isCurrent ? "page" : "false");
+    });
+  }
+
+  applyCanvasPage(currentCanvasPage());
+
+  document.querySelectorAll<HTMLAnchorElement>('a[href^="?canvas="]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const href = a.getAttribute("href")!;
+      history.pushState(null, "", href);
+      applyCanvasPage(currentCanvasPage());
+    });
+  });
+</script>

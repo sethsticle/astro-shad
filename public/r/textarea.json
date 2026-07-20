@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "textarea",
+  "title": "Textarea",
+  "description": "Bare textarea primitive. Converted from shadcn ui/textarea.tsx verbatim. Unlabelled building block for compositions outside FormField.astro.",
+  "registryDependencies": [
+    "@astro-shad/utils"
+  ],
+  "files": [
+    {
+      "path": "src/components/astro-shad/Textarea.astro",
+      "content": "---\n/**\n * Textarea.astro -- astro-shad bare textarea primitive. Converted from\n * shadcn ui/textarea.tsx verbatim (already a plain `<textarea>` + one\n * class, no runtime to strip). This is the unlabelled building block --\n * `FormField.astro`'s `type=\"textarea\"` renders its own inline markup\n * (label/description/error wiring); reach for this one composing outside\n * FormField.\n *\n *   <Textarea rows={6} placeholder=\"Add a note...\" />\n */\nimport { cn } from '../../lib/utils';\n\ninterface Props {\n  rows?: number;\n  class?: string;\n  [key: string]: unknown;\n}\n\nconst { rows = 4, class: className, ...rest } = Astro.props;\n\nconst TEXTAREA =\n  'flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors ' +\n  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +\n  'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive';\n---\n\n<textarea data-slot=\"textarea\" rows={rows} class={cn(TEXTAREA, className)} {...rest}></textarea>\n",
+      "type": "registry:component",
+      "target": "src/components/astro-shad/Textarea.astro"
+    }
+  ],
+  "type": "registry:component"
+}

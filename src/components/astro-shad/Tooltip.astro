@@ -1,0 +1,46 @@
+---
+/**
+ * Tooltip.astro -- astro-shad tooltip. Converted from shadcn ui/tooltip.tsx
+ * (base-ui Tooltip.Provider/Root/Trigger/Positioner/Popup/Arrow). Rung 1 of
+ * the interactivity ladder: a hover/focus-shown label needs no JS at all --
+ * `group-hover`/`group-focus-within` on a `relative` wrapper is the whole
+ * mechanism. No delay/portal/collision-avoidance (base-ui's job); the popup
+ * is `absolute` off the trigger, so it can clip inside `overflow-hidden`
+ * ancestors -- give it room or pass `class` to reposition.
+ *
+ *   <Tooltip content="Toggle Sidebar"><SidebarTrigger /></Tooltip>
+ *   <Tooltip content="Copy" side="bottom"><Button size="sm">Copy</Button></Tooltip>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  content: string;
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { content, side = 'top', class: className, ...rest } = Astro.props;
+
+const POSITION: Record<string, string> = {
+  top: 'bottom-full left-1/2 mb-1.5 -translate-x-1/2',
+  bottom: 'top-full left-1/2 mt-1.5 -translate-x-1/2',
+  left: 'right-full top-1/2 mr-1.5 -translate-y-1/2',
+  right: 'left-full top-1/2 ml-1.5 -translate-y-1/2',
+};
+---
+
+<span class={cn('group/tooltip relative inline-flex', className)} {...rest}>
+  <slot />
+  <span
+    role="tooltip"
+    class={cn(
+      'pointer-events-none absolute z-50 w-max max-w-xs scale-95 rounded-md bg-foreground px-2.5 py-1 text-xs text-background opacity-0 ' +
+        'transition-[opacity,transform] duration-100 group-hover/tooltip:scale-100 group-hover/tooltip:opacity-100 ' +
+        'group-focus-within/tooltip:scale-100 group-focus-within/tooltip:opacity-100',
+      POSITION[side]
+    )}
+  >
+    {content}
+  </span>
+</span>

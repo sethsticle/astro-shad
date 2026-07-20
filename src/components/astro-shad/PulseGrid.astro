@@ -12,8 +12,10 @@
  *
  * Canvas paint cannot read CSS tokens (same rule as the map items), so
  * `colors` are literal hex strings; the default mirrors the theme's dark
- * `--accent` (#60a5fa). Pass more than one color and each burst picks one
- * at random -- cells remember the color of the burst that lit them.
+ * `--primary` (#60a5fa, the chromatic brand token as of the 2026-07-20
+ * accent/primary realignment -- was `--accent` before that). Pass more than
+ * one color and each burst picks one at random -- cells remember the color
+ * of the burst that lit them.
  *
  * The rAF loop self-suspends when every cell has faded (the source's
  * wake/idle pattern), the burst timer only fires while the element is
@@ -29,7 +31,7 @@ import { cn } from '../../lib/utils';
 interface Props {
   /** grid cell size, px */
   cellSize?: number;
-  /** hex colors; each burst picks one at random. Default mirrors dark --accent. */
+  /** hex colors; each burst picks one at random. Default mirrors dark --primary. */
   colors?: string[];
   /** average bursts per second (intervals are jittered) */
   speed?: number;

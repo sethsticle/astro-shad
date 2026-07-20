@@ -1,0 +1,219 @@
+---
+/**
+ * create.astro -- the /create token studio. Sidebar controls + a content
+ * canvas previewing every registry component (canvas content itself is
+ * still a stand-in -- wiring up real live previews of every component is
+ * its own, larger piece of work, not part of this session).
+ *
+ * Chrome (site header, sidebar controls, the canvas frame itself, and
+ * the base/radius/brand/chart wiring script) all live in
+ * `CreateLayout.astro` now -- this page only owns the CANVAS CONTENT
+ * (what goes in the default slot).
+ *
+ * Canvas-page switching is CLIENT-SIDE, not server-side query-param
+ * branching -- real bug, fixed [session follow-up]: this project has no
+ * SSR adapter (astro.config.mjs has no `output`/adapter, defaulting to
+ * fully static), so every route is implicitly prerendered, INCLUDING in
+ * `astro dev` -- Astro's dev server serves the cached prerendered
+ * response for a route rather than re-running server logic per distinct
+ * query string, matching what the real static build will do (a static
+ * host always serves the same file regardless of `?canvas=2`). Confirmed
+ * live: the URL bar correctly showed `?canvas=2` after clicking, but the
+ * rendered content stayed on page 1 -- exactly what you'd expect if the
+ * server never re-ran per query string.
+ *
+ * Both canvas pages are ALWAYS rendered here (`data-canvas-page="1"`/
+ * `"2"`), server-defaulting to page 1 visible / page 2 `hidden` (the
+ * no-JS fallback). CreateLayout.astro's client script owns showing the
+ * right one, reading `window.location.search` on load (so a direct link
+ * to `?canvas=2` still lands correctly) and intercepting Pagination's
+ * own real `<a href="?canvas=N">` clicks to switch instantly via
+ * `history.pushState` instead of a real navigation -- same client-side
+ * pattern already used for base/radius/brand/chart, and Pagination's
+ * real hrefs stay intact for no-JS/right-click-open-in-new-tab.
+ */
+import CreateLayout from "../layouts/CreateLayout.astro";
+import Card from "../components/astro-shad/Card.astro";
+import Button from "../components/astro-shad/Button.astro";
+import Badge from "../components/astro-shad/Badge.astro";
+
+const palettes = [
+  {
+    title: "Core UI",
+    tokens: ["background", "foreground", "card", "card-foreground", "popover", "popover-foreground"],
+  },
+  {
+    title: "Brand & Accent",
+    tokens: [
+      "primary",
+      "primary-foreground",
+      "secondary",
+      "secondary-foreground",
+      "muted",
+      "muted-foreground",
+      "accent",
+      "accent-foreground",
+    ],
+  },
+  {
+    title: "State & Utility",
+    tokens: ["destructive", "destructive-foreground", "border", "input", "ring"],
+  },
+  {
+    title: "Semantic Surfaces",
+    tokens: ["canvas", "surface", "elevated", "shade", "ink"],
+  },
+  {
+    title: "Charts",
+    tokens: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"],
+  },
+];
+
+/**
+ * Real bug, fixed here: `theme.css`'s layer-3 bridge uses `@theme inline`,
+ * which only emits a token's underlying CSS custom property when Tailwind
+ * sees an actual utility class using it somewhere in scanned source --
+ * nothing in the registry uses `bg-chart-1`..`bg-chart-5` (or `bg-canvas`
+ * etc) as a real class, so raw `var(--color-chart-3)` in an inline style
+ * resolved to nothing (confirmed via computed styles: `background-color:
+ * rgba(0,0,0,0)`, fully transparent -- looked "plain white" against a
+ * light-mode card). `bg-primary`/`bg-sidebar-accent`/etc. work fine
+ * because real components (Button, Sidebar, ...) already use those
+ * classes elsewhere on this same page, so Tailwind generates them
+ * regardless of this swatch grid.
+ *
+ * Fix: a STATIC, literal class-name lookup (Tailwind's scanner does plain
+ * text matching over source files -- it doesn't care that this object's
+ * values are only ever reached via a dynamic key lookup below, only that
+ * the literal strings "bg-chart-1" etc. appear somewhere in the file) so
+ * every token's utility actually gets generated. Chose this over
+ * switching theme.css's bridge to plain `@theme` (which would fix the
+ * general "raw var() outside a Tailwind class doesn't work" gap for any
+ * future consumer too) since that's a ~60-variable foundational change
+ * this session isn't touching.
+ */
+const TOKEN_BG_CLASS: Record<string, string> = {
+  background: "bg-background",
+  foreground: "bg-foreground",
+  card: "bg-card",
+  "card-foreground": "bg-card-foreground",
+  popover: "bg-popover",
+  "popover-foreground": "bg-popover-foreground",
+  primary: "bg-primary",
+  "primary-foreground": "bg-primary-foreground",
+  secondary: "bg-secondary",
+  "secondary-foreground": "bg-secondary-foreground",
+  muted: "bg-muted",
+  "muted-foreground": "bg-muted-foreground",
+  accent: "bg-accent",
+  "accent-foreground": "bg-accent-foreground",
+  destructive: "bg-destructive",
+  "destructive-foreground": "bg-destructive-foreground",
+  border: "bg-border",
+  input: "bg-input",
+  ring: "bg-ring",
+  canvas: "bg-canvas",
+  surface: "bg-surface",
+  elevated: "bg-elevated",
+  shade: "bg-shade",
+  ink: "bg-ink",
+  "chart-1": "bg-chart-1",
+  "chart-2": "bg-chart-2",
+  "chart-3": "bg-chart-3",
+  "chart-4": "bg-chart-4",
+  "chart-5": "bg-chart-5",
+};
+---
+
+<CreateLayout title="Create">
+  <div data-canvas-page="1">
+    <div class="grid grid-cols-3 items-start gap-6">
+        {/* Not the real canvas (docs/plans/create-page.md step 4, still
+             unbuilt) -- just enough real components to prove the Base/
+             Theme/Chart color + Radius axes visibly work end-to-end.
+             Card exercises bg-card/border-border/text-card-foreground,
+             the outline Badge/Button exercise border-border, the
+             secondary Button exercises bg-secondary, the plain Button
+             exercises bg-primary (now live -- chunk 3b). Swap for the
+             real "every component" canvas when that work starts. */}
+        <Card class="w-full max-w-sm" title="Preview card" description="Base/Theme/Chart color + Radius apply live to every token below.">
+          <div class="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">Outline badge</Badge>
+            <Button size="sm">Primary</Button>
+            <Button size="sm" variant="secondary">
+              Secondary
+            </Button>
+            <Button size="sm" variant="outline">
+              Outline
+            </Button>
+          </div>
+        </Card>
+        <Card class="col-span-2 w-full" title="Color Palette" description="Every token in the three-layer contract, live.">
+          <div class="flex flex-col gap-8 pt-4">
+            {palettes.map((section) => (
+              <div class="flex flex-col gap-3">
+                <h3 class="text-sm font-medium text-foreground">{section.title}</h3>
+
+                <div class="grid grid-cols-4 gap-4 sm:grid-cols-6 md:grid-cols-8">
+                  {section.tokens.map((token) => (
+                    <div class="flex flex-col items-center gap-2">
+                      <div class={`h-10 w-full rounded-md border border-border shadow-sm ${TOKEN_BG_CLASS[token]}`} />
+                      <span class="w-full truncate text-center text-[10px] text-muted-foreground" title={`bg-${token}`}>
+                        {token}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card class="col-span-2 w-full" title="Color Palette" description="Every token in the three-layer contract, live.">
+          <div class="flex flex-col gap-8 pt-4">
+            {palettes.map((section) => (
+              <div class="flex flex-col gap-3">
+                <h3 class="text-sm font-medium text-foreground">{section.title}</h3>
+
+                <div class="grid grid-cols-4 gap-4 sm:grid-cols-6 md:grid-cols-8">
+                  {section.tokens.map((token) => (
+                    <div class="flex flex-col items-center gap-2">
+                      <div class={`h-10 w-full rounded-md border border-border shadow-sm ${TOKEN_BG_CLASS[token]}`} />
+                      <span class="w-full truncate text-center text-[10px] text-muted-foreground" title={`bg-${token}`}>
+                        {token}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card class="col-span-2 w-full" title="Color Palette" description="Every token in the three-layer contract, live.">
+          <div class="flex flex-col gap-8 pt-4">
+            {palettes.map((section) => (
+              <div class="flex flex-col gap-3">
+                <h3 class="text-sm font-medium text-foreground">{section.title}</h3>
+
+                <div class="grid grid-cols-4 gap-4 sm:grid-cols-6 md:grid-cols-8">
+                  {section.tokens.map((token) => (
+                    <div class="flex flex-col items-center gap-2">
+                      <div class={`h-10 w-full rounded-md border border-border shadow-sm ${TOKEN_BG_CLASS[token]}`} />
+                      <span class="w-full truncate text-center text-[10px] text-muted-foreground" title={`bg-${token}`}>
+                        {token}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <div data-canvas-page="2" class="hidden">
+      <div class="flex h-full min-h-[24rem] items-center justify-center text-sm text-muted-foreground">
+        Canvas page 2 -- empty, reserved for when page 1's content outgrows one screen's worth of horizontal scroll.
+      </div>
+    </div>
+</CreateLayout>

@@ -1,0 +1,82 @@
+---
+/**
+ * BaseLayout.astro -- shared shell for every frontend-facing page (docs,
+ * /create, the future motion playground, ...): `<html><head>` boilerplate,
+ * theme restore, motion bootstrap, and the site-wide `FloatingHeader`
+ * (brand + Docs/Playground/Create/GitHub nav + theme toggle) -- once,
+ * so a user can jump between sections without each page re-wiring its
+ * own copy. Extracted from DocsLayout.astro (2026-07-20) when `/create`
+ * became the second page that needed it.
+ *
+ * The `<slot />` is completely bare -- no width container, no padding.
+ * Every consumer layout/page decides its own content shell: DocsLayout
+ * wraps its docs-sidebar + prose column in `mx-auto max-w-6xl gap-10
+ * px-6`; create.astro goes full-bleed with its own `<Sidebar>` layout.
+ * Don't add a container here -- that's exactly the decision this layout
+ * shouldn't make for its consumers.
+ *
+ * FloatingHeader is `sticky`, not `fixed` -- it occupies real height in
+ * normal flow (~57px with this nav content, the same constant
+ * DocsLayout's own sidebar already sticks/clips against). A full-bleed
+ * page that wants to fill the remaining viewport below it (not grow
+ * past 100vh) sizes against `calc(100svh-57px)`, not `min-h-svh` --
+ * see create.astro for the pattern.
+ *
+ *   <BaseLayout title="Create">
+ *     <div class="flex h-[calc(100svh-57px)]">...</div>
+ *   </BaseLayout>
+ *
+ * `brand-start` is an optional extra slot rendered just before the
+ * "astro-shad" brand link -- for page-specific header content that
+ * still needs to live in the header row (DocsLayout uses it for its
+ * mobile nav-toggle hamburger, which only makes sense on docs pages).
+ * Unused by default; most consumers never need it.
+ */
+import "../styles/global.css";
+import ThemeToggle from "../components/astro-shad/ThemeToggle.astro";
+import FloatingHeader from "../components/astro-shad/FloatingHeader.astro";
+import { GITHUB } from "../components/docs/docs-nav";
+import { MOTION_PREHIDE_CSS } from "../lib/motion";
+import { THEME_PREHIDE_JS } from "../lib/theme";
+import TopBar from "@/components/astro-shad/TopBar.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · astro-shad</title>
+    <meta name="description" content={description} />
+    <script is:inline set:html={THEME_PREHIDE_JS} />
+    <style set:html={MOTION_PREHIDE_CSS}></style>
+    <script>
+      import { initMotion } from "../lib/motion";
+      initMotion();
+    </script>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    <div class="my-2">
+      <TopBar sticky={true}>
+        <Fragment slot="brand">
+          <slot name="brand-start" />
+          <a href="/docs" class="text-sm font-semibold tracking-tight">astro-shad</a>
+        </Fragment>
+        <Fragment slot="nav">
+          <a href="/docs" class="transition-colors hover:text-foreground">Docs</a>
+          <a href="/dev" class="transition-colors hover:text-foreground">Playground</a>
+          <a href="/create" class="transition-colors hover:text-foreground">Create</a>
+          <a href={GITHUB} target="_blank" rel="noreferrer" class="transition-colors hover:text-foreground">GitHub</a>
+        </Fragment>
+        <ThemeToggle slot="actions" />
+      </TopBar>
+    </div>
+    <slot />
+  </body>
+</html>

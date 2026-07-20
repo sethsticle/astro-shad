@@ -1,0 +1,170 @@
+---
+/**
+ * Sheet.astro -- astro-shad slide-over panel. Converted from shadcn
+ * ui/sheet.tsx (base-ui Dialog primitive with side="left|right|top|bottom"
+ * chrome). The six-file compound (Sheet/Trigger/Content/Header/Footer/
+ * Title/Description) collapses into one file, props + two named slots
+ * (`trigger`, `footer`; the default slot is the body) -- same call as
+ * Card.astro's header/footer collapse.
+ *
+ * Rung 3: one delegated document click-listener drives every instance
+ * (`data-astro-shad-sheet` root, `data-sheet-trigger`/`-close`/`-overlay`
+ * hooks), a `data-state` attribute on the overlay/panel drives the CSS
+ * transition, Escape closes the topmost-opened one. No focus trap (not
+ * worth the extra ~30 lines for a registry primitive -- Escape + overlay
+ * click + close button cover the real dismiss paths); body scroll is
+ * locked while open and restored on close.
+ *
+ *   <Sheet title="Filters" side="right">
+ *     <button slot="trigger">Open</button>
+ *     ...body content...
+ *     <Button slot="footer">Apply</Button>
+ *   </Sheet>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  side?: 'top' | 'right' | 'bottom' | 'left';
+  title?: string;
+  description?: string;
+  showCloseButton?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  side = 'right',
+  title,
+  description,
+  showCloseButton = true,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const uid = crypto.randomUUID().slice(0, 6);
+const id = `sheet-${uid}`;
+
+const SIDE: Record<string, string> = {
+  right: 'inset-y-0 right-0 h-full w-3/4 border-l border-border translate-x-0 data-[state=closed]:translate-x-full sm:max-w-sm',
+  left: 'inset-y-0 left-0 h-full w-3/4 border-r border-border translate-x-0 data-[state=closed]:-translate-x-full sm:max-w-sm',
+  top: 'inset-x-0 top-0 h-auto border-b border-border translate-y-0 data-[state=closed]:-translate-y-full',
+  bottom: 'inset-x-0 bottom-0 h-auto border-t border-border translate-y-0 data-[state=closed]:translate-y-full',
+};
+---
+
+<div class="inline-flex" data-astro-shad-sheet={id} {...rest}>
+  <span data-sheet-trigger>
+    <slot name="trigger" />
+  </span>
+
+  <div
+    data-sheet-overlay
+    data-state="closed"
+    class="fixed inset-0 z-50 hidden bg-background/60 backdrop-blur-xs transition-opacity duration-150 data-[state=closed]:opacity-0 data-[state=open]:opacity-100"
+  >
+  </div>
+
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby={title ? `${id}-title` : undefined}
+    data-sheet-panel
+    data-state="closed"
+    class={cn(
+      'fixed z-50 hidden flex-col gap-4 bg-popover p-4 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/10 transition-transform duration-200 ease-in-out',
+      SIDE[side],
+      className
+    )}
+  >
+    {(title || description) && (
+      <div class="flex flex-col gap-0.5 pr-8">
+        {title && (
+          <h2 id={`${id}-title`} class="text-base font-medium text-foreground">
+            {title}
+          </h2>
+        )}
+        {description && <p class="text-sm text-muted-foreground">{description}</p>}
+      </div>
+    )}
+    {showCloseButton && (
+      <button
+        type="button"
+        data-sheet-close
+        aria-label="Close"
+        class="absolute right-3 top-3 grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+        </svg>
+      </button>
+    )}
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      <slot />
+    </div>
+    <div class="mt-auto flex flex-col gap-2 empty:hidden">
+      <slot name="footer" />
+    </div>
+  </div>
+</div>
+
+<script>
+  function openSheet(root: HTMLElement) {
+    const overlay = root.querySelector<HTMLElement>('[data-sheet-overlay]')!;
+    const panel = root.querySelector<HTMLElement>('[data-sheet-panel]')!;
+    overlay.classList.remove('hidden');
+    panel.classList.remove('hidden');
+    panel.classList.add('flex');
+    requestAnimationFrame(() => {
+      overlay.dataset.state = 'open';
+      panel.dataset.state = 'open';
+    });
+    document.body.style.overflow = 'hidden';
+    panel.querySelector<HTMLElement>('[data-sheet-close]')?.focus();
+  }
+
+  function closeSheet(root: HTMLElement) {
+    const overlay = root.querySelector<HTMLElement>('[data-sheet-overlay]')!;
+    const panel = root.querySelector<HTMLElement>('[data-sheet-panel]')!;
+    overlay.dataset.state = 'closed';
+    panel.dataset.state = 'closed';
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+      panel.classList.add('hidden');
+      panel.classList.remove('flex');
+    }, 200);
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.closest) return;
+
+    const trigger = t.closest<HTMLElement>('[data-sheet-trigger]');
+    if (trigger) {
+      /* A trigger inside a display:none ancestor (e.g. Sidebar.astro's
+         mobile-only Sheet, clicked programmatically at desktop widths so
+         its own open logic can run) has no offsetParent -- ignore it, or
+         the panel opens invisibly and its body-scroll lock never gets
+         released since nothing can ever click its (also invisible)
+         close/overlay to undo it. */
+      if (trigger.offsetParent === null) return;
+      const root = trigger.closest<HTMLElement>('[data-astro-shad-sheet]');
+      if (root) openSheet(root);
+      return;
+    }
+
+    const closer = t.closest('[data-sheet-close], [data-sheet-overlay]');
+    if (closer) {
+      const root = closer.closest<HTMLElement>('[data-astro-shad-sheet]');
+      if (root) closeSheet(root);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll<HTMLElement>('[data-sheet-panel][data-state="open"]').forEach((panel) => {
+      const root = panel.closest<HTMLElement>('[data-astro-shad-sheet]');
+      if (root) closeSheet(root);
+    });
+  });
+</script>

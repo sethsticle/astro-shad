@@ -1,0 +1,234 @@
+---
+/**
+ * Combobox.astro -- astro-shad searchable single-select. Converted from
+ * shadcn ui/combobox.tsx (base-ui Combobox + a dedicated InputGroup
+ * helper file, ~450 combined lines, cmdk-shaped generic API surface:
+ * chips/multi-select, collections, render props). This registry ships the
+ * single-select case only -- a trigger button showing the current label,
+ * a popup with a search input filtering an in-DOM option list by
+ * substring match, click-or-Enter to select. Multi-select `Chips`
+ * variant dropped entirely (no known consumer; the filtering/selection
+ * engine below is the reusable core if one comes up later).
+ *
+ * Rung 3: options render server-side as real buttons (`data-cb-option`);
+ * filtering hides/shows them by `textContent` match rather than
+ * re-rendering, so it stays correct with zero virtual-list complexity up
+ * to a few hundred options. Selection writes to a hidden `<input
+ * type="hidden">` (`name` prop) so it participates in native form
+ * submission / `Form.astro`'s validation exactly like a `<select>`
+ * would -- dispatches a bubbling `change` event on select so
+ * `Form.astro`'s reward-early revalidation can see it. No arrow-key
+ * roving focus (search + click/Enter covers the real usage; add it
+ * alongside DropdownMenu's ArrowUp/ArrowDown pattern if a design needs
+ * full keyboard nav).
+ *
+ *   <Combobox name="framework" placeholder="Select framework..."
+ *     options={['Astro', 'Next.js', 'SvelteKit', 'Remix']} />
+ *   <Combobox name="tz" value="cape-town"
+ *     options={[{ value: 'cape-town', label: 'Africa/Johannesburg' }, ...]} />
+ *
+ * `breakout` (default false): same escape hatch as DropdownMenu.astro's
+ * own `breakout` prop, for the same reason -- the default panel is
+ * `position:absolute` against its own wrapper, which any scrollable
+ * ancestor (Sidebar's `overflow-y-auto` content area, e.g.) clips at its
+ * own edge regardless of the panel's own z-index. `breakout` switches the
+ * panel to `position:fixed`, computes its top/left/width from the
+ * trigger's `getBoundingClientRect()` at open time, and re-measures on
+ * every open (not on scroll/resize while open -- same accepted gap
+ * DropdownMenu documents, fine for a panel that closes on outside-click/
+ * Escape/Enter anyway).
+ *
+ *   <Combobox breakout options={[...]} />
+ */
+import { cn } from '../../lib/utils';
+
+type Option = string | { value: string; label: string };
+
+interface Props {
+  name?: string;
+  options: Option[];
+  value?: string;
+  placeholder?: string;
+  emptyText?: string;
+  /** position:fixed + JS-computed placement, escapes ancestor overflow clipping */
+  breakout?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  name,
+  options,
+  value,
+  placeholder = 'Select...',
+  emptyText = 'No results found.',
+  breakout = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const opt = (o: Option) => (typeof o === 'string' ? { value: o, label: o } : o);
+const norm = options.map(opt);
+const initial = norm.find((o) => o.value === value);
+---
+
+<div class={cn('relative w-full', className)} data-astro-shad-combobox {...rest}>
+  <input type="hidden" name={name} data-cb-value value={initial?.value ?? ''} />
+
+  <button
+    type="button"
+    data-cb-trigger
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    class="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <span data-cb-label class={cn('truncate', !initial && 'text-muted-foreground')}>
+      {initial?.label ?? placeholder}
+    </span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 text-muted-foreground">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  </button>
+
+  <div
+    data-cb-panel
+    data-cb-breakout={breakout ? '' : undefined}
+    hidden
+    role="listbox"
+    class={cn(
+      'z-50 mt-1 w-full origin-top overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10',
+      breakout ? 'fixed' : 'absolute',
+    )}
+  >
+    <div class="border-b border-border p-1">
+      <input
+        type="text"
+        data-cb-search
+        placeholder="Search..."
+        autocomplete="off"
+        class="w-full rounded-md bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground"
+      />
+    </div>
+    <div data-cb-list class="no-scrollbar max-h-64 overflow-y-auto p-1">
+      {norm.map((o) => (
+        <button
+          type="button"
+          role="option"
+          data-cb-option
+          data-value={o.value}
+          aria-selected={o.value === value ? 'true' : 'false'}
+          class="flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-muted aria-selected:font-medium"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            class={cn('shrink-0', o.value !== value && 'invisible')}
+            data-cb-check
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          <span class="truncate">{o.label}</span>
+        </button>
+      ))}
+    </div>
+    <p data-cb-empty hidden class="px-2 py-6 text-center text-sm text-muted-foreground">
+      {emptyText}
+    </p>
+  </div>
+</div>
+
+<script>
+  function closeAll(except?: HTMLElement) {
+    document.querySelectorAll<HTMLElement>('[data-astro-shad-combobox]').forEach((root) => {
+      if (root === except) return;
+      root.querySelector<HTMLElement>('[data-cb-panel]')!.hidden = true;
+      root.querySelector('[data-cb-trigger]')?.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function positionBreakout(trigger: HTMLElement, panel: HTMLElement) {
+    const r = trigger.getBoundingClientRect();
+    panel.style.top = `${r.bottom + 4}px`;
+    panel.style.left = `${r.left}px`;
+    panel.style.width = `${r.width}px`;
+  }
+
+  function select(root: HTMLElement, option: HTMLElement) {
+    const val = option.dataset.value || '';
+    const label = option.querySelector('span')?.textContent || '';
+
+    const hidden = root.querySelector<HTMLInputElement>('[data-cb-value]')!;
+    hidden.value = val;
+    hidden.dispatchEvent(new Event('change', { bubbles: true }));
+
+    const labelEl = root.querySelector<HTMLElement>('[data-cb-label]')!;
+    labelEl.textContent = label;
+    labelEl.classList.remove('text-muted-foreground');
+
+    root.querySelectorAll<HTMLElement>('[data-cb-option]').forEach((o) => {
+      const match = o === option;
+      o.setAttribute('aria-selected', String(match));
+      o.querySelector<HTMLElement>('[data-cb-check]')?.classList.toggle('invisible', !match);
+    });
+
+    closeAll();
+  }
+
+  function filter(root: HTMLElement, query: string) {
+    const q = query.trim().toLowerCase();
+    let visible = 0;
+    root.querySelectorAll<HTMLElement>('[data-cb-option]').forEach((o) => {
+      const match = (o.textContent || '').toLowerCase().includes(q);
+      o.hidden = !match;
+      if (match) visible++;
+    });
+    root.querySelector<HTMLElement>('[data-cb-empty]')!.hidden = visible > 0;
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.closest) return;
+
+    const trigger = t.closest('[data-cb-trigger]');
+    if (trigger) {
+      const root = trigger.closest<HTMLElement>('[data-astro-shad-combobox]')!;
+      const panel = root.querySelector<HTMLElement>('[data-cb-panel]')!;
+      const opening = panel.hidden;
+      closeAll(root);
+      panel.hidden = !opening;
+      trigger.setAttribute('aria-expanded', String(opening));
+      if (opening) {
+        if (panel.hasAttribute('data-cb-breakout')) positionBreakout(trigger as HTMLElement, panel);
+        root.querySelector<HTMLInputElement>('[data-cb-search]')?.focus();
+      }
+      return;
+    }
+
+    const option = t.closest<HTMLElement>('[data-cb-option]');
+    if (option) {
+      const root = option.closest<HTMLElement>('[data-astro-shad-combobox]')!;
+      select(root, option);
+      return;
+    }
+
+    if (!t.closest('[data-astro-shad-combobox]')) closeAll();
+  });
+
+  document.addEventListener('input', (e) => {
+    const t = e.target as HTMLElement;
+    if (!t.matches?.('[data-cb-search]')) return;
+    const root = t.closest<HTMLElement>('[data-astro-shad-combobox]')!;
+    filter(root, (t as HTMLInputElement).value);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
+</script>

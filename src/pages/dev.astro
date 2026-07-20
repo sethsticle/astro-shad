@@ -66,6 +66,23 @@ import MapRoute from "../components/astro-shad/MapRoute.astro";
 import MapGeoJSON from "../components/astro-shad/MapGeoJSON.astro";
 import PulseGrid from "../components/astro-shad/PulseGrid.astro";
 import PixelTransition from "../components/astro-shad/PixelTransition.astro";
+import Separator from "../components/astro-shad/Separator.astro";
+import Skeleton from "../components/astro-shad/Skeleton.astro";
+import Input from "../components/astro-shad/Input.astro";
+import Tooltip from "../components/astro-shad/Tooltip.astro";
+import Sheet from "../components/astro-shad/Sheet.astro";
+import Dialog from "../components/astro-shad/Dialog.astro";
+import DropdownMenu from "../components/astro-shad/DropdownMenu.astro";
+import DropdownMenuItem from "../components/astro-shad/DropdownMenuItem.astro";
+import Checkbox from "../components/astro-shad/Checkbox.astro";
+import Textarea from "../components/astro-shad/Textarea.astro";
+import Combobox from "../components/astro-shad/Combobox.astro";
+import Sidebar from "../components/astro-shad/Sidebar.astro";
+import SidebarGroup from "../components/astro-shad/SidebarGroup.astro";
+import SidebarMenuButton from "../components/astro-shad/SidebarMenuButton.astro";
+import SidebarTrigger from "../components/astro-shad/SidebarTrigger.astro";
+import SidebarInset from "../components/astro-shad/SidebarInset.astro";
+import ThemeToggle from "../components/astro-shad/ThemeToggle.astro";
 import { motion, motionStagger, MOTION_PREHIDE_CSS } from "../lib/motion";
 
 /* Demo districts for the MapGeoJSON board: rough hand-drawn zones around
@@ -419,7 +436,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                   image="https://picsum.photos/seed/astro-side-left/480/280"
                   imageAlt="Placeholder"
                   imageSide="left"
-                  title="imageSide=&quot;left&quot;"
+                  title='imageSide="left"'
                   description="Row at lg (image ~1/3 width, left column). Stacks image-first below lg."
                 >
                   <p class="text-sm text-muted-foreground">Resize the preview to see the lg breakpoint switch.</p>
@@ -428,7 +445,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                   image="https://picsum.photos/seed/astro-side-right/480/280"
                   imageAlt="Placeholder"
                   imageSide="right"
-                  title="imageSide=&quot;right&quot;"
+                  title='imageSide="right"'
                   description="Row at lg (image ~1/3 width, right column via lg:order-last). Still stacks image-first below lg."
                 >
                   <p class="text-sm text-muted-foreground">Same row layout, mirrored -- order flips only at lg+.</p>
@@ -570,9 +587,16 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
               </div>
             </DevBoard>
 
-            <DevBoard index={6} title="Forms" note="Form.astro · FormField.astro · DatePicker.astro · native Constraint Validation API · real POST to /api/contact">
+            <DevBoard
+              index={6}
+              title="Forms"
+              note="Form.astro · FormField.astro · DatePicker.astro · native Constraint Validation API · real POST to /api/contact"
+            >
               <div class="grid gap-6 lg:grid-cols-2">
-                <Card title="Contact" description="Submit empty to see inline errors; they clear as you fix them. Valid submits POST to /api/contact for real.">
+                <Card
+                  title="Contact"
+                  description="Submit empty to see inline errors; they clear as you fix them. Valid submits POST to /api/contact for real."
+                >
                   <Form action="/api/contact" method="post" data-dev-form-log data-log-target="dev-contact-log">
                     <!-- Honeypot: real users never see or fill this in; api/contact.ts silently accepts (never rejects) when it's non-empty -->
                     <input type="text" name="_trap" style="display:none" tabindex="-1" autocomplete="off" />
@@ -612,8 +636,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                   </div>
                   <pre
                     id="dev-contact-log"
-                    class="min-h-[22rem] flex-1 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-xs text-foreground"
-                  >Submit the form to see the request FormData go out and the JSON /api/contact sends back.</pre>
+                    class="min-h-[22rem] flex-1 overflow-auto p-4 font-mono text-xs break-words whitespace-pre-wrap text-foreground">Submit the form to see the request FormData go out and the JSON /api/contact sends back.</pre>
                 </div>
               </div>
             </DevBoard>
@@ -1303,6 +1326,327 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
                 </div>
               </div>
             </DevBoard>
+
+            <DevBoard index={19} title="Primitives" note="Separator · Skeleton · Input · Checkbox · Textarea · Tooltip">
+              <div class="dev-group">
+                <p class="dev-group-title">separator</p>
+                <div class="flex h-5 items-center gap-4 text-sm text-muted-foreground">
+                  <span>Blog</span><Separator orientation="vertical" /><span>Docs</span><Separator orientation="vertical" /><span
+                    >Source</span
+                  >
+                </div>
+                <Separator class="my-4" />
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">skeleton</p>
+                <div class="flex items-center gap-3">
+                  <Skeleton class="size-10 rounded-full" />
+                  <div class="flex flex-col gap-2">
+                    <Skeleton class="h-3 w-40" />
+                    <Skeleton class="h-3 w-24" />
+                  </div>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">input · checkbox · textarea</p>
+                <div class="flex max-w-sm flex-col gap-3">
+                  <Input type="email" placeholder="you@example.com" />
+                  <label class="flex items-center gap-2 text-sm text-foreground"><Checkbox name="tos" /> I agree to the terms</label>
+                  <label class="flex items-center gap-2 text-sm text-foreground"><Checkbox name="tos-checked" checked /> Pre-checked</label>
+                  <Textarea rows={3} placeholder="Add a note..." />
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">tooltip (hover / focus)</p>
+                <div class="flex items-center gap-4">
+                  <Tooltip content="Toggle Sidebar"
+                    ><button type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground">Top</button></Tooltip
+                  >
+                  <Tooltip content="Explains itself" side="bottom"
+                    ><button type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground">Bottom</button
+                    ></Tooltip
+                  >
+                  <Tooltip content="From the right" side="right"
+                    ><button type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground">Right</button
+                    ></Tooltip
+                  >
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={20} title="Overlays" note="Dialog · Sheet · DropdownMenu · Combobox">
+              <div class="dev-group">
+                <p class="dev-group-title">dialog</p>
+                <Dialog title="Delete component?" description="This can't be undone.">
+                  <button slot="trigger" type="button" class="rounded-md bg-destructive px-3 py-1.5 text-sm text-destructive-foreground"
+                    >Delete...</button
+                  >
+                  <p class="text-sm text-muted-foreground">Are you sure you want to remove this from the registry?</p>
+                  <button slot="footer" type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                    >Cancel</button
+                  >
+                  <button slot="footer" type="button" class="rounded-md bg-destructive px-3 py-1.5 text-sm text-destructive-foreground"
+                    >Delete</button
+                  >
+                </Dialog>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">sheet (left / right)</p>
+                <div class="flex gap-3">
+                  <Sheet side="right" title="Filters" description="Narrow down results.">
+                    <button slot="trigger" type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                      >Open right</button
+                    >
+                    <p class="text-sm text-muted-foreground">Body content goes here.</p>
+                    <button slot="footer" type="button" class="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+                      >Apply</button
+                    >
+                  </Sheet>
+                  <Sheet side="left" title="Menu">
+                    <button slot="trigger" type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                      >Open left</button
+                    >
+                    <p class="text-sm text-muted-foreground">Left-anchored panel.</p>
+                  </Sheet>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">dropdown menu</p>
+                <DropdownMenu align="start">
+                  <button slot="trigger" type="button" class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                    >Options</button
+                  >
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem href="/dev">Export</DropdownMenuItem>
+                  <Separator class="-mx-1 my-1" />
+                  <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+                </DropdownMenu>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">combobox</p>
+                <div class="max-w-xs">
+                  <Combobox
+                    name="framework"
+                    placeholder="Select framework..."
+                    options={["Astro", "Next.js", "SvelteKit", "Remix", "Nuxt"]}
+                  />
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard
+              index={21}
+              title="Sidebar"
+              note="Sidebar · SidebarGroup · SidebarMenuButton · SidebarTrigger · SidebarInset -- variants below; resize the preview to see the mobile Sheet fallback"
+            >
+              <div class="dev-group">
+                <div class="flex h-[28rem] overflow-hidden rounded-lg border border-border">
+                  <Sidebar>
+                    <div
+                      slot="header"
+                      class="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold text-sidebar-foreground group-data-[state=collapsed]/sidebar:justify-center"
+                    >
+                      <span class="grid size-6 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"
+                        >A</span
+                      >
+                      <span class="truncate group-data-[state=collapsed]/sidebar:hidden">astro-shad</span>
+                    </div>
+                    <SidebarGroup label="Platform">
+                      <SidebarMenuButton href="#" active tooltip="Create">
+                        <svg
+                          slot="icon"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                          ><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect
+                            width="7"
+                            height="7"
+                            x="14"
+                            y="14"
+                            rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg
+                        >
+                        Create
+                      </SidebarMenuButton>
+                      <SidebarMenuButton href="#" tooltip="Docs">
+                        <svg
+                          slot="icon"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                          ><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path
+                            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg
+                        >
+                        Docs
+                      </SidebarMenuButton>
+                      <SidebarMenuButton disabled tooltip="Motion (soon)">
+                        <svg
+                          slot="icon"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg
+                        >
+                        Motion
+                      </SidebarMenuButton>
+                    </SidebarGroup>
+                    <SidebarGroup label="Project">
+                      <SidebarMenuButton href="#" tooltip="Settings">
+                        <svg
+                          slot="icon"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                          ><path
+                            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+                          ></path><circle cx="12" cy="12" r="3"></circle></svg
+                        >
+                        Settings
+                      </SidebarMenuButton>
+                    </SidebarGroup>
+                    <!-- Multiple pieces of footer content go inside ONE
+                         <Fragment slot="footer"> -- several separate sibling
+                         elements each carrying their own slot="footer" hits
+                         an open Astro edge case (only one of them ends up
+                         rendering, especially once the target's matching
+                         <slot> also needs data-astro-rerun, as ours does for
+                         the mobile branch). A single Fragment keeps this ONE
+                         slotted node with two children inside, sidestepping
+                         it entirely -- also the pattern Astro's own docs
+                         recommend for "multiple elements, no wrapper div." -->
+                    <div slot="footer" class="contents">
+                      <div
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground group-data-[state=collapsed]/sidebar:justify-center"
+                      >
+                        <span
+                          class="grid size-6 shrink-0 place-items-center rounded-full bg-sidebar-accent text-xs text-sidebar-accent-foreground"
+                          >JD</span
+                        >
+                        <span class="truncate group-data-[state=collapsed]/sidebar:hidden">Jane Doe</span>
+                      </div>
+                    </div>
+                  </Sidebar>
+                  <SidebarInset>
+                    <div class="flex items-center gap-2 border-b border-border px-3 py-2">
+                      <SidebarTrigger />
+                      <span class="text-sm font-medium text-foreground">Create</span>
+                    </div>
+                    <div class="flex flex-1 items-center justify-center p-6 text-sm text-muted-foreground">content canvas placeholder</div>
+                  </SidebarInset>
+                </div>
+              </div>
+
+              <div class="dev-group">
+                <p class="dev-group-title">variant="floating"</p>
+                <div class="flex h-[28rem] overflow-hidden rounded-lg border border-border">
+                  <Sidebar variant="floating">
+                    <div
+                      slot="header"
+                      class="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold text-sidebar-foreground group-data-[state=collapsed]/sidebar:justify-center"
+                    >
+                      <span class="grid size-6 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"
+                        >A</span
+                      >
+                      <span class="truncate group-data-[state=collapsed]/sidebar:hidden">astro-shad</span>
+                    </div>
+                    <SidebarGroup label="Platform">
+                      <SidebarMenuButton href="#" active tooltip="Create">
+                        <Icon slot="icon" name="lucide:layout-grid" size={16} />
+                        Create
+                      </SidebarMenuButton>
+                      <SidebarMenuButton href="#" tooltip="Docs">
+                        <Icon slot="icon" name="lucide:book" size={16} />
+                        Docs
+                      </SidebarMenuButton>
+                    </SidebarGroup>
+                    <div slot="footer" class="contents">
+                      <div
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground group-data-[state=collapsed]/sidebar:justify-center"
+                      >
+                        <span
+                          class="grid size-6 shrink-0 place-items-center rounded-full bg-sidebar-accent text-xs text-sidebar-accent-foreground"
+                          >JD</span
+                        >
+                        <span class="truncate group-data-[state=collapsed]/sidebar:hidden">Jane Doe</span>
+                      </div>
+                    </div>
+                  </Sidebar>
+                  <SidebarInset>
+                    <div class="flex items-center gap-2 border-b border-border px-3 py-2">
+                      <SidebarTrigger />
+                      <span class="text-sm font-medium text-foreground">floating</span>
+                    </div>
+                  </SidebarInset>
+                </div>
+              </div>
+              <div class="dev-group">
+                <p class="dev-group-title">
+                  variant="inset" -- outer wrapper is bg-sidebar, same as the aside, so only the white content canvas reads as separate
+                  (toggle the trigger to see the sidebar blend away when collapsed)
+                </p>
+                <div class="flex h-[28rem] overflow-hidden rounded-lg border border-border bg-sidebar">
+                  <Sidebar variant="inset" collapsible="offcanvas">
+                    <div
+                      slot="header"
+                      class="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold text-sidebar-foreground group-data-[state=collapsed]/sidebar:justify-center"
+                    >
+                      <span class="grid size-6 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"
+                        >A</span
+                      >
+                      <span class="truncate group-data-[state=collapsed]/sidebar:hidden">astro-shad</span>
+                    </div>
+                    <SidebarGroup label="Platform">
+                      <SidebarMenuButton href="#" active tooltip="Create">
+                        <Icon slot="icon" name="lucide:layout-grid" size={16} />
+                        Create
+                      </SidebarMenuButton>
+                      <SidebarMenuButton href="#" tooltip="Docs">
+                        <Icon slot="icon" name="lucide:book" size={16} />
+                        Docs
+                      </SidebarMenuButton>
+                    </SidebarGroup>
+                  </Sidebar>
+                  <SidebarInset>
+                    <div class="flex items-center gap-2 border-b border-border px-3 py-2">
+                      <SidebarTrigger />
+                      <span class="text-sm font-medium text-foreground">inset</span>
+                    </div>
+                  </SidebarInset>
+                </div>
+              </div>
+            </DevBoard>
+
+            <DevBoard index={22} title="Theme Toggle" note="ThemeToggle.astro · toggles document.documentElement's [data-theme] -- won't visibly repaint THIS board (canvas theming here is scoped to #preview-scope, per this page's own header comment); confirm via devtools or on /docs, which uses BaseLayout directly">
+              <div class="dev-group">
+                <div class="flex flex-wrap items-center gap-3">
+                  <ThemeToggle id="dev-theme-toggle-1" />
+                  <ThemeToggle id="dev-theme-toggle-2" variant="ghost">Toggle theme</ThemeToggle>
+                  <ThemeToggle id="dev-theme-toggle-3" variant="primary" size="lg">Switch mode</ThemeToggle>
+                </div>
+              </div>
+            </DevBoard>
           </div>
         </div>
 
@@ -1554,7 +1898,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
          0-based board index to land on when this page loads -- change this
          while iterating on one board instead of scrolling/paging over each
          time. 0 = first board (the normal default). */
-      const DEFAULT_BOARD = 17;
+      const DEFAULT_BOARD = 20;
 
       /* ═══ Token controls ═══
          All overrides land as inline custom properties on #preview-scope,
@@ -1647,7 +1991,7 @@ import Cta02 from "../components/astro-shad/sections/Cta-02.astro";
       };
 
       const DEFAULTS = {
-        mode: "dark",
+        mode: "light",
         preset: "default",
         base: "neutral",
         accent: "none",

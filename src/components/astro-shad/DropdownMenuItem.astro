@@ -1,0 +1,51 @@
+---
+/**
+ * DropdownMenuItem.astro -- one row inside `DropdownMenu.astro`. Converted
+ * from shadcn's DropdownMenuItem; `inset` (icon-column alignment) dropped
+ * -- pad the slot content yourself if you need it, it wasn't earning its
+ * keep as a prop. Renders `<a>` when `href` is passed, else `<button>`
+ * (same rule as Button.astro).
+ *
+ *   <DropdownMenuItem href="/export">Export</DropdownMenuItem>
+ *   <DropdownMenuItem variant="destructive" disabled>Delete</DropdownMenuItem>
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  href?: string;
+  disabled?: boolean;
+  variant?: 'default' | 'destructive';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { href, disabled, variant = 'default', class: className, ...rest } = Astro.props;
+
+const classes = cn(
+  'flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none transition-colors ' +
+    /* focus-visible, not focus: DropdownMenu.astro auto-focuses the first
+     * item on open (a real a11y need -- arrow-key nav needs a starting
+     * point), including opens triggered by mouse click. Plain `focus:`
+     * painted that programmatic focus identically to `hover:`, so the
+     * first item looked permanently "hovered" for as long as the menu
+     * stayed open, regardless of where the pointer actually was.
+     * `focus-visible` follows the browser's own last-interaction-modality
+     * heuristic -- a click-triggered auto-focus doesn't qualify, so it
+     * stays invisible until a real keyboard interaction (Arrow/Tab) earns
+     * it back. */
+    'hover:bg-muted focus-visible:bg-muted focus-visible:outline-none ' +
+    'disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+  variant === 'destructive' && 'text-destructive hover:bg-destructive/10 focus-visible:bg-destructive/10',
+  className
+);
+---
+
+{href ? (
+  <a href={href} role="menuitem" data-menu-item tabindex="-1" class={classes} {...rest}>
+    <slot />
+  </a>
+) : (
+  <button type="button" role="menuitem" data-menu-item tabindex="-1" disabled={disabled} class={classes} {...rest}>
+    <slot />
+  </button>
+)}

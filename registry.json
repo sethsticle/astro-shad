@@ -80,6 +80,37 @@
       ]
     },
     {
+      "name": "theme-script",
+      "type": "registry:lib",
+      "title": "Theme toggle runtime",
+      "description": "Dark/light toggle runtime, zero dependencies. Exports THEME_PREHIDE_JS (FOUC guard -- restores the stored theme before first paint) and initThemeToggle(buttonId) (click handler + localStorage persistence). Distinct from @astro-shad/theme (the CSS-only token-contract item) despite the similar name -- pairs with @astro-shad/theme-toggle, the component that wraps this runtime.",
+      "files": [
+        {
+          "path": "src/lib/theme.ts",
+          "type": "registry:lib",
+          "target": "src/lib/theme.ts"
+        }
+      ]
+    },
+    {
+      "name": "theme-toggle",
+      "type": "registry:component",
+      "title": "Theme Toggle",
+      "description": "Dark/light toggle button. Wraps Button.astro + @astro-shad/theme-script's initThemeToggle() -- installing this one item is the whole consumer-side wiring, no manual script required beyond the one-time THEME_PREHIDE_JS head script (see @astro-shad/theme-script). Default label \"Theme\", override via the default slot. Extracted 2026-07-20 from BaseLayout.astro, which now consumes it directly.",
+      "registryDependencies": [
+        "@astro-shad/utils",
+        "@astro-shad/button",
+        "@astro-shad/theme-script"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/ThemeToggle.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/ThemeToggle.astro"
+        }
+      ]
+    },
+    {
       "name": "button",
       "type": "registry:component",
       "title": "Button",
@@ -804,6 +835,209 @@
           "path": "src/components/astro-shad/MapRoute.astro",
           "type": "registry:component",
           "target": "src/components/astro-shad/MapRoute.astro"
+        }
+      ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:component",
+      "title": "Separator",
+      "description": "Horizontal or vertical rule. Converted from shadcn ui/separator.tsx (base-ui Separator) — role=\"separator\" + orientation are native attributes, zero client JS.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Separator.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Separator.astro"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:component",
+      "title": "Skeleton",
+      "description": "Loading placeholder. Converted from shadcn ui/skeleton.tsx verbatim — already a bare div + one class.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Skeleton.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Skeleton.astro"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:component",
+      "title": "Input",
+      "description": "Bare text input primitive. Converted from shadcn ui/input.tsx (base-ui Input, a plain <input> under the hood). Unlabelled building block for compositions outside FormField.astro (e.g. Sidebar's search box).",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Input.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Input.astro"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:component",
+      "title": "Tooltip",
+      "description": "Hover/focus-shown label. Converted from shadcn ui/tooltip.tsx (base-ui Tooltip stack) to rung-1 pure CSS — group-hover/group-focus-within on a relative wrapper, zero JS, no portal/collision-avoidance.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Tooltip.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Tooltip.astro"
+        }
+      ]
+    },
+    {
+      "name": "sheet",
+      "type": "registry:component",
+      "title": "Sheet",
+      "description": "Slide-over panel (left/right/top/bottom). Converted from shadcn ui/sheet.tsx (base-ui Dialog, edge-anchored). Six-file compound collapsed into one file (trigger/footer named slots); rung-3 delegated click-listener + data-state driven CSS transition, Escape + overlay-click + close button to dismiss, body-scroll lock while open.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Sheet.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Sheet.astro"
+        }
+      ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:component",
+      "title": "Sidebar",
+      "description": "App sidebar with icon-collapse + mobile off-canvas. Converted from shadcn ui/sidebar.tsx (SidebarProvider/useSidebar/useIsMobile context stack, ~720 lines) — open/collapsed state lives as a data-state attribute read via Tailwind group-data selectors (no context); mobile vs desktop is CSS display, not a JS media query (useIsMobile deleted): both the desktop aside and a mobile Sheet wrapping the same slotted content render in the DOM, exactly one is ever visible. variant prop (sidebar | floating | inset) matches shadcn's three looks; inset drives SidebarInset's own margin/rounding via a peer/peer-data-[variant=inset] relationship. Five files: Sidebar, SidebarGroup, SidebarMenuButton, SidebarTrigger, SidebarInset.",
+      "registryDependencies": [
+        "@astro-shad/utils",
+        "@astro-shad/sheet",
+        "@astro-shad/tooltip"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Sidebar.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Sidebar.astro"
+        },
+        {
+          "path": "src/components/astro-shad/SidebarGroup.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/SidebarGroup.astro"
+        },
+        {
+          "path": "src/components/astro-shad/SidebarMenuButton.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/SidebarMenuButton.astro"
+        },
+        {
+          "path": "src/components/astro-shad/SidebarTrigger.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/SidebarTrigger.astro"
+        },
+        {
+          "path": "src/components/astro-shad/SidebarInset.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/SidebarInset.astro"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:component",
+      "title": "Dialog",
+      "description": "Centered modal. Converted from shadcn ui/dialog.tsx (base-ui Dialog, centered variant of the same shape Sheet converts as an edge panel). Seven-file compound collapsed into one file (trigger/footer named slots); own data-dialog-* namespace so it never cross-fires with Sheet on the same page.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Dialog.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Dialog.astro"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:component",
+      "title": "Dropdown Menu",
+      "description": "Popup menu from a trigger. Converted from shadcn ui/dropdown-menu.tsx (base-ui Menu, eleven-piece compound) — shrinks to root + item (Separator.astro already covers the separator; checkbox/radio/submenu items dropped for v1, no known consumer). side prop supports top/bottom/left/right (left/right pop the menu out beside the trigger, e.g. a sidebar-item submenu). breakout prop switches to position:fixed with JS-computed placement so the popup can escape a scrollable/overflow-clipped ancestor (e.g. Sidebar's content region) instead of being clipped at its edge. The popup is two nested elements — a frame (border/bg-popover/shadow, styled via contentClass) wrapping a scroll region (styled via scrollClass, e.g. max-h-64 overflow-y-auto plus an optional mask-image fade) — so a scroll mask never bleeds onto the popup's own border/shadow, which a single-element mask always would. class styles only the outer trigger+popup wrapper, not the popup itself. Rung-3 delegated click + ArrowUp/ArrowDown roving focus + Escape.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/DropdownMenu.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/DropdownMenu.astro"
+        },
+        {
+          "path": "src/components/astro-shad/DropdownMenuItem.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/DropdownMenuItem.astro"
+        }
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "registry:component",
+      "title": "Checkbox",
+      "description": "Bare checkbox primitive. Converted from shadcn ui/checkbox.tsx (base-ui Checkbox.Root/Indicator) to rung-1 pure CSS — appearance-none input + peer-checked sibling check-mark SVG, zero JS. Unlabelled building block for compositions outside FormField.astro.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Checkbox.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Checkbox.astro"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:component",
+      "title": "Textarea",
+      "description": "Bare textarea primitive. Converted from shadcn ui/textarea.tsx verbatim. Unlabelled building block for compositions outside FormField.astro.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Textarea.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Textarea.astro"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:component",
+      "title": "Combobox",
+      "description": "Searchable single-select. Converted from shadcn ui/combobox.tsx (base-ui Combobox + InputGroup, cmdk-shaped generic API) — single-select only, multi-select Chips variant dropped (no known consumer). Server-rendered option list filtered by substring match, hidden input for native form participation, dispatches change for Form.astro's revalidation.",
+      "registryDependencies": [
+        "@astro-shad/utils"
+      ],
+      "files": [
+        {
+          "path": "src/components/astro-shad/Combobox.astro",
+          "type": "registry:component",
+          "target": "src/components/astro-shad/Combobox.astro"
         }
       ]
     }

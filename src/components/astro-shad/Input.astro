@@ -1,0 +1,32 @@
+---
+/**
+ * Input.astro -- astro-shad bare input primitive. Converted from shadcn
+ * ui/input.tsx (base-ui Input, which is just a plain <input> under the
+ * hood -- deleted, no behaviour was riding on it).
+ *
+ * This is the unlabelled building block: `FormField.astro` renders its
+ * own inline input markup (it needs the label/description/error wiring),
+ * this component is for compositions that need a bare field -- e.g.
+ * `Sidebar.astro`'s search box, or a form built by hand outside FormField.
+ *
+ *   <Input type="email" placeholder="you@example.com" />
+ *   <Input type="search" class="h-8" />
+ */
+import { cn } from '../../lib/utils';
+
+interface Props {
+  type?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { type = 'text', class: className, ...rest } = Astro.props;
+
+const INPUT =
+  'flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors ' +
+  'file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground ' +
+  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive';
+---
+
+<input type={type} data-slot="input" class={cn(INPUT, className)} {...rest} />

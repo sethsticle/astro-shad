@@ -22,23 +22,83 @@
   --card-foreground:        #fafafa;
   --popover:                #262626;
   --popover-foreground:     #fafafa;
-  --primary:                #fafafa;
+  /* --primary carries the chromatic brand color (shadcn convention, aligned
+   * 2026-07-20 -- was previously on --accent, a deliberate divergence that's
+   * now retired so ported shadcn presets/themes drop in without remapping). */
+  --primary:                #60a5fa;
   --primary-foreground:     #0a0a0a;
   --secondary:              #262626;
   --secondary-foreground:   #fafafa;
   --muted:                  #262626;
   --muted-foreground:       rgb(250 250 250 / 0.45);
-  /* Deliberate divergence from stock shadcn (where accent ≈ muted hover
-   * surface): accent is THIS theme's chromatic highlight token, legible
-   * as text on the background in both modes. Hover surfaces use --muted. */
-  --accent:                 #60a5fa;
-  --accent-foreground:      #0a0a0a;
+  /* --accent is the neutral hover surface (shadcn convention) -- numerically
+   * identical to --muted (same call the --sidebar-accent family already
+   * made). --accent-foreground stays full-opacity (not muted-foreground's
+   * translucent variant) since hover text should read crisp. */
+  --accent:                 #262626;
+  --accent-foreground:      #fafafa;
   --destructive:            #dc2626;
   --destructive-foreground: #fafafa;
   --border:                 rgb(250 250 250 / 0.12);
   --input:                  rgb(250 250 250 / 0.15);
   --ring:                   #a3a3a3;
+  /* Chart scale -- monochrome lightness ramp (hex approximation of shadcn's
+   * Nova-preset oklch grays, chroma 0), added 2026-07-20 as chunk 2 of the
+   * /create sequencing. No registry component consumes these yet -- pure
+   * token-contract prep. Values are IDENTICAL in the light override below,
+   * matching the source preset (chart colors don't flip with the theme,
+   * unlike every other slot here) -- not an oversight. */
+  --chart-1:                #d4d4d4;
+  --chart-2:                #737373;
+  --chart-3:                #525252;
+  --chart-4:                #404040;
+  --chart-5:                #262626;
   --radius:                 0.375rem;
+
+  /* Typography axis (data-create's Heading/Body font pickers) -- host repo
+   * can override these two directly for a global rebrand; /create swaps
+   * them inline per-selection (see CreateLayout.astro) alongside a
+   * matching Google Fonts <link>. Both default to Inter. */
+  --font-heading:            "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body:                "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Sidebar gets its own surface family (shadcn convention) so a host repo
+   * can brand the nav rail independently of card/popover. Neutral values
+   * here mirror --card / --muted; --sidebar-accent is the hover surface,
+   * same role as the root --accent token (both ≈ --muted). */
+  --sidebar:                   #171717;
+  --sidebar-foreground:        #fafafa;
+  --sidebar-primary:           #fafafa;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent:            #262626;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border:            rgb(250 250 250 / 0.12);
+  --sidebar-ring:               #a3a3a3;
+}
+
+/* ── no-scrollbar utility -- used by Sidebar.astro / Combobox.astro to hide
+ * a scrollable region's scrollbar chrome while staying scrollable. Lives
+ * here (not per-component) so every consumer that installs either item
+ * actually gets a working class -- it was referenced but never defined
+ * anywhere in the project until now (a real, latent registry bug: any
+ * consumer who'd installed sidebar/combobox got a dead class name). ── */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Typography axis application -- global, zero component markup changes
+ * (same principle as the radius/color axes: every component already
+ * inherits font-family from its ancestors, so setting it here is enough).
+ * Headings get --font-heading, everything else --font-body. */
+html {
+  font-family: var(--font-body);
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
 /* ── 2. Semantic utilities (host-repo vocabulary, neutral values) ── */
@@ -79,6 +139,21 @@
   --color-border:                 var(--border);
   --color-input:                  var(--input);
   --color-ring:                   var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
 }
 
 /* ── Light mode overrides ── */
@@ -95,15 +170,835 @@
   --card-foreground:        #171717;
   --popover:                #f5f5f5;
   --popover-foreground:     #171717;
-  --primary:                #171717;
+  --primary:                #2563eb;
   --primary-foreground:     #fafafa;
   --secondary:              #e5e5e5;
   --secondary-foreground:   #171717;
   --muted:                  #f5f5f5;
   --muted-foreground:       rgb(23 23 23 / 0.50);
-  --accent:                 #2563eb;
-  --accent-foreground:      #fafafa;
+  --accent:                 #f5f5f5;
+  --accent-foreground:      #171717;
   --border:                 rgb(23 23 23 / 0.12);
   --input:                  rgb(23 23 23 / 0.10);
   --ring:                   #737373;
+
+  /* Same values as :root -- see the dark-block comment above the chart
+   * scale for why these don't flip with the theme. */
+  --chart-1:                #d4d4d4;
+  --chart-2:                #737373;
+  --chart-3:                #525252;
+  --chart-4:                #404040;
+  --chart-5:                #262626;
+
+  --sidebar:                   #f5f5f5;
+  --sidebar-foreground:        #171717;
+  --sidebar-primary:           #171717;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent:            #e5e5e5;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border:            rgb(23 23 23 / 0.12);
+  --sidebar-ring:               #737373;
+}
+
+/* ── 4. Base color axis (data-base) -- chunk 3a of the /create sequencing,
+ * added 2026-07-20. Independent of --primary/--chart-* (the brand and
+ * chart axes, chunk 3b, not yet built) and of [data-theme] (light/dark) --
+ * all three cross freely. Swaps the achromatic-ish scale behind
+ * background/card/popover/secondary/muted/accent/ring/sidebar-non-primary.
+ * Omitting `data-base` (or `data-base="neutral"`, once wired) falls
+ * through to :root's own values above -- Neutral needs no block of its
+ * own here.
+ *
+ * Values are real shadcn `/create`-tool exports (oklch), converted to hex
+ * via the sRGB matrix (not eyeballed) to match this file's existing hex
+ * convention. --border/--input/--sidebar-border are deliberately NOT
+ * overridden per base color: this project already renders them as a
+ * foreground-relative alpha overlay (see :root above), which is hue-
+ * agnostic by construction -- porting shadcn's own hue-tinted solid
+ * border values would be redundant work for a visually negligible result.
+ *
+ * `taupe`'s --secondary is real captured data, not a transcription
+ * error: shadcn's own export uses a cool zinc-hued value here (hue
+ * ~286) while every other slot in the same export uses taupe's actual
+ * warm hue (~17-68) -- an apparent quirk in the source tool, reproduced
+ * faithfully rather than "corrected". */
+[data-base="olive"] {
+  --background:               #0c0c09;
+  --foreground:               #fbfbf9;
+  --card:                     #1d1d16;
+  --card-foreground:          #fbfbf9;
+  --popover:                  #1d1d16;
+  --popover-foreground:       #fbfbf9;
+  --secondary:                #2b2b22;
+  --secondary-foreground:     #fbfbf9;
+  --muted:                    #2b2b22;
+  --muted-foreground:         #abab9c;
+  --accent:                   #2b2b22;
+  --accent-foreground:        #fbfbf9;
+  --ring:                     #7c7c67;
+  --sidebar:                  #1d1d16;
+  --sidebar-foreground:       #fbfbf9;
+  --sidebar-accent:           #2b2b22;
+  --sidebar-accent-foreground:#fbfbf9;
+  --sidebar-ring:             #7c7c67;
+}
+
+[data-base="olive"][data-theme="light"] {
+  --background:               #ffffff;
+  --foreground:               #0c0c09;
+  --card:                     #ffffff;
+  --card-foreground:          #0c0c09;
+  --popover:                  #ffffff;
+  --popover-foreground:       #0c0c09;
+  --secondary:                #f4f4f0;
+  --secondary-foreground:     #1d1d16;
+  --muted:                    #f4f4f0;
+  --muted-foreground:         #7c7c67;
+  --accent:                   #f4f4f0;
+  --accent-foreground:        #1d1d16;
+  --ring:                     #abab9c;
+  --sidebar:                  #fbfbf9;
+  --sidebar-foreground:       #0c0c09;
+  --sidebar-accent:           #f4f4f0;
+  --sidebar-accent-foreground:#1d1d16;
+  --sidebar-ring:             #abab9c;
+}
+
+[data-base="zinc"] {
+  --background:               #09090b;
+  --foreground:               #fafafa;
+  --card:                     #18181b;
+  --card-foreground:          #fafafa;
+  --popover:                  #18181b;
+  --popover-foreground:       #fafafa;
+  --secondary:                #27272a;
+  --secondary-foreground:     #fafafa;
+  --muted:                    #27272a;
+  --muted-foreground:         #9f9fa9;
+  --accent:                   #27272a;
+  --accent-foreground:        #fafafa;
+  --ring:                     #71717b;
+  --sidebar:                  #18181b;
+  --sidebar-foreground:       #fafafa;
+  --sidebar-accent:           #27272a;
+  --sidebar-accent-foreground:#fafafa;
+  --sidebar-ring:             #71717b;
+}
+
+[data-base="zinc"][data-theme="light"] {
+  --background:               #ffffff;
+  --foreground:               #09090b;
+  --card:                     #ffffff;
+  --card-foreground:          #09090b;
+  --popover:                  #ffffff;
+  --popover-foreground:       #09090b;
+  --secondary:                #f4f4f5;
+  --secondary-foreground:     #18181b;
+  --muted:                    #f4f4f5;
+  --muted-foreground:         #71717b;
+  --accent:                   #f4f4f5;
+  --accent-foreground:        #18181b;
+  --ring:                     #9f9fa9;
+  --sidebar:                  #fafafa;
+  --sidebar-foreground:       #09090b;
+  --sidebar-accent:           #f4f4f5;
+  --sidebar-accent-foreground:#18181b;
+  --sidebar-ring:             #9f9fa9;
+}
+
+[data-base="stone"] {
+  --background:               #0c0a09;
+  --foreground:               #fafaf9;
+  --card:                     #1c1917;
+  --card-foreground:          #fafaf9;
+  --popover:                  #1c1917;
+  --popover-foreground:       #fafaf9;
+  --secondary:                #292524;
+  --secondary-foreground:     #fafaf9;
+  --muted:                    #292524;
+  --muted-foreground:         #a6a09b;
+  --accent:                   #292524;
+  --accent-foreground:        #fafaf9;
+  --ring:                     #79716b;
+  --sidebar:                  #1c1917;
+  --sidebar-foreground:       #fafaf9;
+  --sidebar-accent:           #292524;
+  --sidebar-accent-foreground:#fafaf9;
+  --sidebar-ring:             #79716b;
+}
+
+[data-base="stone"][data-theme="light"] {
+  --background:               #ffffff;
+  --foreground:               #0c0a09;
+  --card:                     #ffffff;
+  --card-foreground:          #0c0a09;
+  --popover:                  #ffffff;
+  --popover-foreground:       #0c0a09;
+  --secondary:                #f5f5f4;
+  --secondary-foreground:     #1c1917;
+  --muted:                    #f5f5f4;
+  --muted-foreground:         #79716b;
+  --accent:                   #f5f5f4;
+  --accent-foreground:        #1c1917;
+  --ring:                     #a6a09b;
+  --sidebar:                  #fafaf9;
+  --sidebar-foreground:       #0c0a09;
+  --sidebar-accent:           #f5f5f4;
+  --sidebar-accent-foreground:#1c1917;
+  --sidebar-ring:             #a6a09b;
+}
+
+[data-base="mauve"] {
+  --background:               #0c090c;
+  --foreground:               #fafafa;
+  --card:                     #1d161e;
+  --card-foreground:          #fafafa;
+  --popover:                  #1d161e;
+  --popover-foreground:       #fafafa;
+  --secondary:                #2a212c;
+  --secondary-foreground:     #fafafa;
+  --muted:                    #2a212c;
+  --muted-foreground:         #a89ea9;
+  --accent:                   #2a212c;
+  --accent-foreground:        #fafafa;
+  --ring:                     #79697b;
+  --sidebar:                  #1d161e;
+  --sidebar-foreground:       #fafafa;
+  --sidebar-accent:           #2a212c;
+  --sidebar-accent-foreground:#fafafa;
+  --sidebar-ring:             #79697b;
+}
+
+[data-base="mauve"][data-theme="light"] {
+  --background:               #ffffff;
+  --foreground:               #0c090c;
+  --card:                     #ffffff;
+  --card-foreground:          #0c090c;
+  --popover:                  #ffffff;
+  --popover-foreground:       #0c090c;
+  --secondary:                #f3f1f3;
+  --secondary-foreground:     #1d161e;
+  --muted:                    #f3f1f3;
+  --muted-foreground:         #79697b;
+  --accent:                   #f3f1f3;
+  --accent-foreground:        #1d161e;
+  --ring:                     #a89ea9;
+  --sidebar:                  #fafafa;
+  --sidebar-foreground:       #0c090c;
+  --sidebar-accent:           #f3f1f3;
+  --sidebar-accent-foreground:#1d161e;
+  --sidebar-ring:             #a89ea9;
+}
+
+[data-base="mist"] {
+  --background:               #090b0c;
+  --foreground:               #f9fbfb;
+  --card:                     #161b1d;
+  --card-foreground:          #f9fbfb;
+  --popover:                  #161b1d;
+  --popover-foreground:       #f9fbfb;
+  --secondary:                #22292b;
+  --secondary-foreground:     #f9fbfb;
+  --muted:                    #22292b;
+  --muted-foreground:         #9ca8ab;
+  --accent:                   #22292b;
+  --accent-foreground:        #f9fbfb;
+  --ring:                     #67787c;
+  --sidebar:                  #161b1d;
+  --sidebar-foreground:       #f9fbfb;
+  --sidebar-accent:           #22292b;
+  --sidebar-accent-foreground:#f9fbfb;
+  --sidebar-ring:             #67787c;
+}
+
+[data-base="mist"][data-theme="light"] {
+  --background:               #ffffff;
+  --foreground:               #090b0c;
+  --card:                     #ffffff;
+  --card-foreground:          #090b0c;
+  --popover:                  #ffffff;
+  --popover-foreground:       #090b0c;
+  --secondary:                #f1f3f3;
+  --secondary-foreground:     #161b1d;
+  --muted:                    #f1f3f3;
+  --muted-foreground:         #67787c;
+  --accent:                   #f1f3f3;
+  --accent-foreground:        #161b1d;
+  --ring:                     #9ca8ab;
+  --sidebar:                  #f9fbfb;
+  --sidebar-foreground:       #090b0c;
+  --sidebar-accent:           #f1f3f3;
+  --sidebar-accent-foreground:#161b1d;
+  --sidebar-ring:             #9ca8ab;
+}
+
+[data-base="taupe"] {
+  --background:               #0c0a09;
+  --foreground:               #fbfaf9;
+  --card:                     #1d1816;
+  --card-foreground:          #fbfaf9;
+  --popover:                  #1d1816;
+  --popover-foreground:       #fbfaf9;
+  --secondary:                #27272a;
+  --secondary-foreground:     #fafafa;
+  --muted:                    #2b2422;
+  --muted-foreground:         #aba09c;
+  --accent:                   #2b2422;
+  --accent-foreground:        #fbfaf9;
+  --ring:                     #7c6d67;
+  --sidebar:                  #1d1816;
+  --sidebar-foreground:       #fbfaf9;
+  --sidebar-accent:           #2b2422;
+  --sidebar-accent-foreground:#fbfaf9;
+  --sidebar-ring:             #7c6d67;
+}
+
+[data-base="taupe"][data-theme="light"] {
+  --background:               #ffffff;
+  --foreground:               #0c0a09;
+  --card:                     #ffffff;
+  --card-foreground:          #0c0a09;
+  --popover:                  #ffffff;
+  --popover-foreground:       #0c0a09;
+  --secondary:                #f4f4f5;
+  --secondary-foreground:     #18181b;
+  --muted:                    #f3f1f1;
+  --muted-foreground:         #7c6d67;
+  --accent:                   #f3f1f1;
+  --accent-foreground:        #1d1816;
+  --ring:                     #aba09c;
+  --sidebar:                  #fbfaf9;
+  --sidebar-foreground:       #0c0a09;
+  --sidebar-accent:           #f3f1f1;
+  --sidebar-accent-foreground:#1d1816;
+  --sidebar-ring:             #aba09c;
+}
+
+/* ── 5. Radius axis (data-radius) -- real shadcn `/create`-tool scale,
+ * confirmed via source comments in the export batch (2026-07-20): none/
+ * sm/md/lg captured directly, xl assumed at 1rem (consistent step size
+ * with the rest of the scale). Independent of the project's own default
+ * --radius (0.375rem, unchanged above) -- this axis is purely for the
+ * /create tool's radius picker, not a replacement default. */
+[data-radius="none"] { --radius: 0; }
+[data-radius="sm"]   { --radius: 0.45rem; }
+[data-radius="md"]   { --radius: 0.625rem; }
+[data-radius="lg"]   { --radius: 0.875rem; }
+[data-radius="xl"]   { --radius: 1rem; }
+
+/* ── 6. Brand color axis (data-brand) -- chunk 3b of the /create
+ * sequencing, added 2026-07-20. Overrides ONLY --primary/--primary-
+ * foreground/--sidebar-primary/--sidebar-primary-foreground -- the
+ * chromatic slots chunk 1's accent/primary realignment consolidated onto
+ * --primary. Independent of --base/--chart/[data-theme]; all cross
+ * freely. Omitting `data-brand` falls through to :root's own default
+ * blue (chunk 1) -- there is no "neutral" brand option, unlike base
+ * color, since the brand axis IS the chromatic one.
+ *
+ * amber/cyan/fuchsia/indigo/orange are real, fully isolated shadcn
+ * `/create`-tool exports (base color pinned to Taupe while capturing, so
+ * these 4 vars read cleanly) -- converted oklch -> hex via the same sRGB
+ * matrix script as the base-color axis (chunk 3a), not eyeballed.
+ *
+ * blue and red are APPROXIMATED, not directly captured as their own
+ * "brand = X" export -- flagged here so this doesn't read as equally
+ * solid data:
+ *   - red reuses --destructive's own oklch values verbatim (light and
+ *     dark) as a plausible stand-in for the "Red" brand color -- no
+ *     distinct sidebar-primary data exists, so sidebar-primary is set
+ *     equal to primary (a simplification, not a derived value).
+ *   - blue is built from two real anchors that happen to already exist
+ *     in this codebase's own data: the recurring decorative dark-mode
+ *     --sidebar-primary value found in every neutral-base preset
+ *     (oklch(0.488 0.243 264.376), independently corroborated by chart-4
+ *     of the real "Blue" chart-color export landing on the exact same
+ *     triple) supplies --sidebar-primary; --primary is approximated from
+ *     that same chart ramp's chart-3 stop (oklch(0.546 0.245 262.881)),
+ *     since chart-4 already had a confirmed real-world role (sidebar-
+ *     primary) and chart-3 was the next brightest/least-saturated
+ *     neighbour. Both values are mode-invariant here (chart ramps don't
+ *     flip with the theme in any captured export, so neither does this
+ *     approximation) -- a real "blue" brand capture would very likely
+ *     produce distinct light/dark values like every other real anchor
+ *     does; revisit if/when one is gathered. */
+[data-brand="amber"] {
+  --primary:                  #973c00;
+  --primary-foreground:       #fffbeb;
+  --sidebar-primary:          #fe9a00;
+  --sidebar-primary-foreground:#461901;
+}
+
+[data-brand="amber"][data-theme="light"] {
+  --primary:                  #bb4d00;
+  --primary-foreground:       #fffbeb;
+  --sidebar-primary:          #e17100;
+  --sidebar-primary-foreground:#fffbeb;
+}
+
+[data-brand="cyan"] {
+  --primary:                  #005f78;
+  --primary-foreground:       #ecfeff;
+  --sidebar-primary:          #00b8db;
+  --sidebar-primary-foreground:#053345;
+}
+
+[data-brand="cyan"][data-theme="light"] {
+  --primary:                  #007595;
+  --primary-foreground:       #ecfeff;
+  --sidebar-primary:          #0092b8;
+  --sidebar-primary-foreground:#ecfeff;
+}
+
+[data-brand="fuchsia"] {
+  --primary:                  #8a0194;
+  --primary-foreground:       #fdf4ff;
+  --sidebar-primary:          #e12afb;
+  --sidebar-primary-foreground:#fdf4ff;
+}
+
+[data-brand="fuchsia"][data-theme="light"] {
+  --primary:                  #a800b7;
+  --primary-foreground:       #fdf4ff;
+  --sidebar-primary:          #c800de;
+  --sidebar-primary-foreground:#fdf4ff;
+}
+
+[data-brand="indigo"] {
+  --primary:                  #372aac;
+  --primary-foreground:       #eef2ff;
+  --sidebar-primary:          #615fff;
+  --sidebar-primary-foreground:#eef2ff;
+}
+
+[data-brand="indigo"][data-theme="light"] {
+  --primary:                  #432dd7;
+  --primary-foreground:       #eef2ff;
+  --sidebar-primary:          #4f39f6;
+  --sidebar-primary-foreground:#eef2ff;
+}
+
+[data-brand="orange"] {
+  --primary:                  #9f2d00;
+  --primary-foreground:       #fff7ed;
+  --sidebar-primary:          #ff6900;
+  --sidebar-primary-foreground:#fff7ed;
+}
+
+[data-brand="orange"][data-theme="light"] {
+  --primary:                  #ca3500;
+  --primary-foreground:       #fff7ed;
+  --sidebar-primary:          #f54900;
+  --sidebar-primary-foreground:#fff7ed;
+}
+
+/* Base-native brand entries, added [session follow-up] to fix a real
+ * gap: --primary/--chart-* previously had no way to "return to the base
+ * color's own tone" once an explicit theme/chart color was picked --
+ * data-brand only ever had the 7 vivid choices (amber/cyan/.../red), so
+ * :root's global blue was the only fallback regardless of which base was
+ * active. These 5 entries are each base color's OWN native primary --
+ * real data, same "all 3 axes matched" exports chunk 3a's data-base
+ * blocks came from, just extracting --primary instead of the base-scale
+ * slots this time. `create.astro`'s "Default" option now sets
+ * `data-brand` to MATCH whatever `data-base` is active (when a matching
+ * entry exists here) instead of merely removing the attribute -- see
+ * that file's script. sidebar-primary = primary (same simplification as
+ * blue/red above -- no distinct sidebar value exists in the source for
+ * these either). taupe has NO entry -- no "taupe + no theme override"
+ * export was ever captured (every taupe export had an explicit theme
+ * color already selected), so Default at base=taupe still falls through
+ * to the true global blue, a known, documented gap, not a bug. */
+[data-brand="olive"] {
+  --primary:                  #e8e8e3;
+  --primary-foreground:       #1d1d16;
+  --sidebar-primary:          #e8e8e3;
+  --sidebar-primary-foreground:#1d1d16;
+}
+
+[data-brand="olive"][data-theme="light"] {
+  --primary:                  #1d1d16;
+  --primary-foreground:       #fbfbf9;
+  --sidebar-primary:          #1d1d16;
+  --sidebar-primary-foreground:#fbfbf9;
+}
+
+[data-brand="zinc"] {
+  --primary:                  #e4e4e7;
+  --primary-foreground:       #18181b;
+  --sidebar-primary:          #e4e4e7;
+  --sidebar-primary-foreground:#18181b;
+}
+
+[data-brand="zinc"][data-theme="light"] {
+  --primary:                  #18181b;
+  --primary-foreground:       #fafafa;
+  --sidebar-primary:          #18181b;
+  --sidebar-primary-foreground:#fafafa;
+}
+
+[data-brand="stone"] {
+  --primary:                  #e7e5e4;
+  --primary-foreground:       #1c1917;
+  --sidebar-primary:          #e7e5e4;
+  --sidebar-primary-foreground:#1c1917;
+}
+
+[data-brand="stone"][data-theme="light"] {
+  --primary:                  #1c1917;
+  --primary-foreground:       #fafaf9;
+  --sidebar-primary:          #1c1917;
+  --sidebar-primary-foreground:#fafaf9;
+}
+
+[data-brand="mauve"] {
+  --primary:                  #e7e4e7;
+  --primary-foreground:       #1d161e;
+  --sidebar-primary:          #e7e4e7;
+  --sidebar-primary-foreground:#1d161e;
+}
+
+[data-brand="mauve"][data-theme="light"] {
+  --primary:                  #1d161e;
+  --primary-foreground:       #fafafa;
+  --sidebar-primary:          #1d161e;
+  --sidebar-primary-foreground:#fafafa;
+}
+
+[data-brand="mist"] {
+  --primary:                  #e3e7e8;
+  --primary-foreground:       #161b1d;
+  --sidebar-primary:          #e3e7e8;
+  --sidebar-primary-foreground:#161b1d;
+}
+
+[data-brand="mist"][data-theme="light"] {
+  --primary:                  #161b1d;
+  --primary-foreground:       #f9fbfb;
+  --sidebar-primary:          #161b1d;
+  --sidebar-primary-foreground:#f9fbfb;
+}
+
+/* Remaining brand entries to hit the full 17-color roster [session
+ * follow-up]. NONE of these are direct isolated captures -- flagged
+ * clearly, weaker confidence than amber/cyan/fuchsia/indigo/orange above:
+ *
+ * emerald/green/lime/pink/rose/sky/teal/violet/yellow: derived from this
+ * project's own REAL captured chart ramps for these exact names (chart-3
+ * as --primary, chart-4 as --sidebar-primary -- the same technique
+ * already used for the earlier data-brand="blue" entry, and validated
+ * there against a real corroborating anchor). --primary-foreground is a
+ * near-white tinted to the same hue (oklch(0.98 0.02 <hue>)), matching
+ * the pattern every real captured brand color showed. Mode-invariant
+ * (same value light/dark) -- real anchors always differ slightly between
+ * modes, so a genuine capture would very likely NOT match this exactly.
+ *
+ * purple: FULLY SYNTHESIZED, zero real anchor anywhere in any export
+ * gathered (unlike blue/red, which had partial real corroboration).
+ * Hue 308 is a plain interpolation between violet (293) and fuchsia
+ * (324); chroma/lightness follow the same derivation as the others.
+ * Treat as a placeholder, most likely to need real data replacing it. */
+[data-brand="emerald"] {
+  --primary:                  #009966;
+  --primary-foreground:       #edfdf5;
+  --sidebar-primary:          #007a55;
+  --sidebar-primary-foreground:#edfdf5;
+}
+
+[data-brand="green"] {
+  --primary:                  #00a63e;
+  --primary-foreground:       #f0fdf1;
+  --sidebar-primary:          #008236;
+  --sidebar-primary-foreground:#effdf1;
+}
+
+[data-brand="lime"] {
+  --primary:                  #5ea500;
+  --primary-foreground:       #f4fcee;
+  --sidebar-primary:          #497d00;
+  --sidebar-primary-foreground:#f4fcee;
+}
+
+[data-brand="pink"] {
+  --primary:                  #e60076;
+  --primary-foreground:       #fff3f8;
+  --sidebar-primary:          #c6005c;
+  --sidebar-primary-foreground:#fff3f7;
+}
+
+[data-brand="rose"] {
+  --primary:                  #ec003f;
+  --primary-foreground:       #fff3f3;
+  --sidebar-primary:          #c70036;
+  --sidebar-primary-foreground:#fff3f4;
+}
+
+[data-brand="sky"] {
+  --primary:                  #0084d1;
+  --primary-foreground:       #edfbff;
+  --sidebar-primary:          #0069a8;
+  --sidebar-primary-foreground:#edfaff;
+}
+
+[data-brand="teal"] {
+  --primary:                  #009689;
+  --primary-foreground:       #eafdfa;
+  --sidebar-primary:          #00786f;
+  --sidebar-primary-foreground:#eafdfa;
+}
+
+[data-brand="violet"] {
+  --primary:                  #7f22fe;
+  --primary-foreground:       #f9f6ff;
+  --sidebar-primary:          #7008e7;
+  --sidebar-primary-foreground:#f8f6ff;
+}
+
+[data-brand="yellow"] {
+  --primary:                  #d08700;
+  --primary-foreground:       #fff7ea;
+  --sidebar-primary:          #a65f00;
+  --sidebar-primary-foreground:#fff6eb;
+}
+
+[data-brand="purple"] {
+  --primary:                  #8b0ccd;
+  --primary-foreground:       #fcf5ff;
+  --sidebar-primary:          #8200c0;
+  --sidebar-primary-foreground:#fdf5ff;
+}
+
+[data-brand="blue"] {
+  --primary:                  #155dfc;
+  --primary-foreground:       #f1f9ff;
+  --sidebar-primary:          #1447e6;
+  --sidebar-primary-foreground:#f2f9ff;
+}
+
+[data-brand="red"] {
+  --primary:                  #ff6467;
+  --primary-foreground:       #fff4f2;
+  --sidebar-primary:          #ff6467;
+  --sidebar-primary-foreground:#fff4f2;
+}
+
+[data-brand="red"][data-theme="light"] {
+  --primary:                  #e7000b;
+  --primary-foreground:       #fff4f1;
+  --sidebar-primary:          #e7000b;
+  --sidebar-primary-foreground:#fff4f1;
+}
+
+/* ── 7. Chart color axis (data-chart) -- chunk 3b, added 2026-07-20.
+ * Overrides --chart-1..5 only. Mode-invariant by design (same as chunk
+ * 2's neutral ramp) -- every real chart-color export gathered had
+ * IDENTICAL chart-1..5 values in both :root and .dark, so no
+ * [data-theme="light"] crossing exists for this axis; a single block
+ * covers both themes. Omitting `data-chart` falls through to :root's own
+ * neutral ramp (chunk 2) -- no block needed for that case, same pattern
+ * as base color's "neutral needs no block".
+ *
+ * olive/zinc/stone/mauve/mist are the SAME hue families chunk 3a's
+ * data-base axis used, captured from the same "all 3 axes matched"
+ * exports -- real, not approximated, just reusing already-verified
+ * source data for a different token family.
+ * blue/emerald/green/lime/pink are real, fully isolated 5-stop ramps
+ * (base pinned to Taupe while capturing, same batch as the data-brand
+ * anchors above) -- no approximation needed for any chart color. */
+[data-chart="olive"] {
+  --chart-1:                  #d8d8d0;
+  --chart-2:                  #7c7c67;
+  --chart-3:                  #5b5b4b;
+  --chart-4:                  #474739;
+  --chart-5:                  #2b2b22;
+}
+
+[data-chart="zinc"] {
+  --chart-1:                  #d4d4d8;
+  --chart-2:                  #71717b;
+  --chart-3:                  #52525c;
+  --chart-4:                  #3f3f46;
+  --chart-5:                  #27272a;
+}
+
+[data-chart="stone"] {
+  --chart-1:                  #d6d3d1;
+  --chart-2:                  #79716b;
+  --chart-3:                  #57534d;
+  --chart-4:                  #44403b;
+  --chart-5:                  #292524;
+}
+
+[data-chart="mauve"] {
+  --chart-1:                  #d7d0d7;
+  --chart-2:                  #79697b;
+  --chart-3:                  #594c5b;
+  --chart-4:                  #463947;
+  --chart-5:                  #2a212c;
+}
+
+[data-chart="mist"] {
+  --chart-1:                  #d0d6d8;
+  --chart-2:                  #67787c;
+  --chart-3:                  #4b585b;
+  --chart-4:                  #394447;
+  --chart-5:                  #22292b;
+}
+
+[data-chart="blue"] {
+  --chart-1:                  #8ec5ff;
+  --chart-2:                  #2b7fff;
+  --chart-3:                  #155dfc;
+  --chart-4:                  #1447e6;
+  --chart-5:                  #193cb8;
+}
+
+[data-chart="emerald"] {
+  --chart-1:                  #5ee9b5;
+  --chart-2:                  #00bc7d;
+  --chart-3:                  #009966;
+  --chart-4:                  #007a55;
+  --chart-5:                  #006045;
+}
+
+[data-chart="green"] {
+  --chart-1:                  #7bf1a8;
+  --chart-2:                  #00c950;
+  --chart-3:                  #00a63e;
+  --chart-4:                  #008236;
+  --chart-5:                  #016630;
+}
+
+[data-chart="lime"] {
+  --chart-1:                  #bbf451;
+  --chart-2:                  #7ccf00;
+  --chart-3:                  #5ea500;
+  --chart-4:                  #497d00;
+  --chart-5:                  #3c6300;
+}
+
+[data-chart="pink"] {
+  --chart-1:                  #fda5d5;
+  --chart-2:                  #f6339a;
+  --chart-3:                  #e60076;
+  --chart-4:                  #c6005c;
+  --chart-5:                  #a3004c;
+}
+
+/* rose/sky/teal/violet/yellow -- real, fully isolated 5-stop ramps,
+ * user-supplied [session follow-up], same sRGB-matrix conversion as
+ * every other chart color. Brand/theme-color counterparts for these 5
+ * names don't exist yet (only chart data was supplied) -- Theme color
+ * still has just the original 7 (default/blue/amber/cyan/fuchsia/
+ * indigo/orange/red); revisit if brand versions of these 5 are wanted. */
+[data-chart="rose"] {
+  --chart-1:                  #ffa1ad;
+  --chart-2:                  #ff2056;
+  --chart-3:                  #ec003f;
+  --chart-4:                  #c70036;
+  --chart-5:                  #a50036;
+}
+
+[data-chart="sky"] {
+  --chart-1:                  #74d4ff;
+  --chart-2:                  #00a6f4;
+  --chart-3:                  #0084d1;
+  --chart-4:                  #0069a8;
+  --chart-5:                  #00598a;
+}
+
+[data-chart="teal"] {
+  --chart-1:                  #46ecd5;
+  --chart-2:                  #00bba7;
+  --chart-3:                  #009689;
+  --chart-4:                  #00786f;
+  --chart-5:                  #005f5a;
+}
+
+[data-chart="violet"] {
+  --chart-1:                  #c4b4ff;
+  --chart-2:                  #8e51ff;
+  --chart-3:                  #7f22fe;
+  --chart-4:                  #7008e7;
+  --chart-5:                  #5d0ec0;
+}
+
+[data-chart="yellow"] {
+  --chart-1:                  #ffdf20;
+  --chart-2:                  #f0b100;
+  --chart-3:                  #d08700;
+  --chart-4:                  #a65f00;
+  --chart-5:                  #894b00;
+}
+
+/* amber/cyan/fuchsia/indigo/orange/red/purple -- to complete the 17-color
+ * roster [session follow-up]. These 6 (not purple) have a REAL captured
+ * hue+chroma anchor (their own data-brand primary, or --destructive for
+ * red) but no isolated chart-ramp export was ever gathered for them.
+ * Derived by computing a canonical 5-stop lightness/chroma-ratio
+ * template from the average of the 10 real full ramps already in this
+ * file (Blue/Emerald/Green/Lime/Pink/Rose/Sky/Teal/Violet/Yellow), then
+ * applying each color's own real hue+chroma at that template's shape --
+ * hue held constant across all 5 stops (real ramps show a few degrees of
+ * natural drift; this is a documented, minor simplification). Weaker
+ * confidence than a genuine capture, but built from real per-color data,
+ * not guessed.
+ *
+ * purple has NO real anchor anywhere in any export gathered -- hue 308
+ * is a plain interpolation between violet (293) and fuchsia (324),
+ * flagged here again (see the data-brand="purple" comment above for the
+ * full caveat) as the weakest-confidence entry in the whole system. */
+[data-chart="amber"] {
+  --chart-1:                  #ffb483;
+  --chart-2:                  #ed7422;
+  --chart-3:                  #ca5b00;
+  --chart-4:                  #a54800;
+  --chart-5:                  #853c07;
+}
+
+[data-chart="cyan"] {
+  --chart-1:                  #92d8f2;
+  --chart-2:                  #3aaacd;
+  --chart-3:                  #1d8dae;
+  --chart-4:                  #14728d;
+  --chart-5:                  #175d72;
+}
+
+[data-chart="fuchsia"] {
+  --chart-1:                  #ff9dff;
+  --chart-2:                  #e648f6;
+  --chart-3:                  #c42cd3;
+  --chart-4:                  #9f21ac;
+  --chart-5:                  #81208a;
+}
+
+[data-chart="indigo"] {
+  --chart-1:                  #b0beff;
+  --chart-2:                  #7c7eff;
+  --chart-3:                  #6562ff;
+  --chart-4:                  #514eda;
+  --chart-5:                  #4141af;
+}
+
+[data-chart="orange"] {
+  --chart-1:                  #ffa984;
+  --chart-2:                  #ff6025;
+  --chart-3:                  #db4600;
+  --chart-4:                  #b23700;
+  --chart-5:                  #902f09;
+}
+
+[data-chart="red"] {
+  --chart-1:                  #ff9788;
+  --chart-2:                  #ff3132;
+  --chart-3:                  #f00018;
+  --chart-4:                  #c40011;
+  --chart-5:                  #9e0f13;
+}
+
+[data-chart="purple"] {
+  --chart-1:                  #eea7ff;
+  --chart-2:                  #c95aff;
+  --chart-3:                  #aa40ef;
+  --chart-4:                  #8a32c3;
+  --chart-5:                  #6f2c9d;
 }
